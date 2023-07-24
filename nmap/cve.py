@@ -5,12 +5,42 @@ import sys
 
 import requests
 import xmltodict
+from cpe import CPE
+
+
+def extract_cve_ids(json_data):
+    cve_ids = []
+    for entry in json_data.get("vulnerabilities", []):
+        cve_object = entry.get("cve", {})
+        cve_id = cve_object.get("id")
+        if cve_id:
+            cve_ids.append(cve_id)
+    return cve_ids
+
+
+def merge_and_flatten(json_data):
+    result = {}
+
+    for ip_address, cve_lists in json_data.items():
+        merged_list = []
+
+        for cve_list in cve_lists:
+            merged_list.extend(cve_list)
+
+        result[ip_address] = merged_list
+
+    return result
+
+
+def _get_cpe_23_str(cpe_string):
+    return CPE(cpe_string, CPE.VERSION_2_3).as_fs()
 
 
 def getcpe(xmlfile):
     cpe, cve = {}, {}
 
     oo = xmltodict.parse(open('/opt/xml/' + xmlfile, 'r').read())
+    # oo = xmltodict.parse(open('report_today.xml', 'r').read())
     o = json.loads(json.dumps(oo['nmaprun'], indent=4))
 
     for ik in o['host']:
@@ -76,46 +106,49 @@ def getcve(xmlfile):
     cvejson = {}
 
     for i in cpecve['cpe']:
-        print(i)
-
+        # extract ip addresses with cpes from cpecve and add empty values to dict
         if i not in cvejson:
             cvejson[i] = []
 
         for cpestr in cpecve['cpe'][i]:
-            print(cpestr)
-            if re.search('^cpe:[^:]+:[^:]+:[^:]+:.+$', cpestr):
-                r = requests.get('http://cve.circl.lu/api/cvefor/' + cpestr)
-                if r.json() is not None:
-                    if r.json() is dict:
-                        cvejson[i].append(r.json())
-                    else:
-                        cvejson[i].append(r.json())
+            cpe23str = _get_cpe_23_str(cpestr)
+            if re.search('^cpe:/([^:]+):([^:]+):([^:]+)(?::([^:]+))?$', cpestr):
+                # r = requests.get('http://cve.circl.lu/api/cvefor/' + cpestr)
+                r = requests.get(f'https://services.nvd.nist.gov/rest/json/cves/2.0?cpeName={cpe23str}')
+
+                try:
+                    response = r.json()
+                except:
+                    response = None
+
+                if response is not None:
+                    cves = extract_cve_ids(response)
+                    cvejson[i].append(cves)
+
+    cvejson = merge_and_flatten(cvejson)
+    cvejson_full = {key: [] for key in cvejson.keys()}
 
     for i in cpecve['cve']:
-        print(i)
-
         if i not in cvejson:
             cvejson[i] = []
 
-        for cvestr in cpecve['cve'][i]:
-            print(cvestr)
+        if i not in cvejson_full:
+            cvejson_full[i] = []
+
+        for cvestr in cvejson[i]:
             r = requests.get('http://cve.circl.lu/api/cve/' + cvestr)
             if r.json() is not None:
                 if r.json() is dict:
-                    cvejson[i].append(r.json())
+                    cvejson_full[i].append(r.json())
                 else:
-                    cvejson[i].append([r.json()])
+                    cvejson_full[i].append([r.json()])
 
-    for i in cvejson:
+    for i in cvejson_full:
         hostmd5 = hashlib.md5(str(i).encode('utf-8')).hexdigest()
-        # for cvei in cvejson[i]:
-        # print(cvei)
-        # continue
 
-        if type(cvejson[i]) is list and len(cvejson[i]) > 0:
-            f = open('/opt/notes/' + scanfilemd5 + '_' + hostmd5 + '.cve', 'w')
-            f.write(json.dumps(cvejson[i], indent=4))
-            f.close()
+        if type(cvejson_full[i]) is list and len(cvejson_full[i]) > 0:
+            with open(scanfilemd5 + '_' + hostmd5 + '.cve', 'w') as f:
+                f.write(json.dumps(cvejson_full[i], indent=4))
 
 
 getcve(sys.argv[1])

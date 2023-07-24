@@ -1,4 +1,4 @@
 requests~=2.31.0
 xmltodict~=0.13.0
-python-nmap
 Django~=4.2.3
+cpe~=1.2.1

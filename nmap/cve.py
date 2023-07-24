@@ -64,7 +64,7 @@ def getcpe(xmlfile):
 
         # this fix single host report
         if type(ik) is not dict:
-            break;
+            break
 
     res = {'cpe': cpe, 'cve': cve}
     return res

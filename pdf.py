@@ -273,7 +273,7 @@ def reportPDFView(request):
 
         # this fix single host report
         if type(ik) is not dict:
-            break;
+            break
 
     html_ports = ''
     javascript_ports = ''

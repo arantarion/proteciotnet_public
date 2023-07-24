@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 	<title>WebMap</title>
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -213,7 +213,7 @@
 		{% if scanfile %}
 			<li><i class="fas fa-file-pdf" style="margin-left:2px;font-size:20px;"></i> <a href="#!" onclick="javascript:genPDF('{{ scanmd5 }}');">PDF Report</a></li>
 			<li><i class="fas fa-bug" style="margin-left:2px;font-size:20px;"></i> <a href="#!" onclick="javascript:checkCVE();">Check CVE</a></li>
-			<li><i class="fas fa-project-diagram" style="margin-left:2px;font-size:18px;"></i> <a href="/report/view/network">Network View</a></li>
+{#			<li><i class="fas fa-project-diagram" style="margin-left:2px;font-size:18px;"></i> <a href="/report/view/network">Network View</a></li>#}
 		{% endif %}
 		<li id="activescan_line" style="display:none;" class="wm_line"><div>scan</div></li>
 		<section id="activescan_info" style="display:none;">
@@ -258,9 +258,9 @@
 
 	<li><div class="divider"></div></li>
 	<li><a class="subheader">Support WebMap on GitHub</a></li>
-	<li style="padding-left:30px;margin-top:-20px;"><a class="github-button" href="https://github.com/Rev3rseSecurity" data-size="large" data-show-count="true" aria-label="Follow @Rev3rseSecurity on GitHub">Follow @Rev3rseSecurity</a></li>
-	<li style="padding-left:30px;margin-top:-20px;"><a class="github-button" href="https://github.com/Rev3rseSecurity/WebMap" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star Rev3rseSecurity/WebMap on GitHub">Star WebMap</a></li>
-	<li style="padding-left:30px;margin-top:-20px;"><a class="github-button" href="https://github.com/Rev3rseSecurity/WebMap/fork" data-icon="octicon-repo-forked" data-size="large" data-show-count="true" aria-label="Fork Rev3rseSecurity/WebMap on GitHub">Fork WebMap</a></li>
+	<li style="padding-left:30px;margin-top:-20px;"><a class="github-button" href="https://gitlab.com/hweckermann" data-size="large" data-show-count="true" aria-label="Follow me on GitLab">Follow me</a></li>
+	<li style="padding-left:30px;margin-top:-20px;"><a class="github-button" href="https://gitlab.com/hweckermann/proteciotnet" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star me on GitLab">Star this project</a></li>
+	<li style="padding-left:30px;margin-top:-20px;"><a class="github-button" href="https://gitlab.com/hweckermann/proteciotnet/fork" data-icon="octicon-repo-forked" data-size="large" data-show-count="true" aria-label="Fork on GitLab">Fork</a></li>
 </ul>
 {% endif %}
 

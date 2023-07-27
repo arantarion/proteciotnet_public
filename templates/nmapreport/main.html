@@ -3,25 +3,43 @@
 <html lang="en">
 <head>
 	<title>ProtecIotnet</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'img/favicon.png' %}" >
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" media="screen,projection" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
-	<script async defer src="https://buttons.github.io/buttons.js"></script>
+{#	<script async defer src="https://buttons.github.io/buttons.js"></script>#}
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
 
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis-network.min.js"></script>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis-network.min.css" />
+{#	<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis-network.min.js"></script>#}
+{#	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis-network.min.css" />#}
 
 	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 	<script src="{% static "/async.js" %}"></script>
 
+    <script>
+        window.onscroll = function() { scrollFunction() };
+
+        function scrollFunction() {
+          if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+            $('#myBtn').fadeIn();
+          } else {
+            $('#myBtn').fadeOut();
+          }
+        }
+
+        function topFunction() {
+          document.body.scrollTop = 0; // For Safari
+          document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+        }
+    </script>
+
 	<style>
 		body,html {
-			background-image:url({% static "/img/bg3.png" %}); */
+			background-image:url({% static "/img/bg3.png" %});
 			background-repeat: no-repeat;
 			background-attachment: fixed;
 			background-size:100% 100%;
@@ -177,10 +195,37 @@
 		}
 
 
+        #myBtn {
+  {#display: none; /* Hidden by default */#}
+  {#position: fixed; /* Fixed/sticky position */#}
+  {#bottom: 20px; /* Place the button at the bottom of the page */#}
+  {#right: 30px; /* Place the button 30px from the right */#}
+  {#z-index: 99; /* Make sure it does not overlap */#}
+  {#border: none; /* Remove borders */#}
+  {#outline: none; /* Remove outline */#}
+  {#background-color: red; /* Set a background color */#}
+  {#color: white; /* Text color */#}
+  {#cursor: pointer; /* Add a mouse pointer on hover */#}
+  {#padding: 15px; /* Some padding */#}
+  {#border-radius: 10px; /* Rounded corners */#}
+  {#font-size: 18px; /* Increase font size */#}
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: none;
+            background-color: #b22527;
+        }
+
+#myBtn:hover {
+  background-color: #555; /* Add a dark-grey background on hover */
+}
+
 	</style>
 </head>
 
 <body>
+
+<button onclick="topFunction()" class="btn btn-danger btn-floating btn-lg" id="myBtn" title="Go to top"><i class="fas fa-arrow-up"></i></button>
 
 <div class="navbar-fixed">
 <nav class="" id="topnavbar" style="background-color:rgba(10,10,10,0.0);box-shadow:none;">
@@ -200,7 +245,7 @@
 				<a href="#!" onclick="javascript:$('.sidenav').sidenav('open');"><i class="material-icons white-text">menu</i></a>
 			</div>
 			<div class="col s4">
-				<a href="#" class="brand-logo"><img src="/static/logo.png" style="max-width:200px;margin-top:8px;"></a>
+				<a href="/setscanfile/unset" class="brand-logo"><img src="/static/logo.png" style="max-width:200px;margin-top:8px;"></a>
 			</div>
 		</div>
 
@@ -210,10 +255,12 @@
 
 
 {% if auth %}
+
+
 <div class="arrow-up hide-on-med-and-down"></div>
 <div class="wm_menu grey-text hide-on-med-and-down show-on-large">
 	<ul>
-		<li><i class="material-icons">track_changes</i> <a href="/setscanfile/unset">Show all nmap scan</a></li>
+		<li><i class="material-icons">track_changes</i> <a href="/setscanfile/unset">Show all scans</a></li>
 		<li><i class="material-icons">settings_input_antenna</i> <a href="/">Show scan details</a></li>
 		<li><i class="material-icons">add_box</i> <a href="#!" onclick="javascript:newscan();">New Nmap scan</a></li>
 		{% if scanfile %}
@@ -244,10 +291,13 @@
 			{% endfor %}
 		{% endif %}
 		<li class="wm_line"><div>social</div></li>
-		<li><i class="fab fa-github" style="font-size:20px;"></i> <a href="">GitHub Project</a></li>
-		<li><i class="fas fa-star"></i> <a href="#!" id="githubstar">1</a></li>
-		<li><i class="fas fa-code-branch"></i> <a href="#!" id="githubfork">1</a></li>
+		<li><i class="fab fa-gitlab"></i> <a href="https://gitlab.com/hweckermann/proteciotnet">GitLab Project</a></li>
+{#        <li> <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M503.5 204.6L502.8 202.8L433.1 21.02C431.7 17.45 429.2 14.43 425.9 12.38C423.5 10.83 420.8 9.865 417.9 9.57C415 9.275 412.2 9.653 409.5 10.68C406.8 11.7 404.4 13.34 402.4 15.46C400.5 17.58 399.1 20.13 398.3 22.9L351.3 166.9H160.8L113.7 22.9C112.9 20.13 111.5 17.59 109.6 15.47C107.6 13.35 105.2 11.72 102.5 10.7C99.86 9.675 96.98 9.295 94.12 9.587C91.26 9.878 88.51 10.83 86.08 12.38C82.84 14.43 80.33 17.45 78.92 21.02L9.267 202.8L8.543 204.6C-1.484 230.8-2.72 259.6 5.023 286.6C12.77 313.5 29.07 337.3 51.47 354.2L51.74 354.4L52.33 354.8L158.3 434.3L210.9 474L242.9 498.2C246.6 500.1 251.2 502.5 255.9 502.5C260.6 502.5 265.2 500.1 268.9 498.2L300.9 474L353.5 434.3L460.2 354.4L460.5 354.1C482.9 337.2 499.2 313.5 506.1 286.6C514.7 259.6 513.5 230.8 503.5 204.6z"/></svg> <a href="https://gitlab.com/hweckermann/proteciotnet">GitLab Project</a></li>#}
+		<li><i class="fas fa-star"></i> <a href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabstar">Star me</a></li>
+		<li><i class="fas fa-code-branch"></i> <a href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabfork">Fork me</a></li>
 	</ul>
+
+
 </div>
 {% endif %}
 
@@ -263,9 +313,9 @@
 
 	<li><div class="divider"></div></li>
 	<li><a class="subheader">Support ProtecIotnet on GitLab</a></li>
-	<li style="padding-left:30px;margin-top:-20px;"><a class="github-button" href="https://gitlab.com/hweckermann" data-size="large" data-show-count="true" aria-label="Follow me on GitLab">Follow me</a></li>
-	<li style="padding-left:30px;margin-top:-20px;"><a class="github-button" href="https://gitlab.com/hweckermann/proteciotnet" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star me on GitLab">Star this project</a></li>
-	<li style="padding-left:30px;margin-top:-20px;"><a class="github-button" href="https://gitlab.com/hweckermann/proteciotnet/fork" data-icon="octicon-repo-forked" data-size="large" data-show-count="true" aria-label="Fork on GitLab">Fork</a></li>
+	<li style="padding-left:30px;margin-top:-20px;"><i class="fab fa-gitlab"></i> <a href="https://gitlab.com/hweckermann/proteciotnet">GitLab Project</a></li>
+	<li style="padding-left:30px;margin-top:-20px;"><i class="fas fa-star"></i> <a href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabstar">Star me</a></li>
+	<li style="padding-left:30px;margin-top:-20px;"><i class="fas fa-code-branch"></i> <a href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabfork">Fork me</a></li>
 </ul>
 {% endif %}
 

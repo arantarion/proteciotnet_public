@@ -11,12 +11,20 @@ from collections import OrderedDict
 from django.http import HttpResponse
 from django.shortcuts import render
 
+from functions import _get_cwe_description
 from nmapreport.functions import *
 
-V2_PATTERN = "AV:([L|A|N])/AC:([H|M|L])/Au:([M|S|N])/C:([N|P|C])/I:([N|P|C])/A:([N|P|C])"
+V2_PATTERN = "AV:([L|A|N])/AC:(H|M|L)/Au:([M|S|N])/C:([N|P|C])/I:([N|P|C])/A:([N|P|C])"
 class CVSS_Vector:
     def __init__(self, cvss_vec, cve_id):
-        matches = re.findall(V2_PATTERN, cvss_vec)
+        try:
+            matches = re.findall(V2_PATTERN, cvss_vec)
+        except IndexError:
+            matches = [('-', '-', '-', '-', '-', '-')]
+
+        if not matches:
+            matches = [('-', '-', '-', '-', '-', '-')]
+
         self.cve_id = cve_id
         self.access_vector = matches[0][0]
         self.access_complexity = matches[0][1]
@@ -24,7 +32,7 @@ class CVSS_Vector:
         self.confidentiality_impact = matches[0][3]
         self.integrity_impact = matches[0][4]
         self.availability_impact = matches[0][5]
-        
+
         self.access_vector_text = self._get_full_access_vector(self.access_vector)
         self.access_complexity_text = self._get_full_access_complexity(self.access_complexity)
         self.authentication_text = self._get_full_authentication(self.authentication)
@@ -57,6 +65,8 @@ class CVSS_Vector:
             return "Adjacent Network"
         elif av == "N":
             return "Network"
+        else:
+            return "NaN"
 
 
     def _get_full_access_complexity(self, ac):
@@ -66,6 +76,8 @@ class CVSS_Vector:
             return "Medium"
         elif ac == "L":
             return "Low"
+        else:
+            return "NaN"
         
         
     def _get_full_authentication(self, a):
@@ -75,6 +87,8 @@ class CVSS_Vector:
             return "Single"
         elif a == "N":
             return "None"
+        else:
+            return "NaN"
     
     
     def _get_full_con_impact(self, ci):
@@ -84,6 +98,8 @@ class CVSS_Vector:
             return "Partial"
         elif ci == "C":
             return "Complete"
+        else:
+            return "NaN"
 
 
 def login(request):
@@ -151,8 +167,7 @@ def details(request, address):
     # collect all cve in cvehost dict
     cvehost = get_cve(scanmd5)
 
-    r[
-        'trhead'] = '<tr><th>Port</th><th style="width:300px;">Product / Version</th><th>Extra Info</th><th>&nbsp;</th></tr>'
+    r['trhead'] = '<tr><th>Port</th><th style="width:300px;">Product / Version</th><th>Extra Info</th><th>&nbsp;</th></tr>'
     for ik in o['host']:
         pel = 0
         # this fix single host report
@@ -401,22 +416,27 @@ def details(request, address):
                                        
                     cvss_score = cveobj.get('cvss', '')
                     label_color, font_color = get_cvss_color(cvss_score)
-                    
+
+                    cwe_string = f'<span class="label grey">' + html.escape(cveobj['cwe']) + '</span>'
                     if "Other" not in cveobj["cwe"] and "noinfo" not in cveobj["cwe"]:
-                        cwe_string = f'	<span class="label grey">' + f"<a href=https://cwe.mitre.org/data/definitions/{cveobj['cwe'][4:]}.html style='color:white' target='_BLANK'>" + html.escape(cveobj['cwe']) + '</a></span>'
-                    else: 
-                        cwe_string = f'	<span class="label grey">' + html.escape(cveobj['cwe']) + '</span>'
-                                        
-                    cvss_vector = cveobj["cvss-vector"]
-                    cvss_vec_obj = CVSS_Vector(cvss_vector, cveobj["id"])
+                        cwe_tooltip = f'<a href="https://cwe.mitre.org/data/definitions/{cveobj["cwe"][4:]}.html" data-toggle="tooltip" data-placement="top" title="{_get_cwe_description(cveobj["cwe"])}" style="color:white">{cwe_string}</a>'
+                    else:
+                        cwe_tooltip = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{_get_cwe_description(cveobj["cwe"])}" style="color:white">{cwe_string}</a>'
+
+                    try:
+                        cvss_vector = cveobj["cvss-vector"]
+                        cvss_vec_obj = CVSS_Vector(cvss_vector, cveobj["id"])
+                    except KeyError:
+                        cvss_vector = "AV:-/AC:-/Au:-/C:-/I:-/A:-"
+                        cvss_vec_obj = CVSS_Vector(cvss_vector, cveobj["id"])
                     
                     cvss_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss_vec_obj.__str__()}" style="color:white">{html.escape(cvss_vector)}</a>'
-                    
+
                     cveout += f'<div id="' + html.escape(cveobj['id']) + '" style="line-height:28px;padding:10px;border-bottom:solid #666 1px;margin-top:10px;">' + \
-                              f'	<span class="label light-blue">' + f"<a href=https://nvd.nist.gov/vuln/detail/{html.escape(cveobj['id'])} style='color:white' target='_BLANK'>" + html.escape(cveobj['id']) + '</a></span> ' + '&nbsp; - &nbsp;' + \
-                              f'	<span class="label {label_color}" style="color:{font_color}">' + html.escape(f"CVSS 2.0 score: {str(cveobj['cvss'])}") + '</span> '  + \
-                              f'    <span class="label grey">' + cvss_vector_html + '</span>' + \
-                              cwe_string + \
+                              f'	<a href=https://nvd.nist.gov/vuln/detail/{html.escape(cveobj["id"])} style="color:white" target="_BLANK"> <span class="label blue" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);">' + html.escape(cveobj['id']) + '</span></a> ' + '&nbsp; - &nbsp;' + \
+                              f'	<span class="label {label_color}" style="color:{font_color}">' + html.escape(f"CVSS 2.0 score: {str(cveobj['cvss'])}") + '</span> ' + \
+                              f'    <span class="label grey">' + cvss_vector_html + '</span>' + " " + \
+                              cwe_tooltip + \
                               f'    <br><br>' + \
                               html.escape(cveobj['summary']) + '<br><br>' + \
                               f'	<div class="small" style="line-height:20px;"><b>References:</b><br>' + cverefout + '</div>' + cveexdbout + '</div>'

@@ -1,13 +1,6 @@
 from django.urls import path
 from . import views, api, pdf, functions_nmap
-#import api
 
-# import network
-# import functions_nmap
-# import pdf
-# import views
-
-# import ndiff
 
 urlpatterns = [
     path('', views.index, name='index'),

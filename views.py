@@ -1,12 +1,89 @@
 import base64
 import html
+import xmltodict
+import json
+import hashlib
+import re
+import os
 import urllib.parse
 from collections import OrderedDict
 
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from functions import *
+from nmapreport.functions import *
+
+V2_PATTERN = "AV:([L|A|N])/AC:([H|M|L])/Au:([M|S|N])/C:([N|P|C])/I:([N|P|C])/A:([N|P|C])"
+class CVSS_Vector:
+    def __init__(self, cvss_vec, cve_id):
+        matches = re.findall(V2_PATTERN, cvss_vec)
+        self.cve_id = cve_id
+        self.access_vector = matches[0][0]
+        self.access_complexity = matches[0][1]
+        self.authentication = matches[0][2]
+        self.confidentiality_impact = matches[0][3]
+        self.integrity_impact = matches[0][4]
+        self.availability_impact = matches[0][5]
+        
+        self.access_vector_text = self._get_full_access_vector(self.access_vector)
+        self.access_complexity_text = self._get_full_access_complexity(self.access_complexity)
+        self.authentication_text = self._get_full_authentication(self.authentication)
+        self.confidentiality_impact_text = self._get_full_con_impact(self.confidentiality_impact)
+        self.integrity_impact_text = self._get_full_con_impact(self.integrity_impact)
+        self.availability_impact_text = self._get_full_con_impact(self.availability_impact)
+    
+    
+    # TODO
+    def __str__(self):
+        return f"Access Vector (AV):\t\t\t{self.access_vector_text}\n" \
+       f"Access Complexity (AC):\t\t{self.access_complexity_text}\n" \
+       f"Authentication (Au):\t\t{self.authentication_text}\n" \
+       f"Confidentiality Impact (C):\t{self.confidentiality_impact_text}\n" \
+       f"Integrity Impact (I):\t\t\t{self.integrity_impact_text}\n" \
+       f"Availability Impact (A):\t\t{self.availability_impact_text}"
+
+               
+               
+    def __repr__(self):
+        return f"CVSS_vector(cvss_vec='{self.access_vector}/{self.access_complexity}/" \
+               f"{self.authentication}/{self.confidentiality_impact}/" \
+               f"{self.integrity_impact}/{self.availability_impact}')"
+    
+    
+    def _get_full_access_vector(self, av):
+        if av == "L":
+            return "Local"
+        elif av == "A":
+            return "Adjacent Network"
+        elif av == "N":
+            return "Network"
+
+
+    def _get_full_access_complexity(self, ac):
+        if ac == "H":
+            return "High"
+        elif ac == "M":
+            return "Medium"
+        elif ac == "L":
+            return "Low"
+        
+        
+    def _get_full_authentication(self, a):
+        if a == "M":
+            return "Multiple"
+        elif a == "S":
+            return "Single"
+        elif a == "N":
+            return "None"
+    
+    
+    def _get_full_con_impact(self, ci):
+        if ci == "N":
+            return "None"
+        elif ci == "P":
+            return "Partial"
+        elif ci == "C":
+            return "Complete"
 
 
 def login(request):
@@ -321,14 +398,28 @@ def details(request, address):
                                 cveexdbout += '<a href="' + cveexdb['source'] + '">' + html.escape(
                                     cveexdb['title']) + '</a><br>'
                         cveexdbout += '</div>'
-
-                    cveout += '<div id="' + html.escape(cveobj[
-                                                            'id']) + '" style="line-height:28px;padding:10px;border-bottom:solid #666 1px;margin-top:10px;">' + \
-                              '	<span class="label red">' + html.escape(cveobj['id']) + '</span> ' + html.escape(
-                        cveobj['summary']) + '<br><br>' + \
-                              '	<div class="small" style="line-height:20px;"><b>References:</b><br>' + cverefout + '</div>' + \
-                              cveexdbout + \
-                              '</div>'
+                                       
+                    cvss_score = cveobj.get('cvss', '')
+                    label_color, font_color = get_cvss_color(cvss_score)
+                    
+                    if "Other" not in cveobj["cwe"] and "noinfo" not in cveobj["cwe"]:
+                        cwe_string = f'	<span class="label grey">' + f"<a href=https://cwe.mitre.org/data/definitions/{cveobj['cwe'][4:]}.html style='color:white' target='_BLANK'>" + html.escape(cveobj['cwe']) + '</a></span>'
+                    else: 
+                        cwe_string = f'	<span class="label grey">' + html.escape(cveobj['cwe']) + '</span>'
+                                        
+                    cvss_vector = cveobj["cvss-vector"]
+                    cvss_vec_obj = CVSS_Vector(cvss_vector, cveobj["id"])
+                    
+                    cvss_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss_vec_obj.__str__()}" style="color:white">{html.escape(cvss_vector)}</a>'
+                    
+                    cveout += f'<div id="' + html.escape(cveobj['id']) + '" style="line-height:28px;padding:10px;border-bottom:solid #666 1px;margin-top:10px;">' + \
+                              f'	<span class="label light-blue">' + f"<a href=https://nvd.nist.gov/vuln/detail/{html.escape(cveobj['id'])} style='color:white' target='_BLANK'>" + html.escape(cveobj['id']) + '</a></span> ' + '&nbsp; - &nbsp;' + \
+                              f'	<span class="label {label_color}" style="color:{font_color}">' + html.escape(f"CVSS 2.0 score: {str(cveobj['cvss'])}") + '</span> '  + \
+                              f'    <span class="label grey">' + cvss_vector_html + '</span>' + \
+                              cwe_string + \
+                              f'    <br><br>' + \
+                              html.escape(cveobj['summary']) + '<br><br>' + \
+                              f'	<div class="small" style="line-height:20px;"><b>References:</b><br>' + cverefout + '</div>' + cveexdbout + '</div>'
                     cveids[cveobj['id']] = cveobj['id']
 
             r['cveids'] = cveids
@@ -358,8 +449,7 @@ def index(request, filterservice="", filterportid=""):
     r = {'auth': True}
 
     gitcmd = os.popen('cd /opt/nmapdashboard/nmapreport && git rev-parse --abbrev-ref HEAD')
-    r[
-        'webmapver'] = 'WebMap ' + gitcmd.read() + '<br>This project is currently a beta, please <b>DO NOT</b> expose WebMap to internet.<br>This version is <b>NOT</b> production ready.'
+    r['webmapver'] = ''
 
     if 'scanfile' in request.session:
         oo = xmltodict.parse(open('/opt/xml/' + request.session['scanfile'], 'r').read())
@@ -851,26 +941,6 @@ def index(request, filterservice="", filterportid=""):
         base64.b64encode(json.dumps(cpedict).encode())) + '" /> '
 
     return render(request, 'nmapreport/nmap_hostdetails.html', r)
-
-
-# def scan_diff(request, f1, f2):
-#     r = {}
-#
-#     if 'auth' not in request.session:
-#         return render(request, 'nmapreport/nmap_auth.html', r)
-#     else:
-#         r['auth'] = True
-#
-#     try:
-#         if xmltodict.parse(open('/opt/xml/' + f1, 'r').read()) is not None:
-#             r['f1'] = f1
-#         if xmltodict.parse(open('/opt/xml/' + f2, 'r').read()) is not None:
-#             r['f2'] = f2
-#     except:
-#         r['f1'] = ''
-#         r['f2'] = ''
-#
-#     return render(request, 'nmapreport/nmap_ndiff.html', r)
 
 
 def about(request):

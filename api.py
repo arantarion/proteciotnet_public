@@ -1,12 +1,12 @@
 import base64
 import html
 import urllib.parse
-import urllib.parse
 
+import xmltodict, json, hashlib, re
 import requests
 from django.http import HttpResponse
 
-from functions import *
+from nmapreport.functions import *
 
 
 def rmNotes(request, hashstr):
@@ -123,7 +123,8 @@ def getCVE(request):
 
     if request.method == "POST":
         scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
-        cveproc = os.popen('python3 /opt/nmapdashboard/nmapreport/nmap/cve.py ' + request.session['scanfile'])
+        print("IM HERE. YOU CALLED getCVE()")
+        cveproc = os.popen('sudo python3 /opt/nmapdashboard/nmapreport/nmap/cve.py ' + request.session['scanfile'])
         res['cveout'] = cveproc.read()
         cveproc.close()
 
@@ -162,8 +163,8 @@ def getCVE(request):
 
 
 def apiv1_hostdetails(request, scanfile, faddress=""):
-    if token_check(request.GET['token']) is not True:
-        return HttpResponse(json.dumps({'error': 'invalid token'}, indent=4), content_type="application/json")
+    #if token_check(request.GET['token']) is not True:
+    #    return HttpResponse(json.dumps({'error': 'invalid token'}, indent=4), content_type="application/json")
 
     oo = xmltodict.parse(open('/opt/xml/' + scanfile, 'r').read())
     out2 = json.dumps(oo['nmaprun'], indent=4)
@@ -305,8 +306,8 @@ def apiv1_hostdetails(request, scanfile, faddress=""):
 
 def apiv1_scan(request):
     r = {}
-    if token_check(request.GET['token']) is not True:
-        return HttpResponse(json.dumps({'error': 'invalid token'}, indent=4), content_type="application/json")
+    # if token_check(request.GET['token']) is not True:
+    #     return HttpResponse(json.dumps({'error': 'invalid token'}, indent=4), content_type="application/json")
 
     gitcmd = os.popen('cd /opt/nmapdashboard/nmapreport && git rev-parse --abbrev-ref HEAD')
     r['webmap_version'] = gitcmd.read().strip()

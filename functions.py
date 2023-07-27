@@ -9,6 +9,36 @@ import xmltodict
 def token_check(token):
     return True
 
+def get_cvss_color(cvss_score):
+    """ score_ranges = {
+        (0, 3.9): 'green',       # Low severity, color: red
+        (4.0, 6.9): 'yellow',  # Medium severity, color: orange
+        (7.0, 8.9): 'orange',  # High severity, color: yellow
+        (9.0, 10.0): 'red'   # Critical severity, color: green
+    } """
+    
+    score_ranges = {
+        (0, 3.9): 'green',       # Low severity, color: red
+        (4.0, 6.9): 'yellow',  # Medium severity, color: orange
+        (7.0, 10.0): 'red',  # High severity, color: yellow
+    }
+
+    try:
+        cvss_score = float(cvss_score)
+    except ValueError:
+        return None  # Return None if the cvss_score cannot be converted to a float
+
+    # Find the appropriate color based on the cvss_score
+    for score_range, color in score_ranges.items():
+        if score_range[0] <= cvss_score <= score_range[1]:
+            if color == "yellow":
+                return color, "black"
+            else: 
+                return color, "white"
+
+    # Return None if the cvss_score is not within any defined range
+    return None
+
 
 def labelToMargin(label):
     labels = {

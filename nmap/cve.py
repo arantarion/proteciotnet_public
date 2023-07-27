@@ -143,11 +143,14 @@ def getcve(xmlfile):
                 else:
                     cvejson_full[i].append([r.json()])
 
+    print(cvejson_full)
+    
     for i in cvejson_full:
         hostmd5 = hashlib.md5(str(i).encode('utf-8')).hexdigest()
 
         if type(cvejson_full[i]) is list and len(cvejson_full[i]) > 0:
-            with open(scanfilemd5 + '_' + hostmd5 + '.cve', 'w') as f:
+            print(f"Writing file to /opt/notes/{scanfilemd5}_{hostmd5}.cve")
+            with open('/opt/notes/' + scanfilemd5 + '_' + hostmd5 + '.cve', 'w') as f:
                 f.write(json.dumps(cvejson_full[i], indent=4))
 
 

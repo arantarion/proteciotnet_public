@@ -1,10 +1,11 @@
 from django.urls import path
+from . import views, api, pdf, functions_nmap
+#import api
 
-import api
 # import network
-import functions_nmap
-import pdf
-import views
+# import functions_nmap
+# import pdf
+# import views
 
 # import ndiff
 
@@ -29,7 +30,7 @@ urlpatterns = [
     path('api/rmnotes/<hashstr>/', api.rmNotes, name='api_rmnotes'),
     path('api/<address>/<portid>/', api.port_details, name='api_port'),
     path('view/login/', views.login, name='login'),
-    path('view/pdf/', pdf.reportPDFView, name='reportPDFView'),
+    path('view/pdf/', pdf.reportPDFView, name='reportPDFView')
     # path('view/network/', network.visjs, name='network_view'),
-    path('view/ndiff/<f1>/<f2>', views.scan_diff, name='ndiffview')
+    #path('view/ndiff/<f1>/<f2>', views.scan_diff, name='ndiffview')
 ]

@@ -1,11 +1,11 @@
 import base64
 import html
 import urllib.parse
-
+import os, xmltodict, json, hashlib, re
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from functions import *
+from nmapreport.functions import *
 
 
 def reportPDFView(request):

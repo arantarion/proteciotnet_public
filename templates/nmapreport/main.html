@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<title>ProtecIotnet</title>
+	<title>ProtecIoTnet</title>
     <link rel="shortcut icon" type="image/png" href="{% static 'img/favicon.png' %}" >
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" crossorigin="anonymous">
@@ -10,11 +10,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
-{#	<script async defer src="https://buttons.github.io/buttons.js"></script>#}
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
 
-{#	<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis-network.min.js"></script>#}
-{#	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis-network.min.css" />#}
 
 	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
@@ -195,20 +192,7 @@
 		}
 
 
-        #myBtn {
-  {#display: none; /* Hidden by default */#}
-  {#position: fixed; /* Fixed/sticky position */#}
-  {#bottom: 20px; /* Place the button at the bottom of the page */#}
-  {#right: 30px; /* Place the button 30px from the right */#}
-  {#z-index: 99; /* Make sure it does not overlap */#}
-  {#border: none; /* Remove borders */#}
-  {#outline: none; /* Remove outline */#}
-  {#background-color: red; /* Set a background color */#}
-  {#color: white; /* Text color */#}
-  {#cursor: pointer; /* Add a mouse pointer on hover */#}
-  {#padding: 15px; /* Some padding */#}
-  {#border-radius: 10px; /* Rounded corners */#}
-  {#font-size: 18px; /* Increase font size */#}
+        #backToTopBtn {
             position: fixed;
             bottom: 20px;
             right: 20px;
@@ -216,16 +200,16 @@
             background-color: #b22527;
         }
 
-#myBtn:hover {
-  background-color: #555; /* Add a dark-grey background on hover */
-}
+        #backToTopBtn:hover {
+          background-color: #555; /* Add a dark-grey background on hover */
+        }
 
 	</style>
 </head>
 
 <body>
 
-<button onclick="topFunction()" class="btn btn-danger btn-floating btn-lg" id="myBtn" title="Go to top"><i class="fas fa-arrow-up"></i></button>
+<button onclick="topFunction()" class="btn btn-danger btn-floating btn-lg" id="backToTopBtn" title="Go to top"><i class="fas fa-arrow-up"></i></button>
 
 <div class="navbar-fixed">
 <nav class="" id="topnavbar" style="background-color:rgba(10,10,10,0.0);box-shadow:none;">
@@ -325,11 +309,11 @@
 	<!-- MODAL -->
 	<div id="modal1" class="modal modal-fixed-footer">
 		<div class="modal-content">
-			<h4 id="modaltitle">un titolo</h4>
-			<p id="modalbody">del testo</p>
+			<h4 id="modaltitle">Titel</h4>
+			<p id="modalbody">test</p>
 		</div>
 		<div class="modal-footer" id="modalfooter">
-			<a href="#!" class="modal-close waves-effect waves-green btn grey white-text">OK</a>
+			<a href="#!" class="modal-close waves-effect waves-green btn grey white-text">Ok</a>
 		</div>
 		{% csrf_token %}
 	</div>

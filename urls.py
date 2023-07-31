@@ -14,7 +14,6 @@ urlpatterns = [
     path('api/v1/scan', api.apiv1_scan, name='apiv1_scan'),
     path('api/v1/nmap/scan/active', functions_nmap.nmap_scaninfo, name='apiv1_scan_active'),
     path('api/v1/nmap/scan/new', functions_nmap.nmap_newscan, name='apiv1_scan_new'),
-    # path('api/v1/nmap/ndiff/<f1>/<f2>', ndiff.ndiff, name='ndiff'),
     path('api/setlabel/<objtype>/<label>/<hashstr>/', api.label, name='api_label'),
     path('api/rmlabel/<objtype>/<hashstr>/', api.rmlabel, name='api_rmlabel'),
     path('api/pdf/', api.genPDF, name='genPDF'),
@@ -24,6 +23,4 @@ urlpatterns = [
     path('api/<address>/<portid>/', api.port_details, name='api_port'),
     path('view/login/', views.login, name='login'),
     path('view/pdf/', pdf.reportPDFView, name='reportPDFView')
-    # path('view/network/', network.visjs, name='network_view'),
-    #path('view/ndiff/<f1>/<f2>', views.scan_diff, name='ndiffview')
 ]

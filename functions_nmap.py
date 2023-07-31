@@ -50,7 +50,7 @@ def nmap_newscan(request):
             '^[a-zA-Z0-9\-\.\:\/\s]+$', request.POST['target'])):
             res = {'p': request.POST}
             os.popen('nmap ' + request.POST[
-                'params'] + ' --script=' + settings.BASE_DIR + '/nmapreport/nmap/nse/ -oX /tmp/' + request.POST[
+                'params'] + ' --script=' + settings.BASE_DIR + '/proteciotnet_dev/nmap/nse/ -oX /tmp/' + request.POST[
                          'filename'] + '.active ' + request.POST['target'] + ' > /dev/null 2>&1 && ' +
                      'sleep 10 && mv /tmp/' + request.POST['filename'] + '.active /opt/xml/' + request.POST[
                          'filename'] + ' &')
@@ -58,7 +58,7 @@ def nmap_newscan(request):
             if request.POST['schedule'] == "true":
                 schedobj = {'params': request.POST, 'lastrun': time.time(), 'number': 0}
                 filenamemd5 = hashlib.md5(str(request.POST['filename']).encode('utf-8')).hexdigest()
-                writefile = settings.BASE_DIR + '/nmapreport/nmap/schedule/' + filenamemd5 + '.json'
+                writefile = settings.BASE_DIR + '/proteciotnet_dev/nmap/schedule/' + filenamemd5 + '.json'
                 file = open(writefile, "w")
                 file.write(json.dumps(schedobj, indent=4))
 

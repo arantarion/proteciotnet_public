@@ -5,7 +5,7 @@ import os, xmltodict, json, hashlib, re
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from nmapreport.functions import *
+from proteciotnet_dev.functions import *
 
 
 def reportPDFView(request):
@@ -443,4 +443,4 @@ def reportPDFView(request):
                  '	</div>' + \
                  '</div>'
 
-    return render(request, 'nmapreport/report.html', r)
+    return render(request, 'proteciotnet_dev/report.html', r)

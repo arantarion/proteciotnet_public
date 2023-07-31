@@ -11,8 +11,8 @@ from collections import OrderedDict
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from functions import _get_cwe_description
-from nmapreport.functions import *
+from proteciotnet_dev.functions import _get_cwe_description
+from proteciotnet_dev.functions import *
 
 V2_PATTERN = "AV:([L|A|N])/AC:(H|M|L)/Au:([M|S|N])/C:([N|P|C])/I:([N|P|C])/A:([N|P|C])"
 class CVSS_Vector:
@@ -108,7 +108,7 @@ def login(request):
     if request.method == "POST":
         return HttpResponse(json.dumps(r), content_type="application/json")
 
-    return render(request, 'nmapreport/main.html', r)
+    return render(request, 'proteciotnet_dev/main.html', r)
 
 
 def setscanfile(request, scanfile):
@@ -123,11 +123,11 @@ def setscanfile(request, scanfile):
         if 'scanfile' in request.session:
             del (request.session['scanfile'])
 
-    return render(request, 'nmapreport/nmap_hostdetails.html', {'js': '<script> location.href="/"; </script>'})
+    return render(request, 'proteciotnet_dev/nmap_hostdetails.html', {'js': '<script> location.href="/"; </script>'})
 
 
 def port(request, port):
-    return render(request, 'nmapreport/main.html',
+    return render(request, 'proteciotnet_dev/main.html',
                   {'out': '', 'table': '', 'scaninfo': '', 'scandetails': '', 'trhost': ''})
 
 
@@ -462,13 +462,13 @@ def details(request, address):
               '}); ' + \
               '</script>'
 
-    return render(request, 'nmapreport/nmap_portdetails.html', r)
+    return render(request, 'proteciotnet_dev/nmap_portdetails.html', r)
 
 
 def index(request, filterservice="", filterportid=""):
     r = {'auth': True}
 
-    gitcmd = os.popen('cd /opt/nmapdashboard/nmapreport && git rev-parse --abbrev-ref HEAD')
+    gitcmd = os.popen('cd /opt/nmapdashboard/proteciotnet_dev && git rev-parse --abbrev-ref HEAD')
     r['webmapver'] = ''
 
     if 'scanfile' in request.session:
@@ -536,7 +536,7 @@ def index(request, filterservice="", filterportid=""):
         r['tr'] = OrderedDict(sorted(r['tr'].items()))
         r['stats']['xmlcount'] = xmlfilescount
 
-        return render(request, 'nmapreport/nmap_xmlfiles.html', r)
+        return render(request, 'proteciotnet_dev/nmap_xmlfiles.html', r)
 
     scanmd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
     r['scanfile'] = html.escape(str(request.session['scanfile']))
@@ -960,9 +960,9 @@ def index(request, filterservice="", filterportid=""):
     r['cpestring'] = ' <input type="hidden" id="cpestring" value="' + urllib.parse.quote_plus(
         base64.b64encode(json.dumps(cpedict).encode())) + '" /> '
 
-    return render(request, 'nmapreport/nmap_hostdetails.html', r)
+    return render(request, 'proteciotnet_dev/nmap_hostdetails.html', r)
 
 
 def about(request):
     r = {'auth': True}
-    return render(request, 'nmapreport/nmap_about.html', r)
+    return render(request, 'proteciotnet_dev/nmap_about.html', r)

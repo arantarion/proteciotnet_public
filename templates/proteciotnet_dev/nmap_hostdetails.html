@@ -79,16 +79,15 @@
 						<div class="col s4" style="border-right:solid #444 1px;">
 							<div class="hindex wmcard">{{ v.hostindex }}</div>
 							{{ v.newlabelout|safe }}
-
-							{% if v.po != 0 or v.pc != 0 or v.pf != 0 %}
-								<h5><a href="/report/{{ i }}" class="blue-text text-darken-3">{{ i }}</a></h5>{{ v.hostname|safe }}
+							{% if v.po != 0 or v.pc != 0 or v.pf != 0 or v.vendor != "" %}
+                                <h5><a href="/report/{{ i }}" class="blue-text text-darken-3">{{ i }}</a></h5><span style="font-size: 16px;">Vendor: {{ v.vendor }}</span>{{ v.hostname|safe }}
 							{% else %}
-								<h5>{{ i }}</h5>{{ v.hostname|safe }}
+								<h5>{{ i }}</h5><h5>{{ v.vendor }}</h5>{{ v.hostname|safe }}
 							{% endif %}
 
-							<i class="fas fa-door-open green-text"></i> <span class="green-text">{{ v.po }}</span>
-							<i class="fas fa-door-closed red-text"></i> <span class="red-text">{{ v.pc }}</span>
-							<i class="fas fa-filter orange-text"></i> <span class="orange-text">{{ v.pf }}</span>
+{#							<i class="fas fa-door-open green-text"></i> <span class="green-text">{{ v.po }}</span>#}
+{#							<i class="fas fa-door-closed red-text"></i> <span class="red-text">{{ v.pc }}</span>#}
+{#							<i class="fas fa-filter orange-text"></i> <span class="orange-text">{{ v.pf }}</span>#}
 
 						</div>
 						<div class="col s4 small grey-text">

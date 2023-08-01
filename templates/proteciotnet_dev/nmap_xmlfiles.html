@@ -6,35 +6,35 @@
 			<div class="col s12 m3">
 				<div class="card darken-1">
 					<div class="card-content grey darken-3 white-text">
-						<span class="card-title"><i class="fas fa-file-code"></i> {{ stats.xmlcount }}</span>
-						<p>XML Files</p>
+						<span class="card-title"><i class="fas fa-file-code"></i> {{ stats.xmlcount }} Network Devices</span>
+{#						<p>Nmap XML Files</p>#}
 					</div>
 				</div>
 			</div>
 			<div class="col s12 m3">
 				<div class="card darken-1">
-					<div class="card-content green darken-1 white-text">
-						<span class="card-title"><i class="fas fa-door-open"></i> {{ stats.po }}</span>
-						<p>Open ports</p>
+					<div class="card-content white-text" style="background-color: #0a3d91;">
+						<span class="card-title"><i class="fas fa-file-code"></i> Bluetooth Devices</span>
+
 					</div>
 				</div>
 			</div>
 			<div class="col s12 m3">
 				<div class="card darken-1">
-					<div class="card-content red darken-1 white-text">
-						<span class="card-title"><i class="fas fa-door-closed"></i> {{ stats.pc }}</span>
-						<p>Closed ports</p>
+					<div class="card-content white-text" style="background-color: #ef3453;">
+						<span class="card-title"><i class="fas fa-file-code"></i> ZigBee Devices</span>
+
 					</div>
 				</div>
 			</div>
-			<div class="col s12 m3">
-				<div class="card darken-1">
-					<div class="card-content grey darken-1 white-text">
-						<span class="card-title"><i class="fas fa-filter"></i> {{ stats.pf }}</span>
-						<p>Filtered ports</p>
-					</div>
-				</div>
-			</div>
+{#			<div class="col s12 m3">#}
+{#				<div class="card darken-1">#}
+{#					<div class="card-content grey darken-1 white-text">#}
+{#						<span class="card-title"><i class="fas fa-filter"></i> {{ stats.pf }}</span>#}
+{#						<p>Filtered ports</p>#}
+{#					</div>#}
+{#				</div>#}
+{#			</div>#}
 		</div>
 
 		<div class="card wmcard">
@@ -53,9 +53,31 @@
 						<td class="hide-on-small-only"><code>{{ v.startstr }}</code></td>
 						<td class="hide-on-small-only">{{ v.hostnum }}</td>
 						<td>
-							<i class="fas fa-door-open green-text"></i><span class="green-text">{{ v.portstats.po }}</span> 
-							<i class="fas fa-door-closed red-text"></i><span class="red-text">{{ v.portstats.pc }}</span>
-							<i class="fas fa-filter grey-text"></i><span class="grey-text">{{ v.portstats.pf }}</span>
+
+      <td>
+        <i class="fas fa-door-open green-text"></i>
+      </td>
+      <td>
+        <span class="green-text">{{ v.portstats.po }}</span>
+      </td>
+
+      <td>
+        <i class="fas fa-door-closed red-text"></i>
+      </td>
+      <td>
+        <span class="red-text">{{ v.portstats.pc }}</span>
+      </td>
+
+      <td>
+        <i class="fas fa-filter grey-text"></i>
+      </td>
+      <td>
+        <span class="grey-text">{{ v.portstats.pf }}</span>
+      </td>
+
+{#							<i class="fas fa-door-open green-text"></i><span class="green-text">{{ v.portstats.po }}</span> #}
+{#							<i class="fas fa-door-closed red-text"></i><span class="red-text">{{ v.portstats.pc }}</span>#}
+{#							<i class="fas fa-filter grey-text"></i><span class="grey-text">{{ v.portstats.pf }}</span>#}
 						</td>
 					</tr>
 				{% endfor %}

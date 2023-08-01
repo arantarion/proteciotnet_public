@@ -7,7 +7,6 @@ import re
 import os
 import urllib.parse
 from collections import OrderedDict
-from pprint import pprint
 
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -469,8 +468,8 @@ def details(request, address):
 def index(request, filterservice="", filterportid=""):
     r = {'auth': True}
 
-    gitcmd = os.popen('cd /opt/proteciotnet/proteciotnet_dev && git rev-parse --abbrev-ref HEAD')
-    r['webmapver'] = ''
+    gitcmd = os.popen('cd /opt/proteciotnet/proteciotnet_dev && git describe --long --abbrev=10 --tag')
+    r['webmapver'] = 'gitcmd'
 
     if 'scanfile' in request.session:
         oo = xmltodict.parse(open('/opt/xml/' + request.session['scanfile'], 'r').read())
@@ -587,6 +586,7 @@ def index(request, filterservice="", filterportid=""):
             # hostname = json.dumps(i['hostnames'])
             if 'hostname' in i['hostnames']:
                 # hostname += '<br>'
+
                 if type(i['hostnames']['hostname']) is list:
                     for hi in i['hostnames']['hostname']:
                         hostname += '<div class="small grey-text"><b>' + hi['@type'] + ':</b> ' + hi['@name'] + '</div>'
@@ -604,6 +604,19 @@ def index(request, filterservice="", filterportid=""):
             for ai in i['address']:
                 if ai['@addrtype'] == 'ipv4':
                     address = ai['@addr']
+
+        vendor = "unknown"
+        mac_address = ""
+        if '@vendor' in i['address']:
+            vendor = i['address']['@vendor']
+            mac_address = i['address']['@addr']
+        elif type(i['address']) is list:
+            for ai in i['address']:
+                if ai['@addrtype'] == 'mac':
+                    vendor = ai['@vendor']
+                    mac_address = ai['@addr']
+
+        print(vendor, mac_address)
 
         addressmd5 = hashlib.md5(str(address).encode('utf-8')).hexdigest()
 
@@ -713,6 +726,7 @@ def index(request, filterservice="", filterportid=""):
             if po == 0:
                 poclass = 'zeroportopen'
 
+
             labelout = '<span id="hostlabel' + str(hostindex) + '"></span>'
             newlabelout = '<div id="hostlabel' + str(hostindex) + '"></div><div id="hostlabelbb' + str(
                 hostindex) + '"></div>'
@@ -803,7 +817,8 @@ def index(request, filterservice="", filterportid=""):
                     'notesb64': notesb64,
                     'notesout': notesout,
                     'cveout': cveout,
-                    'cvecount': cvecount
+                    'cvecount': cvecount,
+                    'vendor': vendor
                 }
 
                 hostindex = (hostindex + 1)
@@ -960,8 +975,6 @@ def index(request, filterservice="", filterportid=""):
 
     r['cpestring'] = ' <input type="hidden" id="cpestring" value="' + urllib.parse.quote_plus(
         base64.b64encode(json.dumps(cpedict).encode())) + '" /> '
-
-    pprint(r)
 
     return render(request, 'proteciotnet_dev/nmap_hostdetails.html', r)
 

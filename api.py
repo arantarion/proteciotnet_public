@@ -163,9 +163,6 @@ def getCVE(request):
 
 
 def apiv1_hostdetails(request, scanfile, faddress=""):
-    #if token_check(request.GET['token']) is not True:
-    #    return HttpResponse(json.dumps({'error': 'invalid token'}, indent=4), content_type="application/json")
-
     oo = xmltodict.parse(open('/opt/xml/' + scanfile, 'r').read())
     out2 = json.dumps(oo['nmaprun'], indent=4)
     o = json.loads(out2)

@@ -468,7 +468,7 @@ def details(request, address):
 def index(request, filterservice="", filterportid=""):
     r = {'auth': True}
 
-    gitcmd = os.popen('cd /opt/nmapdashboard/proteciotnet_dev && git rev-parse --abbrev-ref HEAD')
+    gitcmd = os.popen('cd /opt/proteciotnet/proteciotnet_dev && git rev-parse --abbrev-ref HEAD')
     r['webmapver'] = ''
 
     if 'scanfile' in request.session:

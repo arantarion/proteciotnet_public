@@ -411,8 +411,10 @@ function setLabel(type, label, hashstr, i) {
 	$.get('/report/api/setlabel/'+type+'/'+label+'/'+hashstr+'/').done(function(data) {
 		console.log(data);
 		var res = data;
-		var color = 'grey'; var margin = '10px';
-		if(res['ok'] == 'label set') {
+		var color = 'grey';
+		var margin = '10px';
+
+		if(res['ok'] === 'label set') {
 
 			switch(res['label']) {
 				case 'Vulnerable': color = 'red'; margin = '10px'; break;

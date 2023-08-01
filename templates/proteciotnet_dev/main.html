@@ -4,18 +4,28 @@
 <head>
 	<title>ProtecIoTnet</title>
     <link rel="shortcut icon" type="image/png" href="{% static 'img/favicon.png' %}" >
-	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" crossorigin="anonymous">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" media="screen,projection" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+{#	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">#}
+{#	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" crossorigin="anonymous">#}
+{#	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" media="screen,projection" />#}
+{#	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>#}
+{#	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>#}
+{#	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>#}
+{#	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>#}
+{##}
+{##}
+{#	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>#}
 
+    <link rel="stylesheet" href="{% static "css/icon.css" %}">
+	<link rel="stylesheet" href="{% static "cdn/fontawesome/all.css" %}">
+	<link rel="stylesheet" href="{% static "css/materialize.min.css" %}" media="screen,projection" />
 
-	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-	<script src="{% static "/async.js" %}"></script>
+	<script src="{% static "js/jquery.min.js" %}"></script>
+	<script src="{% static "js/Chart.min.js" %}"></script>
+	<script src="{% static "js/clipboard.min.js" %}"></script>
+	<script src="{% static "js/sweetalert.min.js" %}"></script>
+	<script src="{% static "js/async.js" %}"></script>
 
     <script>
         window.onscroll = function() { scrollFunction() };

@@ -27,11 +27,6 @@ $(document).ready(function() {
 	active_scan_timer = setInterval(function() { checkActiveScan(); }, 2000);
 	$('select').formSelect();
 
-	// $.get('https://api.github.com/repos/Rev3rseSecurity/WebMap').done(function(d) {
-	// 	$('#githubstar').html(d['stargazers_count']+' stars');
-	// 	$('#githubfork').html(d['forks']+' forks');
-	// });
-
 	var wminterval = setInterval(function() {
 		if(!wmover) {
 			$('.wm_menu').animate({
@@ -282,11 +277,7 @@ function checkCVE() {
 }
 
 function checkCPETOT() {
-	if(cpetot <= 0) {
-		return true;
-	} else {
-		return false;
-	}
+	return cpetot <= 0;
 }
 
 function genPDF(md5scan) {
@@ -312,7 +303,7 @@ function genPDF(md5scan) {
 
 function removeNotes(hashstr, i) {
 	$.get('/report/api/rmnotes/'+hashstr+'/').done(function(data) {
-		if(data['ok'] == 'notes removed') {
+		if(data['ok'] === 'notes removed') {
 			$('#noteshost'+i).remove();
 		}
 	});
@@ -389,7 +380,6 @@ function apiPortDetails(address, portid) {
 			tbody += '<tr><td><i>none</i></td><td><i>none</i></td></tr>'
 		}
 
-		// $('#modal1').css('background-color','#3e3e3e');
 
 		$('#modalbody').html('<table class="table"><thead><th style="min-width:200px;">Script ID</th><th>Output</th></thead><tbody>'+tbody+'</tbody></table>');
 		$('#modalbody').append('<br><b>Raw Output:</b><br><pre>'+$('<span/>').text(JSON.stringify(data, null, 4)).html()+'</pre>');
@@ -399,7 +389,7 @@ function apiPortDetails(address, portid) {
 
 function removeLabel(type, hashstr, i) {
 	$.get('/report/api/rmlabel/'+type+'/'+hashstr+'/').done(function(data) {
-		if(data['ok'] == 'label removed') {
+		if(data['ok'] === 'label removed') {
 			$('#hostlabel'+i).attr("class","")
 			$('#hostlabel'+i).html("");
 			$('#hostlabelbb'+i).attr("class","")

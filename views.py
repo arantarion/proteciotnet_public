@@ -7,6 +7,7 @@ import re
 import os
 import urllib.parse
 from collections import OrderedDict
+from pprint import pprint
 
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -959,6 +960,8 @@ def index(request, filterservice="", filterportid=""):
 
     r['cpestring'] = ' <input type="hidden" id="cpestring" value="' + urllib.parse.quote_plus(
         base64.b64encode(json.dumps(cpedict).encode())) + '" /> '
+
+    pprint(r)
 
     return render(request, 'proteciotnet_dev/nmap_hostdetails.html', r)
 

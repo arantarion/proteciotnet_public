@@ -282,9 +282,9 @@
             <li class="wm_line"><div>more</div></li>
             {% for i,v in tr.items %}
                 {% if v.filename %}
-                    <li><i class="material-icons">keyboard_arrow_right</i> <a href="{{ v.href }}">{{ v.filename|safe }}</a></li>
+                    <li><i class="material-icons">save</i> <a href="{{ v.href }}">{{ v.filename|safe }}</a></li>
                 {% else %}
-                    <li><i class="material-icons">keyboard_arrow_right</i> <a href="/report/{{ i }}">{{ i }}</a></li>
+                    <li><i class="material-icons">devices</i> <a href="/report/{{ i }}">{{ i }}</a></li>
                 {% endif %}
             {% endfor %}
         {% endif %}

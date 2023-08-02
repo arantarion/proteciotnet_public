@@ -865,12 +865,26 @@ def index(request, filterservice="", filterportid=""):
             protocol += sinfo['@protocol'] + ', '
         protocol = protocol[0:-2]
 
+    numservices = ''
+    if 'scaninfo' in o and '@numservices' in o['scaninfo']:
+        numservices = o['scaninfo']['@numservices']
+
+    verbose, debugging = '', ''
+    if 'verbose' in o and '@level' in o['verbose']:
+        verbose = o['verbose']['@level']
+
+    if 'debugging' in o and '@level' in o['debugging']:
+        debugging = o['debugging']['@level']
+
     r['stats'] = {
         'scaninfobox2': scaninfobox2,
         'scaninfobox3': scaninfobox3,
-        'startstr': o['@startstr'],
+        'startstr': html.escape(datetime.fromtimestamp(int(o['@start'])).strftime('%A, %d. %B %Y - %H:%M:%S')), #o['@startstr'],
         'scantype': scantype,
         'protocol': protocol,
+        'verbose': verbose,
+        'debugging': debugging,
+        'numservices': numservices,
         'nmapver': o['@version'],
         'nmapargs': o['@args'],
         'xmlver': o['@xmloutputversion'],

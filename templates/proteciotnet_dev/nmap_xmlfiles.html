@@ -27,14 +27,6 @@
                     </div>
                 </div>
             </div>
-            {#			<div class="col s12 m3">#}
-            {#				<div class="card darken-1">#}
-            {#					<div class="card-content grey darken-1 white-text">#}
-            {#						<span class="card-title"><i class="fas fa-filter"></i> {{ stats.pf }}</span>#}
-            {#						<p>Filtered ports</p>#}
-            {#					</div>#}
-            {#				</div>#}
-            {#			</div>#}
         </div>
 
         <div class="card wmcard">
@@ -50,25 +42,22 @@
                     {% for i,v in tr.items %}
                         <tr>
                             <td><b><a class="blue-text" href="{{ v.href }}">{{ v.filename|safe }}</a></b></td>
-                            <td class="hide-on-small-only"><code>{{ v.startstr }}</code></td>
+                            <td class="hide-on-small-only">{{ v.startstr }}</td>
                             <td class="hide-on-small-only">{{ v.hostnum }}</td>
-                            {#						<td class="evenly-spaced">#}
-                            {#                            <i class="fas fa-door-open green-text"></i><span class="green-text">{{ v.portstats.po }}</span>#}
-                            {#							<i class="fas fa-door-closed red-text"></i><span class="red-text">{{ v.portstats.pc }}</span>#}
-                            {#							<i class="fas fa-filter grey-text"></i><span class="grey-text">{{ v.portstats.pf }}</span>#}
-                            {#						</td>#}
                             <td class="evenly-spaced">
                                 <div>
-                                    <i class="fas fa-door-open green-text"></i>
-                                    <span class="green-text">&nbsp;{{ v.portstats.po }}</span>
+{#                                    <i class="fas fa-door-open green-text"></i>#}
+                                    <i class="fas fa-lock-open"></i>
+                                    <span class="text">&nbsp;{{ v.portstats.po }}</span>
                                 </div>
                                 <div>
-                                    <i class="fas fa-door-closed red-text"></i>
-                                    <span class="red-text">&nbsp;{{ v.portstats.pc }}</span>
+{#                                    <i class="fas fa-door-closed red-text"></i>#}
+                                    <i class="fas fa-lock"></i>
+                                    <span class="text">&nbsp;{{ v.portstats.pc }}</span>
                                 </div>
                                 <div>
-                                    <i class="fas fa-filter grey-text"></i>
-                                    <span class="grey-text">&nbsp;{{ v.portstats.pf }}</span>
+                                    <i class="fas fa-filter"></i>
+                                    <span class="text">&nbsp;{{ v.portstats.pf }}</span>
                                 </div>
                             </td>
 

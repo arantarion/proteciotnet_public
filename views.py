@@ -7,6 +7,7 @@ import re
 import os
 import urllib.parse
 from collections import OrderedDict
+from datetime import datetime
 
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -470,7 +471,6 @@ def index(request, filterservice="", filterportid=""):
 
     gitcmd = subprocess.check_output('cd /opt/proteciotnet/proteciotnet_dev && git describe --long --abbrev=10 --tag', shell=True, text=True).strip()
     r['webmapver'] = gitcmd
-    print(gitcmd)
 
     if 'scanfile' in request.session:
         oo = xmltodict.parse(open('/opt/xml/' + request.session['scanfile'], 'r').read())
@@ -528,7 +528,7 @@ def index(request, filterservice="", filterportid=""):
             r['tr'][o['@start']] = {
                 'filename': filename,
                 'start': o['@start'],
-                'startstr': html.escape(o['@startstr']),
+                'startstr': html.escape(datetime.fromtimestamp(int(o['@start'])).strftime('%A, %d. %B %Y - %H:%M:%S')), #html.escape(o['@startstr']),
                 'hostnum': hostnum,
                 'href': viewhref,
                 'portstats': portstats
@@ -616,8 +616,6 @@ def index(request, filterservice="", filterportid=""):
                 if ai['@addrtype'] == 'mac':
                     vendor = ai['@vendor']
                     mac_address = ai['@addr']
-
-        print(vendor, mac_address)
 
         addressmd5 = hashlib.md5(str(address).encode('utf-8')).hexdigest()
 

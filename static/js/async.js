@@ -393,13 +393,14 @@ function removeLabel(type, hashstr, i) {
 			$('#hostlabel'+i).attr("class","")
 			$('#hostlabel'+i).html("");
 			$('#hostlabelbb'+i).attr("class","")
+			$('#hostlabelbb'+i).css("background-color","")
 		}
 	});
 }
 
 function setLabel(type, label, hashstr, i) {
 	$.get('/report/api/setlabel/'+type+'/'+label+'/'+hashstr+'/').done(function(data) {
-		console.log(data);
+
 		var res = data;
 		var color = 'grey';
 		var margin = '10px';
@@ -407,32 +408,36 @@ function setLabel(type, label, hashstr, i) {
 		if(res['ok'] === 'label set') {
 
 			switch(res['label']) {
-				case 'Vulnerable': color = 'red'; margin = '10px'; break;
+				case 'Vulnerable': color = '#F44336'; margin = '10px'; break;
 				case 'Critical': color = 'black'; margin = '22px'; break;
 				case 'Warning': color = 'orange'; margin = '28px'; break;
 				case 'Checked': color = 'blue'; margin = '28px'; break;
 			}
 
+			// displayed label
 			// z-index:99;transform: rotate(-8deg);margin-top:-14px;margin-left:-40px;
 			$('#hostlabel'+i).css("margin-left", '-40px')
 			$('#hostlabel'+i).css("z-index", '99')
 			$('#hostlabel'+i).css("transform", 'rotate(-8deg)')
 			$('#hostlabel'+i).css("margin-top", '-14px')
+			$('#hostlabel'+i).css("background-color", color);
 			$('#hostlabel'+i).attr("class","")
 			$('#hostlabel'+i).addClass('leftlabel');
-			$('#hostlabel'+i).addClass(color);
+			// $('#hostlabel'+i).addClass(color);
 			$('#hostlabel'+i).html(res['label']);
 
+			//little corner bit
 			// border-radius:0px 4px 0px 4px;z-index:98;position:absolute;width:18px;height:10px;margin-left:-48px;margin-top:-3px;
-			$('#hostlabelbb'+i).css("border-radius", '0px 4px 0px 4px')
+			$('#hostlabelbb'+i).css("border-radius", '1px 4px 1px 4px')
 			$('#hostlabelbb'+i).css("z-index", '98')
 			$('#hostlabelbb'+i).css("position", 'absolute')
 			$('#hostlabelbb'+i).css("width", '18px')
 			$('#hostlabelbb'+i).css("height", '10px')
 			$('#hostlabelbb'+i).css("margin-left", '-54px')
 			$('#hostlabelbb'+i).css("margin-top", '-3px')
+			$('#hostlabelbb'+i).css("background-color", color);
 			$('#hostlabelbb'+i).attr("class","")
-			$('#hostlabelbb'+i).addClass(color);
+			//$('#hostlabelbb'+i).addClass(color);
 		}
 	});
 }

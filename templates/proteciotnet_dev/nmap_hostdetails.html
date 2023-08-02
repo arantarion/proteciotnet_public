@@ -62,7 +62,7 @@
                                 <td >{{ stats.nmapver }}</td>
                             </tr>
                             <tr>
-                                  <td ><b class="orange-text">Start Time:</b></td>
+                                <td ><b class="orange-text">Start Time:</b></td>
                                 <td >{{ stats.startstr }}</td>
 
                                 <td ><b class="orange-text">XML Output version:</b></td>
@@ -83,7 +83,7 @@
                                 <td >{{ stats.verbose }}</td>
                             </tr>
                             <tr>
-                                 <td ><b class="orange-text">Number of Services:</b></td>
+                                <td ><b class="orange-text">Number of Services:</b></td>
                                 <td >{{ stats.numservices }}</td>
                                 <td ><b class="orange-text">Debugging Level:</b></td>
                                 <td >{{ stats.debugging }}</td>
@@ -143,7 +143,7 @@
                             <div class="hindex wmcard">{{ v.hostindex }}</div>
                             {{ v.newlabelout|safe }}
                             {% if v.po != 0 or v.pc != 0 or v.pf != 0 or v.vendor != "" %}
-                                <h5><a href="/report/{{ i }}" class="blue-text text-darken-3">{{ i }}</a></h5><span style="font-size: 16px;">Vendor: {{ v.vendor }}</span>{{ v.hostname|safe }}
+                                <h5><a href="/report/{{ i }}" class="blue-text text-darken-3">{{ i }}</a></h5><span style="font-size: 14px; color: #9e9e9e"><b>Vendor: </b>{{ v.vendor }}</span>{{ v.hostname|safe }}
                             {% else %}
                                 <h5>{{ i }}</h5><h5>{{ v.vendor }}</h5>{{ v.hostname|safe }}
                             {% endif %}
@@ -154,15 +154,33 @@
 
                         </div>
                         <div class="col s4 small grey-text">
-                            <b>OPEN PORTS %</b>
-                            {{ v.portstate|safe }}
+                            <b>PORT STATISTICS</b>
+                            {#                            {{ v.portstate|safe }}#}
+                            {##}
+                            {#                            {% if v.tags|length > 0 %}#}
+                            {#                                <br><b>GUESSED TAGS</b><br>#}
+                            {#                                {% for i in v.tags %}#}
+                            {#                                    <span class="blue white-text" style="border-radius:4px;padding:4px;font-size:10px;">#{{ i }}</span>#}
+                            {#                                {% endfor %}#}
+                            {#                            {% endif %}#}
 
-                            {% if v.tags|length > 0 %}
-                                <br><b>GUESSED TAGS</b><br>
-                                {% for i in v.tags %}
-                                    <span class="blue white-text" style="border-radius:4px;padding:4px;font-size:10px;">#{{ i }}</span>
-                                {% endfor %}
-                            {% endif %}
+                            <table><tr>
+                                <td class="evenly-spaced-inner">
+                                    <div>
+                                        <i class="fas fa-lock-open"></i>
+                                        <span class="text">&nbsp;{{ v.po }} open</span>
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-lock"></i>
+                                        <span class="text">&nbsp;{{ v.pc }} closed</span>
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-filter"></i>
+                                        <span class="text">&nbsp;{{ v.pf }} filtered</span>
+                                    </div>
+                                </td>
+
+                            </tr></table>
                         </div>
                         <div class="col s2 small">
                             <b>SERVICES</b><br>

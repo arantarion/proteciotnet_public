@@ -160,6 +160,22 @@ table.custom-table td {
     background-color: #555; /* Add a dark-grey background on hover */
 }
 
+.evenly-spaced-inner {
+    display: flex;
+    justify-content: space-between;
+    margin-left: 30px;
+    margin-right: 30px;
+}
+
+.evenly-spaced-inner div {
+    align-items: center;
+}
+
+.evenly-spaced-inner span {
+    width: 3px; /* Adjust this width based on your preference */
+    text-align: center;
+}
+
 .evenly-spaced {
     display: flex;
     justify-content: space-between;

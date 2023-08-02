@@ -11,80 +11,84 @@
                 </div>
                 <div class="row hide-on-med-and-down">
                     <div class="col s12 m4">
-{#                        <table >#}
-{#                            <tr>#}
-{#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Start Time:</b></td>#}
-{#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.startstr }}</td>#}
-{#                            </tr>#}
-{#                            <tr>#}
-{#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Scan Type:</b></td>#}
-{#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.scantype }}</td>#}
-{#                            </tr>#}
-{#                            <tr>#}
-{#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Scan Protocol:</b></td>#}
-{#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.protocol }}</td>#}
-{#                            </tr>#}
-{#                            <tr>#}
-{#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Number of Services:</b></td>#}
-{#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.numservices }}</td>#}
-{#                            </tr>#}
-{#                        </table>#}
-{#                    </div>#}
-{#                    <div class="col s12 m4 hide-on-med-and-down">#}
-{#                        <table >#}
-{#                            <tr>#}
-{#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Nmap version:</b></td>#}
-{#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.nmapver }}</td>#}
-{#                            </tr>#}
-{#                            <tr>#}
-{#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">XML Output version:</b></td>#}
-{#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.xmlver }}</td>#}
-{#                            </tr>#}
-{#                            <tr>#}
-{#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Nmap command:</b></td>#}
-{#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.nmapargs }}</td>#}
-{#                            </tr>#}
-{#                            <tr>#}
-{#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Verbosity Level:</b></td>#}
-{#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.verbose }}</td>#}
-{#                            </tr>#}
-{#                            <tr>#}
-{#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Debugging Level:</b></td>#}
-{#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.debugging }}</td>#}
-{#                            </tr>#}
-{#                        </table>#}
+                        {#                        <table >#}
+                        {#                            <tr>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Start Time:</b></td>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.startstr }}</td>#}
+                        {#                            </tr>#}
+                        {#                            <tr>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Scan Type:</b></td>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.scantype }}</td>#}
+                        {#                            </tr>#}
+                        {#                            <tr>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Scan Protocol:</b></td>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.protocol }}</td>#}
+                        {#                            </tr>#}
+                        {#                            <tr>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Number of Services:</b></td>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.numservices }}</td>#}
+                        {#                            </tr>#}
+                        {#                        </table>#}
+                        {#                    </div>#}
+                        {#                    <div class="col s12 m4 hide-on-med-and-down">#}
+                        {#                        <table >#}
+                        {#                            <tr>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Nmap version:</b></td>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.nmapver }}</td>#}
+                        {#                            </tr>#}
+                        {#                            <tr>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">XML Output version:</b></td>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.xmlver }}</td>#}
+                        {#                            </tr>#}
+                        {#                            <tr>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Nmap command:</b></td>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.nmapargs }}</td>#}
+                        {#                            </tr>#}
+                        {#                            <tr>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Verbosity Level:</b></td>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.verbose }}</td>#}
+                        {#                            </tr>#}
+                        {#                            <tr>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Debugging Level:</b></td>#}
+                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.debugging }}</td>#}
+                        {#                            </tr>#}
+                        {#                        </table>#}
                         <table class="custom-table">
-            <tr>
-                <td ><b class="orange-text">Start Time:</b></td>
-                <td >{{ stats.startstr }}</td>
-                <td ><b class="orange-text">Nmap version:</b></td>
-                <td >{{ stats.nmapver }}</td>
-            </tr>
-            <tr>
-                <td ><b class="orange-text">Scan Type:</b></td>
-                <td >{{ stats.scantype }}</td>
-                <td ><b class="orange-text">XML Output version:</b></td>
-                <td >{{ stats.xmlver }}</td>
-            </tr>
-            <tr>
-                <td ><b class="orange-text">Scan Protocol:</b></td>
-                <td >{{ stats.protocol }}</td>
-                <td ><b class="orange-text">Nmap command:</b></td>
-                <td >{{ stats.nmapargs }}</td>
-            </tr>
-            <tr>
-                <td ><b class="orange-text">Number of Services:</b></td>
-                <td >{{ stats.numservices }}</td>
-                <td ><b class="orange-text">Verbosity Level:</b></td>
-                <td >{{ stats.verbose }}</td>
-            </tr>
-            <tr>
-                <td ></td>
-                <td ></td>
-                <td ><b class="orange-text">Debugging Level:</b></td>
-                <td >{{ stats.debugging }}</td>
-            </tr>
-        </table>
+                            <tr>
+                                <td><b class="orange-text">Filename:</b></td>
+                                <td >{{ stats.filename }}</td>
+
+                                <td ><b class="orange-text">Nmap version:</b></td>
+                                <td >{{ stats.nmapver }}</td>
+                            </tr>
+                            <tr>
+                                  <td ><b class="orange-text">Start Time:</b></td>
+                                <td >{{ stats.startstr }}</td>
+
+                                <td ><b class="orange-text">XML Output version:</b></td>
+                                <td >{{ stats.xmlver }}</td>
+                            </tr>
+                            <tr>
+                                <td ><b class="orange-text">Scan Type:</b></td>
+                                <td >{{ stats.scantype }}</td>
+
+                                <td ><b class="orange-text">Nmap command:</b></td>
+                                <td >{{ stats.nmapargs }}</td>
+                            </tr>
+                            <tr>
+                                <td ><b class="orange-text">Scan Protocol:</b></td>
+                                <td >{{ stats.protocol }}</td>
+
+                                <td ><b class="orange-text">Verbosity Level:</b></td>
+                                <td >{{ stats.verbose }}</td>
+                            </tr>
+                            <tr>
+                                 <td ><b class="orange-text">Number of Services:</b></td>
+                                <td >{{ stats.numservices }}</td>
+                                <td ><b class="orange-text">Debugging Level:</b></td>
+                                <td >{{ stats.debugging }}</td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -94,17 +98,17 @@
             {% else %}
                 <div class="card-action">
                     <div class="col s12 m4 title-small grey-text">Actions</div><br>
-                    <a href="#!" onclick="javascript:genPDF('{{ scanmd5 }}');"><i class="fas fa-file-pdf"></i> PDF Report</a><br><br>
-                    <a href="#!" onclick="javascript:checkCVE();"><i class="fas fa-bug"></i> Check for CVE</a>
+                    <a href="#!" onclick="javascript:genPDF('{{ scanmd5 }}');" style="color: #ff9800;"><i class="fas fa-file-pdf"></i> PDF Report</a><br><br>
+                    <a href="#!" onclick="javascript:checkCVE();" style="color: #ff9800;"><i class="fas fa-bug"></i> Check for CVE</a>
                 </div>
             {% endif %}
         </div>
 
         <div class="row" style="{{ pretablestyle }}">
             <div class="col s12 m3" style="padding:1px;"><div class="card wmcard" style="text-align:center;padding:6px;"><h4><i class="fas fa-heartbeat" style="color: #0c7bbb"></i> <span class="blue-text">{{ stats.hostsup }}</span></h4><span class="small grey-text">HOSTS UP</span></div></div>
-            <div class="col s12 m3" style="padding:1px;"><div class="card wmcard" style="text-align:center;padding:6px;"><h4><i class="fas fa-door-open green-text"></i> <span class="green-text">{{ stats.popen }}</span></h4><span class="small grey-text">OPEN PORTS</span></div></div>
-            <div class="col s12 m3" style="padding:1px;"><div class="card wmcard" style="text-align:center;padding:6px;"><h4><i class="fas fa-door-closed red-text"></i> <span class="red-text">{{ stats.pclosed }}</span></h4><span class="small grey-text">CLOSED PORTS</span></div></div>
-            <div class="col s12 m3" style="padding:1px;"><div class="card wmcard" style="text-align:center;padding:6px;"><h4><i class="fas fa-filter orange-text"></i> <span class="orange-text">{{ stats.pfiltered }}</span></h4><span class="small grey-text">FILTERED PORTS</span></div></div>
+            <div class="col s12 m3" style="padding:1px;"><div class="card wmcard" style="text-align:center;padding:6px;"><h4><i class="fas fa-lock-open green-text"></i> <span class="green-text">{{ stats.popen }}</span></h4><span class="small grey-text">OPEN PORTS</span></div></div>
+            <div class="col s12 m3" style="padding:1px;"><div class="card wmcard" style="text-align:center;padding:6px;"><h4><i class="fas fa-lock red-text"></i> <span class="red-text">{{ stats.pclosed }}</span></h4><span class="small grey-text">CLOSED PORTS</span></div></div>
+            <div class="col s12 m3" style="padding:1px;"><div class="card wmcard" style="text-align:center;padding:6px;"><h4><i class="fas fa-filter grey-text"></i> <span class="grey-text">{{ stats.pfiltered }}</span></h4><span class="small grey-text">FILTERED PORTS</span></div></div>
         </div>
 
         {% if stats.popen == 0 and stats.pclosed == 0 and stats.pfiltered == 0 %}
@@ -112,13 +116,15 @@
             <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">
                 <div class="card-content">
                     <div class="row">
-                        <div class="col s4 title-small grey-text">Services:</div><div class="col s8 title-small grey-text">Services:</div>
-                        <div class="col s4" style="border-right:solid #555 1px;margin-top:10px;min-height:410px;">
+                        <div class="col s4 title-small grey-text">Services</div>
+                        {#                        <div class="col s8 title-small grey-text">Services:</div>#}
+
+                        <div class="col" style="margin-top:10px;">
                             <span style="font-family:monospace;font-size:12px;">{{ stats.services|safe }}</span><br><br>
                             <span class="title-small grey-text">Top 10 Ports:</span><br><span style="font-family:monospace;font-size:12px;">{{ stats.portids|safe }}</span><br><br>
                             <span class="title-small grey-text">OS Type List:</span><br><span style="font-family:monospace;font-size:12px;">{{ stats.ostypes|safe }}</span><br><br>
                         </div>
-                        <div class="col s8" style="margin-top:10px;"><canvas id="chart2" height="200"></canvas></div>
+                        {#                        <div class="col s8" style="margin-top:10px;"><canvas id="chart2" height="200"></canvas></div>#}
                     </div>
                 </div>
             </div>

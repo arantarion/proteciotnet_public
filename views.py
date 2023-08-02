@@ -877,8 +877,7 @@ def index(request, filterservice="", filterportid=""):
         debugging = o['debugging']['@level']
 
     r['stats'] = {
-        'scaninfobox2': scaninfobox2,
-        'scaninfobox3': scaninfobox3,
+        'filename': r['scanfile'],
         'startstr': html.escape(datetime.fromtimestamp(int(o['@start'])).strftime('%A, %d. %B %Y - %H:%M:%S')), #o['@startstr'],
         'scantype': scantype,
         'protocol': protocol,

@@ -1,5 +1,5 @@
 import base64
-import html
+import subprocess
 import xmltodict
 import json
 import hashlib
@@ -468,8 +468,9 @@ def details(request, address):
 def index(request, filterservice="", filterportid=""):
     r = {'auth': True}
 
-    gitcmd = os.popen('cd /opt/proteciotnet/proteciotnet_dev && git describe --long --abbrev=10 --tag')
-    r['webmapver'] = 'gitcmd'
+    gitcmd = subprocess.check_output('cd /opt/proteciotnet/proteciotnet_dev && git describe --long --abbrev=10 --tag', shell=True, text=True).strip()
+    r['webmapver'] = gitcmd
+    print(gitcmd)
 
     if 'scanfile' in request.session:
         oo = xmltodict.parse(open('/opt/xml/' + request.session['scanfile'], 'r').read())
@@ -795,6 +796,7 @@ def index(request, filterservice="", filterportid=""):
                     if re.search('[a-zA-Z0-9\_]+\/[0-9\.]+', eis) is not None:
                         robj = re.search('([a-zA-Z0-9\_]+)\/([0-9\.]+)', eis)
                         tags.append(robj.group(1) + ' ' + robj.group(2))
+
 
                 r['tr'][address] = {
                     'hostindex': str(hostindex),

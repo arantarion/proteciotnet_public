@@ -2,8 +2,8 @@ import hashlib
 import json
 import os
 import re
-
 import xmltodict
+import html
 
 
 def token_check(token):
@@ -768,6 +768,7 @@ def nmap_ports_stats(scanfile):
     debug = {}
 
     po, pc, pf = 0, 0, 0
+    po_str, pc_str, pf_str = "", "", ""
 
     if 'host' not in o:
         return {'po': 0, 'pc': 0, 'pf': 0}
@@ -820,7 +821,11 @@ def nmap_ports_stats(scanfile):
                     debug[address]['portcount']['pf'][iii] = pf
                 iii = (iii + 1)
 
-    return {'po': po, 'pc': pc, 'pf': pf, 'debug': json.dumps(debug)}
+    po_str = html.escape(f"{po}{(4-len(str(po))) * ' '}")
+    pc_str = html.escape(f"{pc}{(4-len(str(pc))) * ' '}")
+    pf_str = html.escape(f"{pf}{(4-len(str(pf))) * ' '}")
+
+    return {'po': po, 'pc': pc, 'pf': pf, 'debug': json.dumps(debug), "pos": po_str, "pcs:": pc_str, "pfc": pf_str}
 
 
 def get_cve(scanmd5):

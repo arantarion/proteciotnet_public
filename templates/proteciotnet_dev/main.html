@@ -2,206 +2,206 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<title>ProtecIoTnet</title>
+    <title>ProtecIoTnet</title>
     <link rel="shortcut icon" type="image/png" href="{% static 'img/favicon.png' %}" >
-{#	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">#}
-{#	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" crossorigin="anonymous">#}
-{#	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" media="screen,projection" />#}
-{#	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>#}
-{#	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>#}
-{#	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>#}
-{#	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>#}
-{##}
-{##}
-{#	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>#}
+    {#	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">#}
+    {#	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" crossorigin="anonymous">#}
+    {#	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" media="screen,projection" />#}
+    {#	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>#}
+    {#	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>#}
+    {#	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>#}
+    {#	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>#}
+    {##}
+    {##}
+    {#	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>#}
 
     <link rel="stylesheet" href="{% static "css/icon.css" %}">
-	<link rel="stylesheet" href="{% static "cdn/fontawesome/css/all.css" %}">
-	<link rel="stylesheet" href="{% static "css/materialize.min.css" %}" media="screen,projection" />
+    <link rel="stylesheet" href="{% static "cdn/fontawesome/css/all.css" %}">
+    <link rel="stylesheet" href="{% static "css/materialize.min.css" %}" media="screen,projection" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-	<script src="{% static "js/jquery.min.js" %}"></script>
-	<script src="{% static "js/Chart.min.js" %}"></script>
-	<script src="{% static "js/clipboard.min.js" %}"></script>
-	<script src="{% static "js/sweetalert.min.js" %}"></script>
-	<script src="{% static "js/async.js" %}"></script>
+    <script src="{% static "js/jquery.min.js" %}"></script>
+    <script src="{% static "js/Chart.min.js" %}"></script>
+    <script src="{% static "js/clipboard.min.js" %}"></script>
+    <script src="{% static "js/sweetalert.min.js" %}"></script>
+    <script src="{% static "js/async.js" %}"></script>
 
-{#    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" crossorigin="anonymous">#}
+    {#    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" crossorigin="anonymous">#}
 
     <script>
         window.onscroll = function() { scrollFunction() };
 
         function scrollFunction() {
-          if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
-            $('#myBtn').fadeIn();
-          } else {
-            $('#myBtn').fadeOut();
-          }
+            if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+                $('#myBtn').fadeIn();
+            } else {
+                $('#myBtn').fadeOut();
+            }
         }
 
         function topFunction() {
-          document.body.scrollTop = 0; // For Safari
-          document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+            document.body.scrollTop = 0; // For Safari
+            document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
         }
     </script>
 
-	<style>
-		body,html {
-			background-image:url({% static "/img/bg3.png" %});
-			background-repeat: no-repeat;
-			background-attachment: fixed;
-			background-size:100% 100%;
-			
-			/* background: rgb(250,27,26); */
-			/*background: linear-gradient(40deg, rgba(250,27,26,1) 0%, rgba(90,102,110,1) 100%); 
-			min-height: 100vh;
-			height: auto;    */
-		}
-		.wbtn-small {
-			border-radius:4px;
-			padding:6px;
-			color:#fff;
-			font-size:11px;
-			font-weight:bold;
-			text-shadow:0px 0px 4px #666;
-			/* box-shadow:1px 1px 2px #444; */
-		}
-		.perco {
-			border-radius: 2px;
-			background-color:#090;
-			font-size:10px;
-			font-family:monospace;
-			color:#eee;
-			text-align:center;
-		}
-		.title-small {
-			color:#333;
-			text-transform: uppercase;
-			font-weight:400;
-		}
-		.small {
-			font-size:12px;
-		}
-		.tmlabel {
-			font-family: monospace;
-			font-size: 12px;
-			background-color: #999;
-			border-radius: 4px;
-			padding: 2px;
-			padding-left: 4px;
-			padding-right: 4px;
-			color: #fff;
-		}
-		.label {
-			padding:6px;
-			border-radius:4px;
-			font-size:12px;
-			color:#fff;
-		}
+    <style>
+        body,html {
+            background-image:url({% static "/img/bg3.png" %});
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size:100% 100%;
 
-		.rightlabel {
-			border-radius:2px;
-			font-size:10px;
-			font-weight:bold;
-			text-align:center;
-			position:absolute;
-			padding-left:8px;
-			padding-right:8px;
-			margin-left:10px;
-			margin-top:-20px;
-			color:#fff;
-			text-transform:uppercase;
-		}
-		.leftlabel {
-			border-radius:2px;
-			font-size:10px;
-			text-align:center;
-			position:absolute;
-			padding-left:8px;
-			padding-right:8px;
-			color:#fff;
-			text-transform:uppercase;
-			left:20px;
-		}
-		.hindex {
-			border-radius:2px;
-			font-size:10px;
-			margin-top:-16px;
-			margin-left:-30px;
-			padding-left:8px;
-			padding-right:8px;
-			background-color:#eee;
-			width:24px;
-		}
-		.wm_menu {
-			width:44px;
-			position:fixed;
-			left:6px;
-			top:80px;
-			background-color:rgba(40,40,40,0.8);
-			padding-left:10px;
-			padding-right:10px;
-			z-index:9999;
-			border-radius: 4px;
-			overflow-y:hidden;
-			box-shadow:1px 1px 10px #010101;
-		}
+            /* background: rgb(250,27,26); */
+            /*background: linear-gradient(40deg, rgba(250,27,26,1) 0%, rgba(90,102,110,1) 100%);
+            min-height: 100vh;
+            height: auto;    */
+        }
+        .wbtn-small {
+            border-radius:4px;
+            padding:6px;
+            color:#fff;
+            font-size:11px;
+            font-weight:bold;
+            text-shadow:0px 0px 4px #666;
+            /* box-shadow:1px 1px 2px #444; */
+        }
+        .perco {
+            border-radius: 2px;
+            background-color:#090;
+            font-size:10px;
+            font-family:monospace;
+            color:#eee;
+            text-align:center;
+        }
+        .title-small {
+            color:#333;
+            text-transform: uppercase;
+            font-weight:400;
+        }
+        .small {
+            font-size:12px;
+        }
+        .tmlabel {
+            font-family: monospace;
+            font-size: 12px;
+            background-color: #999;
+            border-radius: 4px;
+            padding: 2px;
+            padding-left: 4px;
+            padding-right: 4px;
+            color: #fff;
+        }
+        .label {
+            padding:6px;
+            border-radius:4px;
+            font-size:12px;
+            color:#fff;
+        }
 
-		.material-icons{
-			display: inline-flex;
-			vertical-align: top;
-		}
+        .rightlabel {
+            border-radius:2px;
+            font-size:10px;
+            font-weight:bold;
+            text-align:center;
+            position:absolute;
+            padding-left:8px;
+            padding-right:8px;
+            margin-left:10px;
+            margin-top:-20px;
+            color:#fff;
+            text-transform:uppercase;
+        }
+        .leftlabel {
+            border-radius:2px;
+            font-size:10px;
+            text-align:center;
+            position:absolute;
+            padding-left:8px;
+            padding-right:8px;
+            color:#fff;
+            text-transform:uppercase;
+            left:20px;
+        }
+        .hindex {
+            border-radius:2px;
+            font-size:10px;
+            margin-top:-16px;
+            margin-left:-30px;
+            padding-left:8px;
+            padding-right:8px;
+            background-color:#eee;
+            width:24px;
+        }
+        .wm_menu {
+            width:44px;
+            position:fixed;
+            left:6px;
+            top:80px;
+            background-color:rgba(40,40,40,0.8);
+            padding-left:10px;
+            padding-right:10px;
+            z-index:9999;
+            border-radius: 4px;
+            overflow-y:hidden;
+            box-shadow:1px 1px 10px #010101;
+        }
 
-		.wm_menu li {
-			height:28px;
-			margin-bottom:10px;
-			line-height:24px;
-			font-size:14px;
-		}
+        .material-icons{
+            display: inline-flex;
+            vertical-align: top;
+        }
 
-		.wm_line { border-bottom:solid #666 1px; height:1px; line-height:10px; margin-bottom:-10px;padding:0px;}
-		.wm_line div {
-			margin-top:-12px;
-			font-size:8px;
-			color:#999;
-			text-align:center;
-			text-transform:uppercase;
-		}
+        .wm_menu li {
+            height:28px;
+            margin-bottom:10px;
+            line-height:24px;
+            font-size:14px;
+        }
 
-		.wm_menu i {
-			color:#eee;
-			width:20px;
-			text-align:center;
-			cursor: pointer;
-		}
+        .wm_line { border-bottom:solid #666 1px; height:1px; line-height:10px; margin-bottom:-10px;padding:0px;}
+        .wm_line div {
+            margin-top:-12px;
+            font-size:8px;
+            color:#999;
+            text-align:center;
+            text-transform:uppercase;
+        }
 
-		.wm_menu li:hover > i { color:#ffcc00; }
-		.wm_menu li:hover > a { color:#ffcc00; }
+        .wm_menu i {
+            color:#eee;
+            width:20px;
+            text-align:center;
+            cursor: pointer;
+        }
 
-		.wm_menu a {
-			color:#ccc;
-			margin-left:10px;
-			display:none;
-		}
+        .wm_menu li:hover > i { color:#ffcc00; }
+        .wm_menu li:hover > a { color:#ffcc00; }
 
-		.arrow-up {
-			position:fixed;
-			left:18px;
-			top:80px;
-			width: 0; 
-			height: 0; 
-			border-left: 10px solid transparent;
-			border-right: 10px solid transparent;
-			border-bottom: 10px solid rgba(40,40,40,0.8);
-			margin-top:-10px;
-			z-index:99999;
-		}
+        .wm_menu a {
+            color:#ccc;
+            margin-left:10px;
+            display:none;
+        }
 
-		.wmcard {
-			background-color:rgba(250,250,250,0.1);
-			color:#eee;
-		}
+        .arrow-up {
+            position:fixed;
+            left:18px;
+            top:80px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 10px solid rgba(40,40,40,0.8);
+            margin-top:-10px;
+            z-index:99999;
+        }
+
+        .wmcard {
+            background-color:rgba(250,250,250,0.1);
+            color:#eee;
+        }
 
 
         #backToTopBtn {
@@ -213,10 +213,24 @@
         }
 
         #backToTopBtn:hover {
-          background-color: #555; /* Add a dark-grey background on hover */
+            background-color: #555; /* Add a dark-grey background on hover */
         }
 
-	</style>
+        .evenly-spaced {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .evenly-spaced div {
+            display: flex;
+            align-items: center;
+        }
+
+        .evenly-spaced span {
+            width: 3px; /* Adjust this width based on your preference */
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
@@ -224,123 +238,125 @@
 <button onclick="topFunction()" class="btn btn-danger btn-floating btn-lg" id="backToTopBtn" title="Go to top"><i class="fas fa-arrow-up"></i></button>
 
 <div class="navbar-fixed">
-<nav class="" id="topnavbar" style="background-color:rgba(10,10,10,0.0);box-shadow:none;">
-	<div class="nav-wrapper">
-		{% if scanfile and address %}
-		<div class="col s5 right hide-on-med-and-down" style="margin-right:20px;">
-			<a href="/" class="breadcrumb">{{ scanfile }}</a> <a href="/report/{{ address }}/" class="breadcrumb">{{ address }}</a>
-		</div>
-		{% endif %}
-		{% if scanfile and not address %}
-		<div class="col s5 right hide-on-med-and-down" style="margin-right:20px;">
-			<a href="/" class="breadcrumb">{{ scanfile }}</a> 
-		</div>
-		{% endif %}
-		<div class="row">
-			<div class="col s1 hide-on-large-only" style="max-width:60px;">
-				<a href="#!" onclick="javascript:$('.sidenav').sidenav('open');"><i class="material-icons white-text">menu</i></a>
-			</div>
-			<div class="col s4">
-				<a href="/setscanfile/unset" class="brand-logo"><img src="/static/logo.png" style="max-width:200px;margin-top:8px;"></a>
-			</div>
-		</div>
+    <nav class="" id="topnavbar" style="background-color:rgba(10,10,10,0.0);box-shadow:none;">
+        <div class="nav-wrapper">
+            {% if scanfile and address %}
+                <div class="col s5 right hide-on-med-and-down" style="margin-right:20px;">
+                    <a href="/" class="breadcrumb">{{ scanfile }}</a> <a href="/report/{{ address }}/" class="breadcrumb">{{ address }}</a>
+                </div>
+            {% endif %}
+            {% if scanfile and not address %}
+                <div class="col s5 right hide-on-med-and-down" style="margin-right:20px;">
+                    <a href="/" class="breadcrumb">{{ scanfile }}</a>
+                </div>
+            {% endif %}
+            <div class="row">
+                <div class="col s1 hide-on-large-only" style="max-width:60px;">
+                    <a href="#!" onclick="javascript:$('.sidenav').sidenav('open');"><i class="material-icons white-text">menu</i></a>
+                </div>
+                <div class="col s4">
+                    <a href="/setscanfile/unset" class="brand-logo"><img src="/static/logo.png" style="max-width:200px;margin-top:8px;"></a>
+                </div>
+            </div>
 
-	</div>
-</nav>
+        </div>
+    </nav>
 </div>
 
 
 {% if auth %}
 
 
-<div class="arrow-up hide-on-med-and-down"></div>
-<div class="wm_menu grey-text hide-on-med-and-down show-on-large">
-	<ul>
-		<li><i class="material-icons">track_changes</i> <a href="/setscanfile/unset">Show all scans</a></li>
-		<li><i class="material-icons">settings_input_antenna</i> <a href="/">Show scan details</a></li>
-		<li><i class="material-icons">add_box</i> <a href="#!" onclick="javascript:newscan();">New Nmap scan</a></li>
-		{% if scanfile %}
-			<li><i class="fas fa-file-pdf" style="margin-left:2px;font-size:20px;"></i> <a href="#!" onclick="javascript:genPDF('{{ scanmd5 }}');">PDF Report</a></li>
-			<li><i class="fas fa-bug" style="margin-left:2px;font-size:20px;"></i> <a href="#!" onclick="javascript:checkCVE();">Check CVE</a></li>
-		{% endif %}
-		<li id="activescan_line" style="display:none;" class="wm_line"><div>scan</div></li>
-		<section id="activescan_info" style="display:none;">
-			<li><i class="fas fa-info-circle"></i> <a href="#!" id="activescan_details">&nbsp;</a></li>
-		</section>
-		<li id="activescan_progress" style="display:none;"><div class="progress"><div class="indeterminate orange"></div></div></li>
-		{% if address %}
-		{% else %}
-			<li class="wm_line"><div>more</div></li>
-			{% for i,v in tr.items %}
-				{% if v.filename %}
-					<li><i class="material-icons">keyboard_arrow_right</i> <a href="{{ v.href }}">{{ v.filename|safe }}</a></li>
-				{% else %}
-					<li><i class="material-icons">keyboard_arrow_right</i> <a href="/report/{{ i }}">{{ i }}</a></li>
-				{% endif %}
-			{% endfor %}
-		{% endif %}
+    <div class="arrow-up hide-on-med-and-down"></div>
+    <div class="wm_menu grey-text hide-on-med-and-down show-on-large">
+        <ul>
+            <li><i class="material-icons">home</i> <a href="/setscanfile/unset">Show all scans</a></li>
+            <li><i class="material-icons">info</i> <a href="/">Show scan details</a></li>
+            <li><i class="material-icons">wifi</i> <a href="#!" onclick="javascript:newscan();">New Nmap scan</a></li>
+            <li><i class="material-icons">sensors</i><a href="/">New ZigBee Scan</a></li>
+            <li><i class="material-icons">bluetooth</i><a href="/">New Bluetooth Scan</a></li>
+            {% if scanfile %}
+                <li><i class="fas fa-file-pdf" style="margin-left:2px;font-size:20px;"></i> <a href="#!" onclick="javascript:genPDF('{{ scanmd5 }}');">PDF Report</a></li>
+                <li><i class="fas fa-bug" style="margin-left:2px;font-size:20px;"></i> <a href="#!" onclick="javascript:checkCVE();">Check CVE</a></li>
+            {% endif %}
+            <li id="activescan_line" style="display:none;" class="wm_line"><div>scan</div></li>
+            <section id="activescan_info" style="display:none;">
+                <li><i class="fas fa-info-circle"></i> <a href="#!" id="activescan_details">&nbsp;</a></li>
+            </section>
+            <li id="activescan_progress" style="display:none;"><div class="progress"><div class="indeterminate orange"></div></div></li>
+            {% if address %}
+            {% else %}
+                <li class="wm_line"><div>more</div></li>
+                {% for i,v in tr.items %}
+                    {% if v.filename %}
+                        <li><i class="material-icons">keyboard_arrow_right</i> <a href="{{ v.href }}">{{ v.filename|safe }}</a></li>
+                    {% else %}
+                        <li><i class="material-icons">keyboard_arrow_right</i> <a href="/report/{{ i }}">{{ i }}</a></li>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
 
-		{% if cveids %}
-			<li class="wm_line"><div>CVE</div></li>
-			{% for i,v in cveids.items %}
-				<li><i class="fas fa-exclamation-triangle"></i> <a onclick="javascript:$('html, body').animate({ scrollTop: ($('#{{ i }}').offset().top - 60) }, 1000);" href="#!">{{ i }}</a></li>
-			{% endfor %}
-		{% endif %}
-		<li class="wm_line"><div>social</div></li>
-		<li><i class="fab fa-gitlab"></i> <a href="https://gitlab.com/hweckermann/proteciotnet">GitLab Project</a></li>
-{#        <li> <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M503.5 204.6L502.8 202.8L433.1 21.02C431.7 17.45 429.2 14.43 425.9 12.38C423.5 10.83 420.8 9.865 417.9 9.57C415 9.275 412.2 9.653 409.5 10.68C406.8 11.7 404.4 13.34 402.4 15.46C400.5 17.58 399.1 20.13 398.3 22.9L351.3 166.9H160.8L113.7 22.9C112.9 20.13 111.5 17.59 109.6 15.47C107.6 13.35 105.2 11.72 102.5 10.7C99.86 9.675 96.98 9.295 94.12 9.587C91.26 9.878 88.51 10.83 86.08 12.38C82.84 14.43 80.33 17.45 78.92 21.02L9.267 202.8L8.543 204.6C-1.484 230.8-2.72 259.6 5.023 286.6C12.77 313.5 29.07 337.3 51.47 354.2L51.74 354.4L52.33 354.8L158.3 434.3L210.9 474L242.9 498.2C246.6 500.1 251.2 502.5 255.9 502.5C260.6 502.5 265.2 500.1 268.9 498.2L300.9 474L353.5 434.3L460.2 354.4L460.5 354.1C482.9 337.2 499.2 313.5 506.1 286.6C514.7 259.6 513.5 230.8 503.5 204.6z"/></svg> <a href="https://gitlab.com/hweckermann/proteciotnet">GitLab Project</a></li>#}
-		<li><i class="fas fa-star"></i> <a href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabstar">Star me</a></li>
-		<li><i class="fas fa-code-branch"></i> <a href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabfork">Fork me</a></li>
-	</ul>
+            {% if cveids %}
+                <li class="wm_line"><div>CVE</div></li>
+                {% for i,v in cveids.items %}
+                    <li><i class="fas fa-exclamation-triangle"></i> <a onclick="javascript:$('html, body').animate({ scrollTop: ($('#{{ i }}').offset().top - 60) }, 1000);" href="#!">{{ i }}</a></li>
+                {% endfor %}
+            {% endif %}
+            <li class="wm_line"><div>social</div></li>
+            <li><i class="fab fa-gitlab"></i> <a href="https://gitlab.com/hweckermann/proteciotnet">GitLab Project</a></li>
+            {#        <li> <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M503.5 204.6L502.8 202.8L433.1 21.02C431.7 17.45 429.2 14.43 425.9 12.38C423.5 10.83 420.8 9.865 417.9 9.57C415 9.275 412.2 9.653 409.5 10.68C406.8 11.7 404.4 13.34 402.4 15.46C400.5 17.58 399.1 20.13 398.3 22.9L351.3 166.9H160.8L113.7 22.9C112.9 20.13 111.5 17.59 109.6 15.47C107.6 13.35 105.2 11.72 102.5 10.7C99.86 9.675 96.98 9.295 94.12 9.587C91.26 9.878 88.51 10.83 86.08 12.38C82.84 14.43 80.33 17.45 78.92 21.02L9.267 202.8L8.543 204.6C-1.484 230.8-2.72 259.6 5.023 286.6C12.77 313.5 29.07 337.3 51.47 354.2L51.74 354.4L52.33 354.8L158.3 434.3L210.9 474L242.9 498.2C246.6 500.1 251.2 502.5 255.9 502.5C260.6 502.5 265.2 500.1 268.9 498.2L300.9 474L353.5 434.3L460.2 354.4L460.5 354.1C482.9 337.2 499.2 313.5 506.1 286.6C514.7 259.6 513.5 230.8 503.5 204.6z"/></svg> <a href="https://gitlab.com/hweckermann/proteciotnet">GitLab Project</a></li>#}
+            <li><i class="fas fa-star"></i> <a href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabstar">Star me</a></li>
+            <li><i class="fas fa-code-branch"></i> <a href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabfork">Fork me</a></li>
+        </ul>
 
 
-</div>
+    </div>
 {% endif %}
 
 {% if scanfile %}
-<ul id="slide-out" class="sidenav">
-	<li><div class="user-view">
-		<div class="background" style="text-align:center;">
-			<img src="/static/logoblack.png" style="max-width:200px;margin-top:20px;">
-		</div><br>
-	</div></li>
-	<li><a href="/setscanfile/unset"><i class="material-icons">track_changes</i>Show all Nmap scan</a></li>
-	<li><a href="/"><i class="material-icons">settings_input_antenna</i>Show scan details</a></li>
+    <ul id="slide-out" class="sidenav">
+        <li><div class="user-view">
+            <div class="background" style="text-align:center;">
+                <img src="/static/logoblack.png" style="max-width:200px;margin-top:20px;">
+            </div><br>
+        </div></li>
+        <li><a href="/setscanfile/unset"><i class="material-icons">wifi</i>Show all Nmap scan</a></li>
+        <li><a href="/"><i class="material-icons">info</i>Show scan details</a></li>
 
-	<li><div class="divider"></div></li>
-	<li><a class="subheader">Support ProtecIotnet on GitLab</a></li>
-	<li style="padding-left:30px;margin-top:-20px;"><i class="fab fa-gitlab"></i> <a href="https://gitlab.com/hweckermann/proteciotnet">GitLab Project</a></li>
-	<li style="padding-left:30px;margin-top:-20px;"><i class="fas fa-star"></i> <a href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabstar">Star me</a></li>
-	<li style="padding-left:30px;margin-top:-20px;"><i class="fas fa-code-branch"></i> <a href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabfork">Fork me</a></li>
-</ul>
+        <li><div class="divider"></div></li>
+        <li><a class="subheader">Support ProtecIotnet on GitLab</a></li>
+        <li style="padding-left:30px;margin-top:-20px;"><i class="fab fa-gitlab"></i> <a href="https://gitlab.com/hweckermann/proteciotnet">GitLab Project</a></li>
+        <li style="padding-left:30px;margin-top:-20px;"><i class="fas fa-star"></i> <a href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabstar">Star me</a></li>
+        <li style="padding-left:30px;margin-top:-20px;"><i class="fas fa-code-branch"></i> <a href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabfork">Fork me</a></li>
+    </ul>
 {% endif %}
 
-	{% block content %}
-	{% endblock %}
+{% block content %}
+{% endblock %}
 
-	<!-- MODAL -->
-	<div id="modal1" class="modal modal-fixed-footer">
-		<div class="modal-content">
-			<h4 id="modaltitle">Titel</h4>
-			<p id="modalbody">test</p>
-		</div>
-		<div class="modal-footer" id="modalfooter">
-			<a href="#!" class="modal-close waves-effect waves-green btn grey white-text">Ok</a>
-		</div>
-		{% csrf_token %}
-	</div>
+<!-- MODAL -->
+<div id="modal1" class="modal modal-fixed-footer">
+    <div class="modal-content">
+        <h4 id="modaltitle">Titel</h4>
+        <p id="modalbody">test</p>
+    </div>
+    <div class="modal-footer" id="modalfooter">
+        <a href="#!" class="modal-close waves-effect waves-green btn grey white-text">Ok</a>
+    </div>
+    {% csrf_token %}
+</div>
 
-	{{ cpestring|safe }}
+{{ cpestring|safe }}
 
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-	<script>
+<script src="{% static "js/materialize.min.js" %}"></script>
+<script>
 
-		$(document).ready(function(){
-			$('.sidenav').sidenav();
-			$('.modal').modal();
-			$('.tabs').tabs();
-		});
+    $(document).ready(function(){
+        $('.sidenav').sidenav();
+        $('.modal').modal();
+        $('.tabs').tabs();
+    });
 
-	</script>
+</script>
 </body>
 </html>

@@ -769,7 +769,7 @@ def index(request, filterservice="", filterportid=""):
                                 cvecount = (cvecount + 1)
 
                     if cvecount > 0:
-                        cveout = '<a href="/report/' + address + '" class="grey-text"><i class="fas fa-exclamation-triangle"></i> ' + str(
+                        cveout = '<a href="/report/' + address + '" class="grey-text"><i class="fas fa-bug"></i> ' + str(
                             cvecount) + ' CVE found</a>'
 
             if (filterservice != "" and striggered is True) or (filterportid != "" and striggered is True) or (

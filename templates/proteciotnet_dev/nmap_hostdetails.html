@@ -154,7 +154,7 @@
 
                         </div>
                         <div class="col s4 small grey-text">
-                            <b>PORT STATISTICS</b>
+                            <b>PORT STATISTICS</b><br>
                             {#                            {{ v.portstate|safe }}#}
                             {##}
                             {#                            {% if v.tags|length > 0 %}#}
@@ -164,30 +164,32 @@
                             {#                                {% endfor %}#}
                             {#                            {% endif %}#}
 
-                            <table><tr>
-                                <td class="evenly-spaced-inner">
-                                    <div>
-                                        <i class="fas fa-lock-open"></i>
-                                        <span class="text">&nbsp;{{ v.po }} open</span>
-                                    </div>
-                                    <div>
-                                        <i class="fas fa-lock"></i>
-                                        <span class="text">&nbsp;{{ v.pc }} closed</span>
-                                    </div>
-                                    <div>
-                                        <i class="fas fa-filter"></i>
-                                        <span class="text">&nbsp;{{ v.pf }} filtered</span>
-                                    </div>
-                                </td>
+                            <table style="border-collapse: collapse; border-spacing: 0; border: none">
+                                <tr>
+                                    <td class="evenly-spaced-inner">
+                                        <div>
+                                            <i class="fas fa-lock-open"></i>
+                                            <span class="text">&nbsp;{{ v.po }} open</span>
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-lock"></i>
+                                            <span class="text">&nbsp;{{ v.pc }} closed</span>
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-filter"></i>
+                                            <span class="text">&nbsp;{{ v.pf }} filtered</span>
+                                        </div>
+                                    </td>
 
-                            </tr></table>
+                                </tr>
+                            </table>
                         </div>
-                        <div class="col s2 small">
-                            <b>SERVICES</b><br>
+                        <div class="col s2 small grey-text">
+                            <b>SERVICES</b><br><br>
                             {{ v.services|safe }}
                         </div>
-                        <div class="col s2 small">
-                            <b>PORTS</b><br>
+                        <div class="col s2 small grey-text">
+                            <b>PORTS</b><br><br>
                             {{ v.ports|safe }}
                         </div>
                     </div>

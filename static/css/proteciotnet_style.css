@@ -165,6 +165,8 @@ table.custom-table td {
     justify-content: space-between;
     margin-left: 30px;
     margin-right: 30px;
+    border: none;
+    border-collapse: collapse;
 }
 
 .evenly-spaced-inner div {

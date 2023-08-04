@@ -4,9 +4,43 @@ import urllib.parse
 import os, xmltodict, json, hashlib, re
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.http import JsonResponse
+import subprocess
 
 from proteciotnet_dev.functions import *
 
+def create_report(request):
+    if request.method == "POST":
+        res = {'p': request.POST}
+
+        type = request.POST['report_type']
+        name = request.POST['filename']
+
+        # nmap-formatter [html|csv|md|json|dot] [path-to-nmap.xml] [flags]
+        if type == "pdf":
+            cmd = f'opt/nmap-formatter/nmap-formatter md /opt/xml/{name}'
+            # TODO
+        elif type == "md":
+            cmd = f'opt/nmap-formatter/nmap-formatter md /opt/xml/{name}'
+        elif type == "html":
+            cmd = f'opt/nmap-formatter/nmap-formatter html /opt/xml/{name}'
+        elif type == "json":
+            cmd = f'opt/nmap-formatter/nmap-formatter json /opt/xml/{name} --json-pretty=true'
+        elif type == "csv":
+            cmd = f'opt/nmap-formatter/nmap-formatter csv /opt/xml/{name}'
+        elif type == "dot":
+            cmd = f'opt/nmap-formatter/nmap-formatter dot /opt/xml/{name}'
+
+        # os.popen('nmap ' + request.POST[
+        #     'params'] + ' --script=' + settings.BASE_DIR + '/proteciotnet_dev/nmap/nse/ -oX /tmp/' + request.POST[
+        #              'filename'] + '.active ' + request.POST['target'] + ' > /dev/null 2>&1 && ' +
+        #          'sleep 10 && mv /tmp/' + request.POST['filename'] + '.active /opt/xml/' + request.POST[
+        #              'filename'] + ' &')
+
+        return HttpResponse(json.dumps(res, indent=4), content_type="application/json")
+    else:
+        res = {'error': 'invalid syntax'}
+        return HttpResponse(json.dumps(res, indent=4), content_type="application/json")
 
 def reportPDFView(request):
     r = {'out': '', 'auth': True}

@@ -10,7 +10,7 @@
 				<div class="row">
 					<div class="col s3">
 						<span class="card-title">{{ address }}</span>
-						<h6>{{ hostname|safe }}</h6><span class="small">{{ scanfile }}</span>
+						<h6>{{ hostname|safe }}</h6><span class="small">{{ scanfile }}.xml</span>
 						<br><a class="small" href="/">Back to hosts</a>
 					</div>
 					<div class="col s3 hide-on-med-and-down" id="detailspo"></div>
@@ -34,9 +34,9 @@
 									{% if v.state == 'filtered' %}
 										<i class="fas fa-filter grey-text"></i>
 									{% elif v.state == 'closed' %}
-										<i class="fas fa-door-closed red-text"></i>
+										<i class="fas fa-lock red-text"></i>
 									{% elif v.state == 'open' %}
-										<i class="fas fa-door-open green-text"></i>
+										<i class="fas fa-lock-open green-text"></i>
 									{% endif %}
 									<span class="title-small grey-text">{{ v.protocol }} / </span><b class="blue-text text-darken-3">{{ v.portid }}</b><br>
 									<div class="small" style="margin-top:10px;">

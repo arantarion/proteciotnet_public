@@ -1,4 +1,4 @@
-var active_scan_timer;
+//var active_scan_timer;
 var wmover = false;
 var wmopen = false;
 var navbarvisible = false;
@@ -24,8 +24,8 @@ $(document).ready(function() {
 		}
 	});
 
-	active_scan_timer = setInterval(function() { checkActiveScan(); }, 2000);
-	$('select').formSelect();
+	//active_scan_timer = setInterval(function() { checkActiveScan(); }, 2000);
+	//$('select').formSelect();
 
 	var wminterval = setInterval(function() {
 		if(!wmover) {
@@ -97,16 +97,16 @@ function checkActiveScan() {
 				$('#activescan_info').append('<li>'+
 					'<i class="fas fa-info-circle"></i> '+
 					'<a href="#!">'+i+'</a>'+
-				'</li>'+
-				'<li>'+
+					'</li>'+
+					'<li>'+
 					'<i class="material-icons">keyboard_arrow_right</i> '+
 					'<a href="#!">'+d['scans'][i]['startstr']+'</a>'+
-				'</li>'+
-				'<li>'+
+					'</li>'+
+					'<li>'+
 					'<i class="material-icons">keyboard_arrow_right</i> '+
 					'<a href="#!">'+d['scans'][i]['type']+' '+d['scans'][i]['protocol']+'</a>'+
-				'</li>');
-				
+					'</li>');
+
 				if(wmover && wmopen) {
 					$('.wm_menu > ul > li > a').each(function() {
 						$(this).stop().show();
@@ -122,15 +122,15 @@ function checkActiveScan() {
 				$('#activescan_info').append('<li>'+
 					'<i class="fas fa-info-circle"></i> '+
 					'<a href="#!">'+i+'</a>'+
-				'</li>'+
-				'<li>'+
+					'</li>'+
+					'<li>'+
 					'<i class="material-icons">keyboard_arrow_right</i> '+
 					'<a href="#!">'+d['scans'][i]['startstr']+'</a>'+
-				'</li>'+
-				'<li>'+
+					'</li>'+
+					'<li>'+
 					'<i class="material-icons">keyboard_arrow_right</i> '+
 					'<a href="#!">'+d['scans'][i]['type']+' '+d['scans'][i]['protocol']+'</a>'+
-				'</li>');
+					'</li>');
 				$('#activescan_progress').css('display','none');
 
 				if(wmover && wmopen) {
@@ -235,7 +235,7 @@ function checkCVE() {
 	});
 
 	return 0;
-	
+
 	cpetot = Object.keys(cpe).length;
 	console.log(cpetot);
 
@@ -280,23 +280,38 @@ function checkCPETOT() {
 	return cpetot <= 0;
 }
 
+function createReport(filename) {
+	$('#modal1').modal('close');
+	csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
+	$.post('api/v1/create_report', {
+		'csrfmiddlewaretoken': csrftoken,
+		'report_type': 'pdf',
+		'filename': filename
+	}).done(function(d) {
+		if(typeof(d['error']) != 'undefined') {
+			swal("Error", "Something went wrong :C", "error");
+		} else {
+			swal("Started", "Your report is being generated!", "success");
+		}
+	});
+}
+
 function genPDF(md5scan) {
 	if(/^[a-f0-9]{32,32}$/.test(md5scan)) {
 		$.get('/report/api/pdf/').done(function(data) {
 			console.log(data);
-			// $('#modal1').css('background-color','#3e3e3e');
-			$('#modaltitle').html('Generating PDF Report');
-		
+			$('#modaltitle').html('Generating Report');
+
 			$('#modalbody').html('Please wait a few seconds...<br>'+
-			'<div class="progress"><div class="indeterminate"></div></div>'+
-			'<br><br>You\'ll be redirected to the PDF Report:<br>')
+				'<div class="progress"><div class="indeterminate"></div></div>'+
+				'<br><br>You\'ll be redirected to the report:<br>')
 			$('#modal1').modal('open');
 		});
 
 		var pdfcheck = setInterval(function() {
 			$.get('/static/'+md5scan+'.pdf')
-			.done(function() { $('#modalbody').append('PDF ready! Please wait...<br>'); setTimeout(function() { location.href='/static/'+md5scan+'.pdf' }, 3000); })
-			.fail(function() { $('#modalbody').append('<i>PDF not ready yet...</i><br>'); });
+				.done(function() { $('#modalbody').append('PDF ready! Please wait...<br>'); setTimeout(function() { location.href='/static/'+md5scan+'.pdf' }, 3000); })
+				.fail(function() { $('#modalbody').append('<i>PDF not ready yet...</i><br>'); });
 		}, 2000);
 	}
 }
@@ -318,7 +333,7 @@ function saveNotes() {
 		'notes': nb64,
 		'csrfmiddlewaretoken': csrftoken,
 		'hashstr': hashstr
-	 }).done(function(d) {
+	}).done(function(d) {
 		console.log(d);
 		if(typeof(d['ok']) !== 'undefined' && d['ok'] == 'notes saved') {
 			$('#modalbody').html('<span class="green-text">Notes successfully saved!</span><br> Now this page needs a reload. Please, click on the &quot;Reload&quot; button.');
@@ -409,9 +424,9 @@ function setLabel(type, label, hashstr, i) {
 
 			switch(res['label']) {
 				case 'Vulnerable': color = '#F44336'; margin = '10px'; break;
-				case 'Critical': color = 'black'; margin = '22px'; break;
+				// case 'Critical': color = 'black'; margin = '22px'; break;
 				case 'Warning': color = 'orange'; margin = '28px'; break;
-				case 'Checked': color = 'blue'; margin = '28px'; break;
+				case 'Checked': color = '#0c7bbb'; margin = '28px'; break;
 			}
 
 			// displayed label

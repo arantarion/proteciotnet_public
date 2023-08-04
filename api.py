@@ -112,6 +112,7 @@ def genPDF(request):
         if os.path.exists('/opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf'):
             os.remove('/opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf')
 
+        print('/opt/wkhtmltox/bin/wkhtmltopdf --cookie sessionid ' + request.session._session_key + ' --enable-javascript --javascript-delay 6000 http://127.0.0.1:8000/view/pdf/ /opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf')
         os.popen(
             '/opt/wkhtmltox/bin/wkhtmltopdf --cookie sessionid ' + request.session._session_key + ' --enable-javascript --javascript-delay 6000 http://127.0.0.1:8000/view/pdf/ /opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf')
         res = {'ok': 'PDF created', 'file': '/static/' + pdffile + '.pdf'}

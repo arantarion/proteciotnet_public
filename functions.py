@@ -203,6 +203,7 @@ def _get_cwe_description(cwe_nr):
         'CWE-261': 'Weak Cryptography for Passwords',
         'CWE-262': 'Not Using Password Aging',
         'CWE-263': 'Password Aging with Long Expiration',
+        'CWE-264': 'Permissions, Privileges, and Access Controls (obsolete)',
         'CWE-266': 'Incorrect Privilege Assignment',
         'CWE-267': 'Privilege Defined With Unsafe Actions',
         'CWE-268': 'Privilege Chaining',
@@ -359,6 +360,7 @@ def _get_cwe_description(cwe_nr):
         'CWE-423': 'DEPRECATED (Duplicate): Proxied Trusted Channel',
         'CWE-424': 'Failure to Protect Alternate Path',
         'CWE-425': "Direct Request ('Forced Browsing')",
+        'CWE-426': 'Untrusted Search Path',
         'CWE-427': 'Uncontrolled Search Path Element',
         'CWE-428': 'Unquoted Search Path or Element',
         'CWE-43': "Path Equivalence: 'filename....' (Multiple Trailing Dot)",
@@ -716,7 +718,7 @@ def _get_cwe_description(cwe_nr):
     if cwe_nr in cwe_descriptions:
         return f"{cwe_nr}: {cwe_descriptions[cwe_nr]}"
     else:
-        return "Description not available for CWE-" + cwe_nr
+        return "Description not available for " + cwe_nr
 
 
 def labelToMargin(label):

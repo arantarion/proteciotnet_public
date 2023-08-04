@@ -8,6 +8,7 @@ import os
 import urllib.parse
 from collections import OrderedDict
 from datetime import datetime
+import urllib.parse
 
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -40,8 +41,8 @@ class CVSS_Vector:
         self.confidentiality_impact_text = self._get_full_con_impact(self.confidentiality_impact)
         self.integrity_impact_text = self._get_full_con_impact(self.integrity_impact)
         self.availability_impact_text = self._get_full_con_impact(self.availability_impact)
-    
-    
+
+
     # TODO
     def __str__(self):
         return f"Access Vector (AV):\t\t\t{self.access_vector_text}\n" \
@@ -51,14 +52,14 @@ class CVSS_Vector:
        f"Integrity Impact (I):\t\t\t{self.integrity_impact_text}\n" \
        f"Availability Impact (A):\t\t{self.availability_impact_text}"
 
-               
-               
+
+
     def __repr__(self):
         return f"CVSS_vector(cvss_vec='{self.access_vector}/{self.access_complexity}/" \
                f"{self.authentication}/{self.confidentiality_impact}/" \
                f"{self.integrity_impact}/{self.availability_impact}')"
-    
-    
+
+
     def _get_full_access_vector(self, av):
         if av == "L":
             return "Local"
@@ -79,8 +80,8 @@ class CVSS_Vector:
             return "Low"
         else:
             return "NaN"
-        
-        
+
+
     def _get_full_authentication(self, a):
         if a == "M":
             return "Multiple"
@@ -90,8 +91,8 @@ class CVSS_Vector:
             return "None"
         else:
             return "NaN"
-    
-    
+
+
     def _get_full_con_impact(self, ci):
         if ci == "N":
             return "None"
@@ -124,7 +125,7 @@ def setscanfile(request, scanfile):
         if 'scanfile' in request.session:
             del (request.session['scanfile'])
 
-    return render(request, 'proteciotnet_dev/nmap_hostdetails.html', {'js': '<script> location.href="/"; </script>'})
+    return render(request, 'proteciotnet_dev/nmap_device_overview.html', {'js': '<script> location.href="/"; </script>'})
 
 
 def port(request, port):
@@ -414,7 +415,7 @@ def details(request, address):
                                 cveexdbout += '<a href="' + cveexdb['source'] + '">' + html.escape(
                                     cveexdb['title']) + '</a><br>'
                         cveexdbout += '</div>'
-                                       
+
                     cvss_score = cveobj.get('cvss', '')
                     label_color, font_color = get_cvss_color(cvss_score)
 
@@ -430,7 +431,7 @@ def details(request, address):
                     except KeyError:
                         cvss_vector = "AV:-/AC:-/Au:-/C:-/I:-/A:-"
                         cvss_vec_obj = CVSS_Vector(cvss_vector, cveobj["id"])
-                    
+
                     cvss_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss_vec_obj.__str__()}" style="color:white">{html.escape(cvss_vector)}</a>'
 
                     cveout += f'<div id="' + html.escape(cveobj['id']) + '" style="line-height:28px;padding:10px;border-bottom:solid #666 1px;margin-top:10px;">' + \
@@ -454,16 +455,16 @@ def details(request, address):
               '		M.toast({html: "Copied to clipboard"}); ' + \
               '	}); ' + \
               '	$(".dropdown-trigger").dropdown(); ' + \
-              '	$("#detailspo").html(\'<center><h4><i class="fas fa-door-open green-text"></i> ' + str(
+              '	$("#detailspo").html(\'<center><h4><i class="fas fa-lock-open green-text"></i> ' + str(
         po) + '</h4><span class="small grey-text">OPEN PORTS</span></center>\');' + \
-              '	$("#detailspc").html(\'<center><h4><i class="fas fa-door-closed red-text"></i> ' + str(
+              '	$("#detailspc").html(\'<center><h4><i class="fas fa-lock red-text"></i> ' + str(
         pc) + '</h4><span class="small grey-text">CLOSED PORTS</span></center>\');' + \
               '	$("#detailspf").html(\'<center><h4><i class="fas fa-filter grey-text"></i> ' + str(
         pf) + '</h4><span class="small grey-text">FILTERED PORTS</span></center>\');' + \
               '}); ' + \
               '</script>'
 
-    return render(request, 'proteciotnet_dev/nmap_portdetails.html', r)
+    return render(request, 'proteciotnet_dev/nmap_device_details.html', r)
 
 
 def index(request, filterservice="", filterportid=""):
@@ -537,7 +538,7 @@ def index(request, filterservice="", filterportid=""):
         r['tr'] = OrderedDict(sorted(r['tr'].items()))
         r['stats']['xmlcount'] = xmlfilescount
 
-        return render(request, 'proteciotnet_dev/nmap_xmlfiles.html', r)
+        return render(request, 'proteciotnet_dev/nmap_file_overview.html', r)
 
     scanmd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
     r['scanfile'] = html.escape(str(request.session['scanfile']))
@@ -583,17 +584,16 @@ def index(request, filterservice="", filterportid=""):
             i = o['host']
 
         hostname = ''
+        info_hostnames = '<sup style="font-size: 70%; position: relative; top: 0.2em; left: -0.3em;"> <span class="material-icons" style="font-size: inherit;">info</span></sup>'
         if 'hostnames' in i and type(i['hostnames']) is dict:
-            # hostname = json.dumps(i['hostnames'])
             if 'hostname' in i['hostnames']:
-                # hostname += '<br>'
-
                 if type(i['hostnames']['hostname']) is list:
                     for hi in i['hostnames']['hostname']:
-                        hostname += '<div class="small grey-text"><b>' + hi['@type'] + ':</b> ' + hi['@name'] + '</div>'
+                        hostname += '<div class="small grey-text"><b><span title="DNS pointer record">' + hi['@type'] + info_hostnames + '&#8594; </span></b> ' + hi['@name'] + '</div>'
                 else:
-                    hostname += '<div class="small grey-text"><b>' + i['hostnames']['hostname']['@type'] + ':</b> ' + \
+                    hostname += '<div class="small grey-text"><b><span title="DNS pointer record">' + i['hostnames']['hostname']['@type'] + info_hostnames + '&#8594; </span></b>' + \
                                 i['hostnames']['hostname']['@name'] + '</div>'
+
 
         po, pc, pf = 0, 0, 0
         ss, pp, ost = {}, {}, {}
@@ -606,16 +606,29 @@ def index(request, filterservice="", filterportid=""):
                 if ai['@addrtype'] == 'ipv4':
                     address = ai['@addr']
 
-        vendor = "unknown"
+        vendor = ""
         mac_address = ""
         if '@vendor' in i['address']:
-            vendor = i['address']['@vendor']
+            try:
+                vendor = i['address']['@vendor']
+            except KeyError:
+                pass
             mac_address = i['address']['@addr']
         elif type(i['address']) is list:
             for ai in i['address']:
                 if ai['@addrtype'] == 'mac':
-                    vendor = ai['@vendor']
+                    try:
+                        vendor = ai['@vendor']
+                    except KeyError:
+                        pass
                     mac_address = ai['@addr']
+
+        if vendor == "" and mac_address == "":
+            vendor = 'unknown'
+
+        if vendor == "":
+            vendor = f'<a href="https://maclookup.app/search/result?mac={urllib.parse.quote(mac_address)}" style="color: #9e9e9e; text-decoration: none;">{mac_address}<sup style="font-size: 70%; position: relative; top: -0.9em;"><span class="material-icons" style="font-size: 12px; vertical-align: middle;">info</span></sup></a>'
+
 
         addressmd5 = hashlib.md5(str(address).encode('utf-8')).hexdigest()
 
@@ -989,8 +1002,7 @@ def index(request, filterservice="", filterportid=""):
     r['cpestring'] = ' <input type="hidden" id="cpestring" value="' + urllib.parse.quote_plus(
         base64.b64encode(json.dumps(cpedict).encode())) + '" /> '
 
-    return render(request, 'proteciotnet_dev/nmap_hostdetails.html', r)
-
+    return render(request, 'proteciotnet_dev/nmap_device_overview.html', r)
 
 def about(request):
     r = {'auth': True}

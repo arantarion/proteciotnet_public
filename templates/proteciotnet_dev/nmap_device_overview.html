@@ -98,7 +98,18 @@
             {% else %}
                 <div class="card-action">
                     <div class="col s12 m4 title-small grey-text">Actions</div><br>
-                    <a href="#!" onclick="javascript:genPDF('{{ scanmd5 }}');" style="color: #ff9800;"><i class="fas fa-file-pdf"></i> PDF Report</a><br><br>
+
+                    <ul id="dropdown{{ v.pel }}" class="dropdown-content" style="min-width:300px; border-radius: 4px;">
+                        <li><a href="#" onclick="javascript:createReport('{{ stats.filename }}')" style="color:#111111">Create PDF report</a></li>
+                        <li class="divider" tabindex="-1"></li>
+                        <li><a href="#!" onclick="" style="color:#111111">Create Markdown report</a></li>
+                        <li><a href="#!" onclick="" style="color:#111111">Create JSON file</a></li>
+                        <li><a href="#!" onclick="" style="color:#111111">Create CSV file</a></li>
+                        <li><a href="#!" onclick="" style="color:#111111">Create image</a></li>
+                    </ul><a class="dropdown-trigger" href="#!" data-target="dropdown{{ v.pel }}" style="color: #ff9800;"><i class="fas fa-file-pdf"></i> Create Report</a><br><br>
+
+
+{#                    <a href="#!" onclick="javascript:genPDF('{{ scanmd5 }}');" style="color: #ff9800;"><i class="fas fa-file-pdf"></i> PDF Report</a><br><br>#}
                     <a href="#!" onclick="javascript:checkCVE();" style="color: #ff9800;"><i class="fas fa-bug"></i> Check for CVE</a>
                 </div>
             {% endif %}
@@ -116,15 +127,15 @@
             <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">
                 <div class="card-content">
                     <div class="row">
-                        <div class="col s4 title-small grey-text">Services</div>
-                        {#                        <div class="col s8 title-small grey-text">Services:</div>#}
+                        <div class="col s4 title-small grey-text">Services:</div>
 
                         <div class="col" style="margin-top:10px;">
                             <span style="font-family:monospace;font-size:12px;">{{ stats.services|safe }}</span><br><br>
                             <span class="title-small grey-text">Top 10 Ports:</span><br><span style="font-family:monospace;font-size:12px;">{{ stats.portids|safe }}</span><br><br>
-                            <span class="title-small grey-text">OS Type List:</span><br><span style="font-family:monospace;font-size:12px;">{{ stats.ostypes|safe }}</span><br><br>
+                            {% if stats.ostypes != "" %}
+                                <span class="title-small grey-text">OS Type List:</span><br><span style="font-family:monospace;font-size:12px;">{{ stats.ostypes|safe }}</span><br><br>
+                            {% endif %}
                         </div>
-                        {#                        <div class="col s8" style="margin-top:10px;"><canvas id="chart2" height="200"></canvas></div>#}
                     </div>
                 </div>
             </div>
@@ -143,7 +154,7 @@
                             <div class="hindex wmcard">{{ v.hostindex }}</div>
                             {{ v.newlabelout|safe }}
                             {% if v.po != 0 or v.pc != 0 or v.pf != 0 or v.vendor != "" %}
-                                <h5><a href="/report/{{ i }}" class="blue-text text-darken-3">{{ i }}</a></h5><span style="font-size: 14px; color: #9e9e9e"><b>Vendor: </b>{{ v.vendor }}</span>{{ v.hostname|safe }}
+                                <h5><a href="/report/{{ i }}" class="blue-text text-darken-3">{{ i }}</a></h5><span style="font-size: 14px; color: #9e9e9e"><b>Vendor: </b>{{ v.vendor|safe }}</span>{{ v.hostname|safe }}
                             {% else %}
                                 <h5>{{ i }}</h5><h5>{{ v.vendor }}</h5>{{ v.hostname|safe }}
                             {% endif %}
@@ -198,9 +209,9 @@
                 <div class="card-action">
                     <ul id="hostdd{{ v.hostindex }}" class="dropdown-content" style="min-width:200px;">
                         <li><a href="#!" onclick="javascript:setLabel('host', 'Vulnerable', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span class="tmlabel red">Vulnerable</span></a></li>
-                        <li><a href="#!" onclick="javascript:setLabel('host', 'Critical', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span class="tmlabel black">Critical</span></a></li>
-                        <li><a href="#!" onclick="javascript:setLabel('host', 'Warning', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span class="tmlabel orange"><span class="tmlabel orange">Warning</span></a></li>
-                        <li><a href="#!" onclick="javascript:setLabel('host', 'Checked', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span class="tmlabel blue"><span class="tmlabel blue">Checked</span></a></li>
+                        {#                        <li><a href="#!" onclick="javascript:setLabel('host', 'Critical', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span class="tmlabel black">Critical</span></a></li>#}
+                        <li><a href="#!" onclick="javascript:setLabel('host', 'Warning', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span class="tmlabel orange">Warning</span></a></li>
+                        <li><a href="#!" onclick="javascript:setLabel('host', 'Checked', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span class="tmlabel blue">Checked</span></a></li>
                         <li><a class="grey-text" href="#!" onclick="javascript:removeLabel('host', '{{ v.addressmd5 }}', {{ v.hostindex }});">Remove label</a></li>
                         <li class="divider"></li>
                         <li><a class="grey-text" href="#!" onclick="javascript:openNotes('{{ v.addressmd5 }}', '{{ v.notesb64 }}');">Insert notes</a></li>

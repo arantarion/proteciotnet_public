@@ -124,8 +124,8 @@ def getCVE(request):
 
     if request.method == "POST":
         scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
-        print("IM HERE. YOU CALLED getCVE()")
-        cveproc = os.popen('sudo python3 /opt/proteciotnet/proteciotnet_dev/nmap/cve.py ' + request.session['scanfile'])
+
+        cveproc = os.popen('sudo python3 /opt/proteciotnet/proteciotnet_dev/nmap/cve_cdn.py ' + request.session['scanfile'])
         res['cveout'] = cveproc.read()
         cveproc.close()
 

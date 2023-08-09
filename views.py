@@ -396,13 +396,17 @@ def details(request, address):
             for i in cvejson:
                 if type(i) is list:
                     listcve = i
-                # cveout += 'list<hr>'
                 elif type(i) is dict:
                     listcve = [i]
-                # cveout += 'dict<hr>'
-                # continue
 
                 for cveobj in listcve:
+                    try:
+                        if 'message' in cveobj.keys():
+                            if cveobj['message'] == 'No cves found':
+                                continue
+                    except KeyError:
+                        continue
+
                     cverefout = ''
                     for cveref in cveobj['references']:
                         cverefout += '<a href="' + cveref + '">' + cveref + '</a><br>'
@@ -417,6 +421,8 @@ def details(request, address):
                         cveexdbout += '</div>'
 
                     cvss_score = cveobj.get('cvss', '')
+                    cvss3_score = cveobj.get('cvss3', '')
+                    cvss3_vector =cveobj.get('cvss3-vector', '')
                     label_color, font_color = get_cvss_color(cvss_score)
 
                     cwe_string = f'<span class="label grey">' + html.escape(cveobj['cwe']) + '</span>'

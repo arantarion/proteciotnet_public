@@ -73,7 +73,7 @@
                                 <td >{{ stats.scantype }}</td>
 
                                 <td ><b class="orange-text">Nmap command:</b></td>
-                                <td >{{ stats.nmapargs }}</td>
+                                <td >{{ stats.nmapargs | safe }}</td>
                             </tr>
                             <tr>
                                 <td ><b class="orange-text">Scan Protocol:</b></td>
@@ -159,24 +159,13 @@
                                 <h5>{{ i }}</h5><h5>{{ v.vendor }}</h5>{{ v.hostname|safe }}
                             {% endif %}
 
-                            {#							<i class="fas fa-door-open green-text"></i> <span class="green-text">{{ v.po }}</span>#}
-                            {#							<i class="fas fa-door-closed red-text"></i> <span class="red-text">{{ v.pc }}</span>#}
-                            {#							<i class="fas fa-filter orange-text"></i> <span class="orange-text">{{ v.pf }}</span>#}
 
                         </div>
                         <div class="col s4 small grey-text">
                             <b>PORT STATISTICS</b><br>
-                            {#                            {{ v.portstate|safe }}#}
-                            {##}
-                            {#                            {% if v.tags|length > 0 %}#}
-                            {#                                <br><b>GUESSED TAGS</b><br>#}
-                            {#                                {% for i in v.tags %}#}
-                            {#                                    <span class="blue white-text" style="border-radius:4px;padding:4px;font-size:10px;">#{{ i }}</span>#}
-                            {#                                {% endfor %}#}
-                            {#                            {% endif %}#}
 
                             <table style="border-collapse: collapse; border-spacing: 0; border: none">
-                                <tr>
+                                <tr style="border: none">
                                     <td class="evenly-spaced-inner">
                                         <div>
                                             <i class="fas fa-lock-open"></i>
@@ -195,10 +184,12 @@
                                 </tr>
                             </table>
                         </div>
+
                         <div class="col s2 small grey-text">
                             <b>SERVICES</b><br><br>
                             {{ v.services|safe }}
                         </div>
+
                         <div class="col s2 small grey-text">
                             <b>PORTS</b><br><br>
                             {{ v.ports|safe }}

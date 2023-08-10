@@ -1004,3 +1004,25 @@ def get_ports_details(scanfile):
                         'extrainfo': e
                     })
     return r
+
+
+def insert_linebreaks(input_string, max_line_length=60):
+    words = input_string.split()
+    lines = []
+    line = ""
+
+    for word in words:
+        if len(line) + len(word) + 1 <= max_line_length:
+            if line:
+                line += " " + word
+            else:
+                line = word
+        else:
+            lines.append(line)
+            line = word
+
+    if line:
+        lines.append(line)
+
+    tmp = "<br>".join(lines)
+    return f"<p>{tmp}</p>"

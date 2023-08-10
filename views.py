@@ -104,17 +104,60 @@ class Cvss3vector:
                 self.availability = self.mapping.get('A', '').get(self.fields['A'], '')
 
     def __str__(self):
-        overview = (
-            f"CVSS Version:\t\t\t\t{self.version}\n"
-            f"Attack Vector (AV):\t\t\t{self.attack_vector}\n"
-            f"Attack Complexity (AC):\t\t{self.att_complexity}\n"
-            f"Privileges Required (PR):\t{self.priv_req}\n"
-            f"User Interaction (UI):\t\t{self.user_interaction}\n"
-            f"Scope (S):\t\t\t\t\t{self.scope}\n"
-            f"Confidentiality Impact (C):\t{self.confidentiality}\n"
-            f"Integrity Impact (I):\t\t\t{self.integrity}\n"
-            f"Availability Impact (A):\t\t{self.availability}\n"
-        )
+        # overview = (
+        #     f"CVSS Version:\t\t\t\t{self.version}\n"
+        #     f"Attack Vector (AV):\t\t\t{self.attack_vector}\n"
+        #     f"Attack Complexity (AC):\t\t{self.att_complexity}\n"
+        #     f"Privileges Required (PR):\t{self.priv_req}\n"
+        #     f"User Interaction (UI):\t\t{self.user_interaction}\n"
+        #     f"Scope (S):\t\t\t\t\t{self.scope}\n"
+        #     f"Confidentiality Impact (C):\t{self.confidentiality}\n"
+        #     f"Integrity Impact (I):\t\t\t{self.integrity}\n"
+        #     f"Availability Impact (A):\t\t{self.availability}\n"
+        # )
+
+        td_style = 'style="padding:0; margin:0; border: none;"'
+        tr_style = 'style="border: none;"'
+
+        overview = f'<table style="border-collapse: collapse;">' \
+            f'<tr {tr_style}>' \
+            f'<td {td_style}>CVSS Version</td>' \
+            f'<td {td_style}>{self.version}</td>' \
+            f'</tr>' \
+            f'<tr {tr_style}>' \
+            f'<td {td_style}>Attack Vector (AV)</td>' \
+            f'<td {td_style}>{self.attack_vector}</td>' \
+            f'</tr>' \
+            f'<tr {tr_style}>' \
+            f'<td {td_style}>Attack Complexity (AC)</td>' \
+            f'<td {td_style}>{self.att_complexity}</td>' \
+            f'</tr>' \
+            f'<tr {tr_style}>' \
+            f'<td {td_style}>Privileges Required (PR)</td>' \
+            f'<td {td_style}>{self.priv_req}</td>' \
+            f'</tr>' \
+            f'<tr {tr_style}>' \
+            f'<td {td_style}>User Interaction (UI)</td>' \
+            f'<td {td_style}>{self.user_interaction}</td>' \
+            f'</tr>' \
+            f'<tr {tr_style}>' \
+            f'<td {td_style}>Scope (S)</td>' \
+            f'<td {td_style}>{self.scope}</td>' \
+            f'</tr>' \
+            f'<tr {tr_style}>' \
+            f'<td {td_style}>Confidentiality Impact (C)</td>' \
+            f'<td {td_style}>{self.confidentiality}</td>' \
+            f'</tr>' \
+            f'<tr {tr_style}>' \
+            f'<td {td_style}>Integrity Impact (I)</td>' \
+            f'<td {td_style}>{self.integrity}</td>' \
+            f'</tr>' \
+            f'<tr {tr_style}>' \
+            f'<td {td_style}>Availability Impact (A)</td>' \
+            f'<td {td_style}>{self.availability}</td>' \
+            f'</tr>'\
+            f'</table>'
+
         return overview
 
 
@@ -145,12 +188,38 @@ class CvssVector:
 
     # TODO
     def __str__(self):
-        return f"Access Vector (AV):\t\t\t{self.access_vector_text}\n" \
-               f"Access Complexity (AC):\t\t{self.access_complexity_text}\n" \
-               f"Authentication (Au):\t\t{self.authentication_text}\n" \
-               f"Confidentiality Impact (C):\t{self.confidentiality_impact_text}\n" \
-               f"Integrity Impact (I):\t\t\t{self.integrity_impact_text}\n" \
-               f"Availability Impact (A):\t\t{self.availability_impact_text}"
+
+        td_style = 'style="padding:0; margin:0; border: none;"'
+        tr_style = 'style="border: none;"'
+
+        x = f'<table style="border-collapse: collapse;">' \
+            f'<tr {tr_style}>' \
+            f'<td {td_style}>Access Vector (AV)</td>' \
+            f'<td {td_style}>{self.access_vector_text}</td>' \
+            f'</tr>' \
+            f'<tr {tr_style}>' \
+            f'<td {td_style}>Access Complexity (AC)</td>' \
+            f'<td {td_style}>{self.access_complexity_text}</td>' \
+            f'</tr>' \
+            f'<tr {tr_style}>' \
+            f'<td {td_style}>Authentication (Au)</td>' \
+            f'<td {td_style}>{self.authentication_text}</td>' \
+            f'</tr>' \
+            f'<tr {tr_style}>' \
+            f'<td {td_style}>Confidentiality Impact (C)</td>' \
+            f'<td {td_style}>{self.confidentiality_impact_text}</td>' \
+            f'</tr>' \
+            f'<tr {tr_style}>' \
+            f'<td {td_style}>Integrity Impact (I)</td>' \
+            f'<td {td_style}>{self.integrity_impact_text}</td>' \
+            f'</tr>' \
+            f'<tr {tr_style}>' \
+            f'<td {td_style}>Availability Impact (A)</td>' \
+            f'<td {td_style}>{self.availability_impact_text}</td>' \
+            f'</tr>' \
+            f'</table>'
+
+        return x
 
     def __repr__(self):
         return f"CVSS_vector(cvss_vec='{self.access_vector}/{self.access_complexity}/" \
@@ -525,11 +594,16 @@ def details(request, address):
 
                     label_color, font_color = get_cvss_color(cvss_score, 2)
 
-                    cwe_string = f'<span class="label grey">' + html.escape(cveobj['cwe']) + '</span>'
+                    #cwe_string = f'<span class="label grey">' + html.escape(cveobj['cwe']) + '</span>'
+
                     if "Other" not in cveobj["cwe"] and "noinfo" not in cveobj["cwe"]:
-                        cwe_tooltip = f'<a href="https://cwe.mitre.org/data/definitions/{cveobj["cwe"][4:]}.html" data-toggle="tooltip" data-placement="top" title="{_get_cwe_description(cveobj["cwe"])}" style="color:white">{cwe_string}</a>'
+                        cwe_tooltip = f'<div class="tt2" style="color:white"><a href="https://cwe.mitre.org/data/definitions/{cveobj["cwe"][4:]}.html" target="_BLANK" style="color:white">{cveobj["cwe"]}</a><span class="ttt2">{_get_cwe_description(cveobj["cwe"])}</span></div>'
+                        #cwe_tooltip = f'<a href="https://cwe.mitre.org/data/definitions/{cveobj["cwe"][4:]}.html" data-toggle="tooltip" data-placement="top" title="{_get_cwe_description(cveobj["cwe"])}" style="color:white">{cwe_string}</a>'
                     else:
-                        cwe_tooltip = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{_get_cwe_description(cveobj["cwe"])}" style="color:white">{cwe_string}</a>'
+                        #cwe_tooltip = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{_get_cwe_description(cveobj["cwe"])}" style="color:white">{html.escape(cveobj["cwe"])}</a>'
+                        cwe_tooltip = f'<div class="tt2" style="color:white">{cveobj["cwe"]}<span class="ttt2">{_get_cwe_description(cveobj["cwe"])}</span></div>'
+
+                    cwe_string = f'<span class="label grey">' + cwe_tooltip + '</span>'
 
                     try:
                         cvss_vector = cveobj["cvss-vector"]
@@ -538,11 +612,13 @@ def details(request, address):
                         cvss_vector = "AV:-/AC:-/Au:-/C:-/I:-/A:-"
                         cvss_vec_obj = CvssVector(cvss_vector, cveobj["id"])
 
-                    cvss_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss_vec_obj.__str__()}" style="color:white">{html.escape(cvss_vector)}</a>'
+                    #cvss_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss_vec_obj.__str__()}" style="color:white">{html.escape(cvss_vector)}</a>'
+                    cvss_vector_html = f'<div class="tooltip" style="color:white">{html.escape(cvss_vector)}<span class="tooltiptext">{cvss_vec_obj.__str__()}</span></div>'
 
                     if cvss3_vector:
                         cvss3_vec_obj = Cvss3vector(cvss3_vector)
-                        cvss3_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss3_vec_obj.__str__()}" style="color:white">{html.escape(cvss3_vector)}</a>'
+                        #cvss3_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss3_vec_obj.__str__()}" style="color:white">{html.escape(cvss3_vector)}</a>'
+                        cvss3_vector_html = f'<div class="tooltip" style="color:white">{html.escape(cvss3_vector)}<span class="tooltiptext">{cvss3_vec_obj.__str__()}</span></div>'
 
                     cveout += f'<div id="' + html.escape(cveobj['id']) + '" style="line-height:28px;padding:10px;border-bottom:solid #666 1px;margin-top:10px;">'
                     cveout += f'<a href=https://nvd.nist.gov/vuln/detail/{html.escape(cveobj["id"])} style="color:white" target="_BLANK"> <span class="label blue" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);">' + html.escape(cveobj['id']) + '</span></a> '
@@ -556,7 +632,7 @@ def details(request, address):
                         cveout += f'<span class="label grey">' + cvss3_vector_html + '</span>' + " "
                         cveout += '&nbsp; - &nbsp;'
 
-                    cveout += cwe_tooltip
+                    cveout += cwe_string
                     cveout += '<br><br>'
                     cveout += html.escape(cveobj['summary'])
                     cveout += '<br><br>'
@@ -706,7 +782,7 @@ def index(request, filterservice="", filterportid=""):
             i = o['host']
 
         hostname = ''
-        info_hostnames = '<sup style="font-size: 70%; position: relative; top: 0.2em; left: -0.3em;"> <span class="material-icons" style="font-size: inherit;">info</span></sup>'
+        info_hostnames = '<sup style="font-size: 70%; position: relative; top: 0.2em; left: -0.3em;"> <span class="material-icons" style="font-size: inherit;">question_mark</span></sup>'
         if 'hostnames' in i and type(i['hostnames']) is dict:
             if 'hostname' in i['hostnames']:
                 if type(i['hostnames']['hostname']) is list:
@@ -880,10 +956,8 @@ def index(request, filterservice="", filterportid=""):
             if scanmd5 in noteshost:
                 if addressmd5 in noteshost[scanmd5]:
                     notesb64 = noteshost[scanmd5][addressmd5]
-                    notesout = '<a id="noteshost' + str(
-                        hostindex) + '" class="grey-text" href="#!" onclick="javascript:openNotes(\'' + hashlib.md5(
-                        str(address).encode(
-                            'utf-8')).hexdigest() + '\', \'' + notesb64 + '\');"><i class="fas fa-comment"></i> contains notes</a>'
+                    notesout = '<a id="noteshost' + str(hostindex) + '" class="grey-text" href="#!" onclick="javascript:openNotes(\'' + hashlib.md5(
+                        str(address).encode('utf-8')).hexdigest() + '\', \'' + notesb64 + '\');"><i class="fas fa-comment"></i> contains notes</a>'
                     removenotes = '<li><a href="#!" class="grey-text" onclick="javascript:removeNotes(\'' + addressmd5 + '\', \'' + str(
                         hostindex) + '\');">Remove notes</a></li>'
 
@@ -1019,7 +1093,7 @@ def index(request, filterservice="", filterportid=""):
         'debugging': debugging,
         'numservices': numservices,
         'nmapver': o['@version'],
-        'nmapargs': o['@args'],
+        'nmapargs': insert_linebreaks(o['@args']), # o['@args'],
         'xmlver': o['@xmloutputversion'],
         'hostsup': str(hostsup),
         'popen': ports['open'],

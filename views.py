@@ -17,7 +17,108 @@ from proteciotnet_dev.functions import _get_cwe_description
 from proteciotnet_dev.functions import *
 
 V2_PATTERN = "AV:([L|A|N])/AC:(H|M|L)/Au:([M|S|N])/C:([N|P|C])/I:([N|P|C])/A:([N|P|C])"
-class CVSS_Vector:
+
+
+class Cvss3vector:
+    def __init__(self, vector_string):
+        self.vector_string = vector_string
+        self.fields = self.parse_vector()
+        self.version = 0
+        self.attack_vector = ""
+        self.att_complexity = ""
+        self.priv_req = ""
+        self.user_interaction = ""
+        self.scope = ""
+        self.confidentiality = ""
+        self.integrity = ""
+        self.availability = ""
+        self.mapping = {
+            "AV": {
+                "N": "Network",
+                "A": "Adjacent Network",
+                "L": "Local",
+                "P": "Physical"
+            },
+            "AC": {
+                "H": "High",
+                "L": "Low"
+            },
+            "PR": {
+                "N": "None",
+                "L": "Low",
+                "H": "High"
+            },
+            "UI": {
+                "N": "None",
+                "R": "Required"
+            },
+            "S": {
+                "U": "Unchanged",
+                "C": "Changed"
+            },
+            "C": {
+                "N": "None",
+                "L": "Low",
+                "H": "High"
+            },
+            "I": {
+                "N": "None",
+                "L": "Low",
+                "H": "High"
+            },
+            "A": {
+                "N": "None",
+                "L": "Low",
+                "H": "High"
+            }
+        }
+        self.get_text()
+
+    def parse_vector(self):
+        fields = {}
+        parts = self.vector_string.split("/")
+        for part in parts:
+            field, value = part.split(":")
+            fields[field] = value
+        return fields
+
+    def get_text(self):
+        for key in self.fields.keys():
+            if key == "CVSS":
+                self.version = self.fields['CVSS']
+            elif key == "AV":
+                self.attack_vector = self.mapping.get('AV', '').get(self.fields['AV'], '')
+            elif key == "AC":
+                self.att_complexity = self.mapping.get('AC', '').get(self.fields['AC'], '')
+            elif key == "PR":
+                self.priv_req = self.mapping.get('PR', '').get(self.fields['PR'], '')
+            elif key == "UI":
+                self.user_interaction = self.mapping.get('UI', '').get(self.fields['UI'], '')
+            elif key == "S":
+                self.scope = self.mapping.get('S', '').get(self.fields['S'], '')
+            elif key == "C":
+                self.confidentiality = self.mapping.get('C', '').get(self.fields['C'], '')
+            elif key == "I":
+                self.integrity = self.mapping.get('I', '').get(self.fields['I'], '')
+            elif key == "A":
+                self.availability = self.mapping.get('A', '').get(self.fields['A'], '')
+
+    def __str__(self):
+        overview = (
+            f"CVSS Version:\t\t\t\t{self.version}\n"
+            f"Attack Vector (AV):\t\t\t{self.attack_vector}\n"
+            f"Attack Complexity (AC):\t\t{self.att_complexity}\n"
+            f"Privileges Required (PR):\t{self.priv_req}\n"
+            f"User Interaction (UI):\t\t{self.user_interaction}\n"
+            f"Scope (S):\t\t\t\t\t{self.scope}\n"
+            f"Confidentiality Impact (C):\t{self.confidentiality}\n"
+            f"Integrity Impact (I):\t\t\t{self.integrity}\n"
+            f"Availability Impact (A):\t\t{self.availability}\n"
+        )
+        return overview
+
+
+class CvssVector:
     def __init__(self, cvss_vec, cve_id):
         try:
             matches = re.findall(V2_PATTERN, cvss_vec)
@@ -42,23 +143,19 @@ class CVSS_Vector:
         self.integrity_impact_text = self._get_full_con_impact(self.integrity_impact)
         self.availability_impact_text = self._get_full_con_impact(self.availability_impact)
 
-
     # TODO
     def __str__(self):
         return f"Access Vector (AV):\t\t\t{self.access_vector_text}\n" \
-       f"Access Complexity (AC):\t\t{self.access_complexity_text}\n" \
-       f"Authentication (Au):\t\t{self.authentication_text}\n" \
-       f"Confidentiality Impact (C):\t{self.confidentiality_impact_text}\n" \
-       f"Integrity Impact (I):\t\t\t{self.integrity_impact_text}\n" \
-       f"Availability Impact (A):\t\t{self.availability_impact_text}"
-
-
+               f"Access Complexity (AC):\t\t{self.access_complexity_text}\n" \
+               f"Authentication (Au):\t\t{self.authentication_text}\n" \
+               f"Confidentiality Impact (C):\t{self.confidentiality_impact_text}\n" \
+               f"Integrity Impact (I):\t\t\t{self.integrity_impact_text}\n" \
+               f"Availability Impact (A):\t\t{self.availability_impact_text}"
 
     def __repr__(self):
         return f"CVSS_vector(cvss_vec='{self.access_vector}/{self.access_complexity}/" \
                f"{self.authentication}/{self.confidentiality_impact}/" \
                f"{self.integrity_impact}/{self.availability_impact}')"
-
 
     def _get_full_access_vector(self, av):
         if av == "L":
@@ -70,7 +167,6 @@ class CVSS_Vector:
         else:
             return "NaN"
 
-
     def _get_full_access_complexity(self, ac):
         if ac == "H":
             return "High"
@@ -81,7 +177,6 @@ class CVSS_Vector:
         else:
             return "NaN"
 
-
     def _get_full_authentication(self, a):
         if a == "M":
             return "Multiple"
@@ -91,7 +186,6 @@ class CVSS_Vector:
             return "None"
         else:
             return "NaN"
-
 
     def _get_full_con_impact(self, ci):
         if ci == "N":
@@ -125,7 +219,8 @@ def setscanfile(request, scanfile):
         if 'scanfile' in request.session:
             del (request.session['scanfile'])
 
-    return render(request, 'proteciotnet_dev/nmap_device_overview.html', {'js': '<script> location.href="/"; </script>'})
+    return render(request, 'proteciotnet_dev/nmap_device_overview.html',
+                  {'js': '<script> location.href="/"; </script>'})
 
 
 def port(request, port):
@@ -169,7 +264,8 @@ def details(request, address):
     # collect all cve in cvehost dict
     cvehost = get_cve(scanmd5)
 
-    r['trhead'] = '<tr><th>Port</th><th style="width:300px;">Product / Version</th><th>Extra Info</th><th>&nbsp;</th></tr>'
+    r[
+        'trhead'] = '<tr><th>Port</th><th style="width:300px;">Product / Version</th><th>Extra Info</th><th>&nbsp;</th></tr>'
     for ik in o['host']:
         pel = 0
         # this fix single host report
@@ -422,8 +518,12 @@ def details(request, address):
 
                     cvss_score = cveobj.get('cvss', '')
                     cvss3_score = cveobj.get('cvss3', '')
-                    cvss3_vector =cveobj.get('cvss3-vector', '')
-                    label_color, font_color = get_cvss_color(cvss_score)
+                    cvss3_vector = cveobj.get('cvss3-vector', '')
+
+                    if cvss3_score:
+                        label3_color, font3_color = get_cvss_color(cvss3_score, 3)
+
+                    label_color, font_color = get_cvss_color(cvss_score, 2)
 
                     cwe_string = f'<span class="label grey">' + html.escape(cveobj['cwe']) + '</span>'
                     if "Other" not in cveobj["cwe"] and "noinfo" not in cveobj["cwe"]:
@@ -433,21 +533,35 @@ def details(request, address):
 
                     try:
                         cvss_vector = cveobj["cvss-vector"]
-                        cvss_vec_obj = CVSS_Vector(cvss_vector, cveobj["id"])
+                        cvss_vec_obj = CvssVector(cvss_vector, cveobj["id"])
                     except KeyError:
                         cvss_vector = "AV:-/AC:-/Au:-/C:-/I:-/A:-"
-                        cvss_vec_obj = CVSS_Vector(cvss_vector, cveobj["id"])
+                        cvss_vec_obj = CvssVector(cvss_vector, cveobj["id"])
 
                     cvss_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss_vec_obj.__str__()}" style="color:white">{html.escape(cvss_vector)}</a>'
 
-                    cveout += f'<div id="' + html.escape(cveobj['id']) + '" style="line-height:28px;padding:10px;border-bottom:solid #666 1px;margin-top:10px;">' + \
-                              f'	<a href=https://nvd.nist.gov/vuln/detail/{html.escape(cveobj["id"])} style="color:white" target="_BLANK"> <span class="label blue" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);">' + html.escape(cveobj['id']) + '</span></a> ' + '&nbsp; - &nbsp;' + \
-                              f'	<span class="label {label_color}" style="color:{font_color}">' + html.escape(f"CVSS 2.0 score: {str(cveobj['cvss'])}") + '</span> ' + \
-                              f'    <span class="label grey">' + cvss_vector_html + '</span>' + " " + \
-                              cwe_tooltip + \
-                              f'    <br><br>' + \
-                              html.escape(cveobj['summary']) + '<br><br>' + \
-                              f'	<div class="small" style="line-height:20px;"><b>References:</b><br>' + cverefout + '</div>' + cveexdbout + '</div>'
+                    if cvss3_vector:
+                        cvss3_vec_obj = Cvss3vector(cvss3_vector)
+                        cvss3_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss3_vec_obj.__str__()}" style="color:white">{html.escape(cvss3_vector)}</a>'
+
+                    cveout += f'<div id="' + html.escape(cveobj['id']) + '" style="line-height:28px;padding:10px;border-bottom:solid #666 1px;margin-top:10px;">'
+                    cveout += f'<a href=https://nvd.nist.gov/vuln/detail/{html.escape(cveobj["id"])} style="color:white" target="_BLANK"> <span class="label blue" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);">' + html.escape(cveobj['id']) + '</span></a> '
+                    cveout += '&nbsp; - &nbsp;'
+                    cveout += f'<span class="label {label_color}" style="color:{font_color}">' + html.escape(f"CVSS 2.0 score: {str(cveobj['cvss'])}") + '</span> '
+                    cveout += f'<span class="label grey">' + cvss_vector_html + '</span>' + " "
+
+                    if cvss3_score and cvss3_vector:
+                        cveout += '&nbsp; - &nbsp;'
+                        cveout += f'<span class="label {label3_color}" style="color:{font3_color}">' + html.escape(f"CVSS {cvss3_vec_obj.version} score: {str(cvss3_score)}") + '</span> '
+                        cveout += f'<span class="label grey">' + cvss3_vector_html + '</span>' + " "
+                        cveout += '&nbsp; - &nbsp;'
+
+                    cveout += cwe_tooltip
+                    cveout += '<br><br>'
+                    cveout += html.escape(cveobj['summary'])
+                    cveout += '<br><br>'
+                    cveout += f'<div class="small" style="line-height:20px;"><b>References:</b><br>' + cverefout + '</div>' + cveexdbout + '</div>'
+
                     cveids[cveobj['id']] = cveobj['id']
 
             r['cveids'] = cveids
@@ -476,7 +590,8 @@ def details(request, address):
 def index(request, filterservice="", filterportid=""):
     r = {'auth': True}
 
-    gitcmd = subprocess.check_output('cd /opt/proteciotnet/proteciotnet_dev && git describe --long --abbrev=10 --tag', shell=True, text=True).strip()
+    gitcmd = subprocess.check_output('cd /opt/proteciotnet/proteciotnet_dev && git describe --long --abbrev=10 --tag',
+                                     shell=True, text=True).strip()
     r['webmapver'] = gitcmd
 
     if 'scanfile' in request.session:
@@ -535,7 +650,8 @@ def index(request, filterservice="", filterportid=""):
             r['tr'][o['@start']] = {
                 'filename': filename,
                 'start': o['@start'],
-                'startstr': html.escape(datetime.fromtimestamp(int(o['@start'])).strftime('%A, %d. %B %Y - %H:%M:%S')), #html.escape(o['@startstr']),
+                'startstr': html.escape(datetime.fromtimestamp(int(o['@start'])).strftime('%A, %d. %B %Y - %H:%M:%S')),
+                # html.escape(o['@startstr']),
                 'hostnum': hostnum,
                 'href': viewhref,
                 'portstats': portstats
@@ -595,11 +711,12 @@ def index(request, filterservice="", filterportid=""):
             if 'hostname' in i['hostnames']:
                 if type(i['hostnames']['hostname']) is list:
                     for hi in i['hostnames']['hostname']:
-                        hostname += '<div class="small grey-text"><b><span title="DNS pointer record">' + hi['@type'] + info_hostnames + '&#8594; </span></b> ' + hi['@name'] + '</div>'
+                        hostname += '<div class="small grey-text"><b><span title="DNS pointer record">' + hi[
+                            '@type'] + info_hostnames + '&#8594; </span></b> ' + hi['@name'] + '</div>'
                 else:
-                    hostname += '<div class="small grey-text"><b><span title="DNS pointer record">' + i['hostnames']['hostname']['@type'] + info_hostnames + '&#8594; </span></b>' + \
+                    hostname += '<div class="small grey-text"><b><span title="DNS pointer record">' + \
+                                i['hostnames']['hostname']['@type'] + info_hostnames + '&#8594; </span></b>' + \
                                 i['hostnames']['hostname']['@name'] + '</div>'
-
 
         po, pc, pf = 0, 0, 0
         ss, pp, ost = {}, {}, {}
@@ -634,7 +751,6 @@ def index(request, filterservice="", filterportid=""):
 
         if vendor == "":
             vendor = f'<a href="https://maclookup.app/search/result?mac={urllib.parse.quote(mac_address)}" style="color: #9e9e9e; text-decoration: none;">{mac_address}<sup style="font-size: 70%; position: relative; top: -0.9em;"><span class="material-icons" style="font-size: 12px; vertical-align: middle;">info</span></sup></a>'
-
 
         addressmd5 = hashlib.md5(str(address).encode('utf-8')).hexdigest()
 
@@ -744,7 +860,6 @@ def index(request, filterservice="", filterportid=""):
             if po == 0:
                 poclass = 'zeroportopen'
 
-
             labelout = '<span id="hostlabel' + str(hostindex) + '"></span>'
             newlabelout = '<div id="hostlabel' + str(hostindex) + '"></div><div id="hostlabelbb' + str(
                 hostindex) + '"></div>'
@@ -813,7 +928,6 @@ def index(request, filterservice="", filterportid=""):
                     if re.search('[a-zA-Z0-9\_]+\/[0-9\.]+', eis) is not None:
                         robj = re.search('([a-zA-Z0-9\_]+)\/([0-9\.]+)', eis)
                         tags.append(robj.group(1) + ' ' + robj.group(2))
-
 
                 r['tr'][address] = {
                     'hostindex': str(hostindex),
@@ -897,7 +1011,8 @@ def index(request, filterservice="", filterportid=""):
 
     r['stats'] = {
         'filename': r['scanfile'],
-        'startstr': html.escape(datetime.fromtimestamp(int(o['@start'])).strftime('%A, %d. %B %Y - %H:%M:%S')), #o['@startstr'],
+        'startstr': html.escape(datetime.fromtimestamp(int(o['@start'])).strftime('%A, %d. %B %Y - %H:%M:%S')),
+        # o['@startstr'],
         'scantype': scantype,
         'protocol': protocol,
         'verbose': verbose,
@@ -1009,6 +1124,7 @@ def index(request, filterservice="", filterportid=""):
         base64.b64encode(json.dumps(cpedict).encode())) + '" /> '
 
     return render(request, 'proteciotnet_dev/nmap_device_overview.html', r)
+
 
 def about(request):
     r = {'auth': True}

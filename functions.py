@@ -11,7 +11,7 @@ def token_check(token):
     return True
 
 
-def get_cvss_color(cvss_score):
+def get_cvss_color(cvss_score, version=2):
     """ score_ranges = {
         (0, 3.9): 'green',       # Low severity, color: red
         (4.0, 6.9): 'yellow',  # Medium severity, color: orange
@@ -25,18 +25,37 @@ def get_cvss_color(cvss_score):
         (7.0, 10.0): 'red',  # High severity, color: yellow
     }
 
+    score_ranges_v3 = {
+        (0, 0): 'grey',
+        (0.1, 3.9): 'green',
+        (4.0, 6.9): 'yellow',
+        (7.0, 8.9): 'orange',
+        (9.0, 10.0): 'red'
+    }
+
     try:
         cvss_score = float(cvss_score)
     except:
         return 'black', 'white'  # Return None if the cvss_score cannot be converted to a float
 
-    # Find the appropriate color based on the cvss_score
-    for score_range, color in score_ranges.items():
-        if score_range[0] <= cvss_score <= score_range[1]:
-            if color == "yellow":
-                return color, "black"
-            else:
-                return color, "white"
+    if version == 2:
+        for score_range, color in score_ranges.items():
+            if score_range[0] <= cvss_score <= score_range[1]:
+                if color == "yellow":
+                    return color, "black"
+                else:
+                    return color, "white"
+
+    elif version == 3:
+        for score_range_v3, color in score_ranges_v3.items():
+            if score_range_v3[0] <= cvss_score <= score_range_v3[1]:
+                if color == "yellow":
+                    return color, "black"
+                else:
+                    return color, "white"
+
+    else:
+        return 'black', 'white'
 
     # Return None if the cvss_score is not within any defined range
     return 'black', 'white'

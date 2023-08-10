@@ -5,6 +5,8 @@ import json
 import hashlib
 import re
 import os
+import logging
+import colorlog
 import urllib.parse
 from collections import OrderedDict
 from datetime import datetime
@@ -17,6 +19,24 @@ from proteciotnet_dev.functions import _get_cwe_description
 from proteciotnet_dev.functions import *
 
 V2_PATTERN = "AV:([L|A|N])/AC:(H|M|L)/Au:([M|S|N])/C:([N|P|C])/I:([N|P|C])/A:([N|P|C])"
+
+
+logging_level = logging.DEBUG
+main_logger = logging.getLogger()
+main_logger.setLevel(logging_level)
+
+# Set up a stream handler to log to the console
+stream_handler = colorlog.StreamHandler()
+stream_handler.setFormatter(colorlog.ColoredFormatter("%(asctime)s - %(name)s - %(log_color)s%(levelname)s - %(message)s"))
+
+# Add handler to logger
+main_logger.addHandler(stream_handler)
+
+# logger.debug("This is a debug message")
+# logger.info("This is an info message")
+# logger.warning("This is a warning message")
+# logger.error("This is an error message")
+# logger.critical("This is a critical message")
 
 
 class Cvss3vector:
@@ -104,18 +124,6 @@ class Cvss3vector:
                 self.availability = self.mapping.get('A', '').get(self.fields['A'], '')
 
     def __str__(self):
-        # overview = (
-        #     f"CVSS Version:\t\t\t\t{self.version}\n"
-        #     f"Attack Vector (AV):\t\t\t{self.attack_vector}\n"
-        #     f"Attack Complexity (AC):\t\t{self.att_complexity}\n"
-        #     f"Privileges Required (PR):\t{self.priv_req}\n"
-        #     f"User Interaction (UI):\t\t{self.user_interaction}\n"
-        #     f"Scope (S):\t\t\t\t\t{self.scope}\n"
-        #     f"Confidentiality Impact (C):\t{self.confidentiality}\n"
-        #     f"Integrity Impact (I):\t\t\t{self.integrity}\n"
-        #     f"Availability Impact (A):\t\t{self.availability}\n"
-        # )
-
         td_style = 'style="padding:0; margin:0; border: none;"'
         tr_style = 'style="border: none;"'
 
@@ -186,7 +194,7 @@ class CvssVector:
         self.integrity_impact_text = self._get_full_con_impact(self.integrity_impact)
         self.availability_impact_text = self._get_full_con_impact(self.availability_impact)
 
-    # TODO
+    # TODO make like v3 version
     def __str__(self):
 
         td_style = 'style="padding:0; margin:0; border: none;"'
@@ -912,12 +920,14 @@ def index(request, filterservice="", filterportid=""):
                     pf = (pf + 1)
 
             services = ''
+            service_counter = 0
             for s in ss:
                 if filterservice != ss[s]:
                     services += '<a href="/report/service/' + ss[s] + '/">' + ss[s] + '</a>, '
                 else:
                     services += '<span class="tmlabel" style="background-color:#ffcc00;color:#333;">' + ss[
                         s] + '</span>, '
+                service_counter += 1
 
             ostype = ''
             for oty in ost:
@@ -980,6 +990,16 @@ def index(request, filterservice="", filterportid=""):
                         cveout = '<a href="/report/' + address + '" class="grey-text"><i class="fas fa-bug"></i> ' + str(
                             cvecount) + ' CVE found</a>'
 
+            service_action = ''
+            if service_counter > 0:
+                device_services = list(ss.keys())
+                # any(specified_string in item for item in string_list)
+                if any("ssh" in item for item in device_services):
+                    service_action += '<a href="/report/' + address + '" class="grey-text"><i class="material-icons">call_to_action</i> Bruteforce SSH</a>'
+                if any("http" in item for item in device_services):
+                    service_action += '<a href="/report/' + address + '" class="grey-text"><i class="material-icons">web</i> Bruteforce Web-Server</a>'
+
+
             if (filterservice != "" and striggered is True) or (filterportid != "" and striggered is True) or (
                     filterservice == "" and filterportid == ""):
                 portstateout = '<div style="overflow:none;background-color:#444;" class="tooltipped" data-position="top" data-tooltip="' + str(
@@ -1025,8 +1045,10 @@ def index(request, filterservice="", filterportid=""):
                     'notesout': notesout,
                     'cveout': cveout,
                     'cvecount': cvecount,
+                    'serviceaction': service_action,
                     'vendor': vendor
                 }
+
 
                 hostindex = (hostindex + 1)
 

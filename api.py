@@ -1,5 +1,6 @@
 import base64
 import html
+import logging
 import urllib.parse
 
 import xmltodict, json, hashlib, re
@@ -8,12 +9,14 @@ from django.http import HttpResponse
 
 from proteciotnet_dev.functions import *
 
+logger = logging.getLogger(__name__)
 
 def rmNotes(request, hashstr):
     scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
     if re.match('^[a-f0-9]{32,32}$', hashstr) is not None:
-        os.remove('/opt/notes/' + scanfilemd5 + '_' + hashstr + '.notes')
-        res = {'ok': 'notes removed'}
+        if os.path.exists('/opt/notes/' + scanfilemd5 + '_' + hashstr + '.notes'):
+            os.remove('/opt/notes/' + scanfilemd5 + '_' + hashstr + '.notes')
+            res = {'ok': 'notes removed'}
     else:
         res = {'error': 'invalid format'}
 
@@ -43,10 +46,18 @@ def rmlabel(request, objtype, hashstr):
 
     scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
 
+    res = {'error': request.method}
     if re.match('^[a-f0-9]{32,32}$', hashstr) is not None:
-        os.remove('/opt/notes/' + scanfilemd5 + '_' + hashstr + '.' + objtype + '.label')
-        res = {'ok': 'label removed'}
-        return HttpResponse(json.dumps(res), content_type="application/json")
+        if os.path.exists('/opt/notes/' + scanfilemd5 + '_' + hashstr + '.' + objtype + '.label'):
+            os.remove('/opt/notes/' + scanfilemd5 + '_' + hashstr + '.' + objtype + '.label')
+            logger.info(f"Label {scanfilemd5}_{hashstr}.{objtype}.label successfully removed")
+            res = {'ok': 'label removed'}
+            return HttpResponse(json.dumps(res), content_type="application/json")
+
+    logger.warning("No label to remove")
+    return HttpResponse(json.dumps(res), content_type="application/json")
+
+
 
 
 def label(request, objtype, label, hashstr):
@@ -105,7 +116,7 @@ def port_details(request, address, portid):
                 if p['@portid'] == portid:
                     return HttpResponse(json.dumps(p, indent=4), content_type="application/json")
 
-
+# TODO: replace with nmap_formatter script
 def genPDF(request):
     if 'scanfile' in request.session:
         pdffile = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
@@ -125,42 +136,47 @@ def getCVE(request):
     if request.method == "POST":
         scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
 
+        logger.info("Trying to retrieve CVE entries")
+
+        # TODO: modernize and get error msg
         cveproc = os.popen('sudo python3 /opt/proteciotnet/proteciotnet_dev/nmap/cve_cdn.py ' + request.session['scanfile'])
         res['cveout'] = cveproc.read()
         cveproc.close()
 
-        return HttpResponse(json.dumps(res), content_type="application/json")
-
-        cpe = json.loads(base64.b64decode(urllib.parse.unquote(request.POST['cpe'])).decode('ascii'))
-
-        for cpestr in cpe:
-            r = requests.get('http://cve.circl.lu/api/cvefor/' + cpestr)
-            cvejson = r.json()
-
-            for host in cpe[cpestr]:
-                hostmd5 = hashlib.md5(str(host).encode('utf-8')).hexdigest()
-                if type(cvejson) is list and len(cvejson) > 0:
-                    res[host] = cvejson[0]
-                    f = open('/opt/notes/' + scanfilemd5 + '_' + hostmd5 + '.cve', 'w')
-                    f.write(json.dumps(cvejson))
-                    f.close()
+        # TODO: log status
 
         return HttpResponse(json.dumps(res), content_type="application/json")
 
-        r = requests.get('http://cve.circl.lu/api/cvefor/' + request.POST['cpe'])
-
-        if request.POST['host'] not in res:
-            res[request.POST['host']] = {}
-
-        cvejson = r.json()
-
-        if type(cvejson) is list and len(cvejson) > 0:
-            res[request.POST['host']][request.POST['port']] = cvejson[0]
-            f = open('/opt/notes/' + scanfilemd5 + '_' + hostmd5 + '.cve', 'w')
-            f.write(json.dumps(cvejson))
-            f.close()
-
-        return HttpResponse(json.dumps(res), content_type="application/json")
+        # cpe = json.loads(base64.b64decode(urllib.parse.unquote(request.POST['cpe'])).decode('ascii'))
+        #
+        # for cpestr in cpe:
+        #     r = requests.get('http://cve.circl.lu/api/cvefor/' + cpestr)
+        #     cvejson = r.json()
+        #
+        #     for host in cpe[cpestr]:
+        #         hostmd5 = hashlib.md5(str(host).encode('utf-8')).hexdigest()
+        #         if type(cvejson) is list and len(cvejson) > 0:
+        #             res[host] = cvejson[0]
+        #             f = open('/opt/notes/' + scanfilemd5 + '_' + hostmd5 + '.cve', 'w')
+        #             f.write(json.dumps(cvejson))
+        #             f.close()
+        #
+        # return HttpResponse(json.dumps(res), content_type="application/json")
+        #
+        # r = requests.get('http://cve.circl.lu/api/cvefor/' + request.POST['cpe'])
+        #
+        # if request.POST['host'] not in res:
+        #     res[request.POST['host']] = {}
+        #
+        # cvejson = r.json()
+        #
+        # if type(cvejson) is list and len(cvejson) > 0:
+        #     res[request.POST['host']][request.POST['port']] = cvejson[0]
+        #     f = open('/opt/notes/' + scanfilemd5 + '_' + hostmd5 + '.cve', 'w')
+        #     f.write(json.dumps(cvejson))
+        #     f.close()
+        #
+        # return HttpResponse(json.dumps(res), content_type="application/json")
 
 
 def apiv1_hostdetails(request, scanfile, faddress=""):

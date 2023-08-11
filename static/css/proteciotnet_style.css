@@ -276,11 +276,11 @@ table.custom-table td {
 button {
   font-family: var(--font-sans);
   font-weight: var(--font-weight-6);
-  font-size: 1rem;
+  font-size: 0.85rem;
   color: var(--gray-8);
   background: var(--gray-0);
   border: 0;
-  padding: var(--size-4) var(--size-8);
+  padding: 0.5rem 0.5rem;
   transform: translateY(calc(var(--y, 0) * 1%)) scale(var(--scale));
   transition: transform 0.1s;
   position: relative;
@@ -301,9 +301,11 @@ button:active {
 button:before {
   content: "";
   position: absolute;
-  inset: calc(var(--size-3) * -1);
-  border: var(--size-2) solid var(--gray-0);
+  inset: calc(0.9rem * -1); /* How far the angles extend from the button */
+  border: 0.37rem solid var(--gray-0); /* How thick the angles are */
   transform: scale(var(--border-scale, 0));
+  /*  inset: calc(var(--size-3) * -1);*/
+  /*border: var(--size-2) solid var(--gray-0);*/
   transition: transform 0.125s;
 
   --angle-one: 105deg;
@@ -324,4 +326,15 @@ button:before {
   );
 
   z-index: -1;
+}
+
+.dropdown-wrapper {
+    display: inline-block;
+}
+
+.details-title-dropdown-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px; /* Add margin as needed */
 }

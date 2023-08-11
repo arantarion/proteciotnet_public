@@ -738,7 +738,7 @@ def _get_cwe_description(cwe_nr):
     if cwe_nr in cwe_descriptions:
         return f"{cwe_nr}: {cwe_descriptions[cwe_nr]}"
     else:
-        return "Description not available for " + cwe_nr
+        return "no description available"
 
 
 def labelToMargin(label):
@@ -1026,3 +1026,87 @@ def insert_linebreaks(input_string, max_line_length=60):
 
     tmp = "<br>".join(lines)
     return f"<p>{tmp}</p>"
+
+
+def split_cve_html(cves):
+    pattern = r'<div id="CVE-'
+    split_strings = re.split(pattern, cves)
+
+    # The first item in the list will be an empty string due to splitting before the first occurrence
+    split_strings = split_strings[1:]
+
+    #adding the cut 'div' text back
+    return ['<div id="CVE-' + part for part in split_strings]
+
+
+cvss2_pattern = r"CVSS 2.0 score: (\d.\d|0)"
+cvss3_pattern = r"CVSS 3.[\d|x] score: (\d.\d|0)"
+cve_pattern = r"CVE-\d{4}-\d{4,7}"
+cwe_pattern = r"CWE-\d{1,3}"
+
+
+def extract_cve(cve):
+    t = re.findall(cwe_pattern, cve)
+    if len(t) > 1:
+        try:
+            return int(t[-1].split("-")[1])
+        except ValueError:
+            print("ERROR")
+            return 0
+    else:
+        return 0
+
+def extract_cvss3(cve):
+    t = re.findall(cvss3_pattern, cve)
+    if not t:
+        return 0.0
+    else:
+        try:
+            return float(t[0])
+        except ValueError:
+            print("Error")
+            return 0.0
+
+
+def sort_cvss2(cvc_list, order):
+    return ''.join(sorted(cvc_list, key=lambda x: re.findall(cvss2_pattern, x)[0], reverse=order))
+
+
+def sort_cvss3(cvc_list, order):
+    return ''.join(sorted(cvc_list, key=lambda x: extract_cvss3(x), reverse=order))
+
+
+def sort_cve(cvc_list, order):
+    return ''.join(sorted(cvc_list, key=lambda x: re.findall(cve_pattern, x)[0], reverse=order))
+
+
+def sort_cwe(cvc_list, order):
+    return ''.join(sorted(cvc_list, key=lambda x: extract_cve(x), reverse=order))
+
+
+def sort_cve_html(cves, sorting_order):
+
+    split_cves = split_cve_html(cves)
+
+    if sorting_order == "cvss2asc":
+        return sort_cvss2(split_cves, order=False)
+    elif sorting_order == "cvss2desc":
+        return sort_cvss2(split_cves, order=True)
+
+    elif sorting_order == "cvss3asc":
+        return sort_cvss3(split_cves, order=False)
+    elif sorting_order == "cvss3desc":
+        return sort_cvss3(split_cves, order=True)
+
+    elif sorting_order == "cveasc":
+        return sort_cve(split_cves, order=False)
+    elif sorting_order == "cvedesc":
+        return sort_cve(split_cves, order=True)
+
+    elif sorting_order == "cweasc":
+        return sort_cwe(split_cves, order=False)
+    elif sorting_order == "cwedesc":
+        return sort_cwe(split_cves, order=True)
+
+    else:
+        return cves

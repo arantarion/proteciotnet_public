@@ -305,7 +305,8 @@ def port(request, port):
                   {'out': '', 'table': '', 'scaninfo': '', 'scandetails': '', 'trhost': ''})
 
 
-def details(request, address):
+def details(request, address, sorting='standard'):
+
     r = {'auth': True}
 
     oo = xmltodict.parse(open('/opt/xml/' + request.session['scanfile'], 'r').read())
@@ -647,6 +648,9 @@ def details(request, address):
                     cveout += f'<div class="small" style="line-height:20px;"><b>References:</b><br>' + cverefout + '</div>' + cveexdbout + '</div>'
 
                     cveids[cveobj['id']] = cveobj['id']
+
+            if sorting != "standard":
+                cveout = sort_cve_html(cveout, sorting)
 
             r['cveids'] = cveids
             r['cvelist'] = cveout

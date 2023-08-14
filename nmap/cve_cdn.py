@@ -8,6 +8,8 @@ import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+_IP = "192.168.178.38"
+_PORT = "5000"
 
 def getcpe(xmlfile):
     cpe, cve = {}, {}
@@ -86,7 +88,7 @@ def getcve(xmlfile):
         for cpestr in cpecve['cpe'][i]:
             if re.search('^cpe:[^:]+:[^:]+:[^:]+:.+$', cpestr):
                 print(cpestr)
-                r = requests.get('https://192.168.1.225:5000/api/cvefor/' + cpestr, verify=False)
+                r = requests.get(f'https://{_IP}:{_PORT}/api/cvefor/' + cpestr, verify=False)
                 if r.json() is not None:
                     if r.json() is dict:
                         cvejson[i].append(r.json())
@@ -99,7 +101,7 @@ def getcve(xmlfile):
             cvejson[i] = []
 
         for cvestr in cpecve['cve'][i]:
-            r = requests.get('https://192.168.1.225:5000/api/cve/' + cvestr, verify=False)
+            r = requests.get(f'https://{_IP}:{_PORT}/api/cve/' + cvestr, verify=False)
             if r.json() is not None:
                 if r.json() is dict:
                     cvejson[i].append(r.json())

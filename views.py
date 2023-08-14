@@ -307,6 +307,11 @@ def port(request, port):
 
 def details(request, address, sorting='standard'):
 
+
+    # very bad fix but I don't know
+    if address == "report":
+        address = sorting
+
     r = {'auth': True}
 
     oo = xmltodict.parse(open('/opt/xml/' + request.session['scanfile'], 'r').read())
@@ -631,9 +636,11 @@ def details(request, address, sorting='standard'):
 
                     cveout += f'<div id="' + html.escape(cveobj['id']) + '" style="line-height:28px;padding:10px;border-bottom:solid #666 1px;margin-top:10px;">'
                     cveout += f'<a href=https://nvd.nist.gov/vuln/detail/{html.escape(cveobj["id"])} style="color:white" target="_BLANK"> <span class="label blue" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);">' + html.escape(cveobj['id']) + '</span></a> '
-                    cveout += '&nbsp; - &nbsp;'
-                    cveout += f'<span class="label {label_color}" style="color:{font_color}">' + html.escape(f"CVSS 2.0 score: {str(cveobj['cvss'])}") + '</span> '
-                    cveout += f'<span class="label grey">' + cvss_vector_html + '</span>' + " "
+
+                    if cvss_score:
+                        cveout += '&nbsp; - &nbsp;'
+                        cveout += f'<span class="label {label_color}" style="color:{font_color}">' + html.escape(f"CVSS 2.0 score: {str(cvss_score)}") + '</span> '
+                        cveout += f'<span class="label grey">' + cvss_vector_html + '</span>' + " "
 
                     if cvss3_score and cvss3_vector:
                         cveout += '&nbsp; - &nbsp;'
@@ -649,8 +656,8 @@ def details(request, address, sorting='standard'):
 
                     cveids[cveobj['id']] = cveobj['id']
 
-            if sorting != "standard":
-                cveout = sort_cve_html(cveout, sorting)
+            #if sorting != "standard":
+            #    cveout = sort_cve_html(cveout, sorting)
 
             r['cveids'] = cveids
             r['cvelist'] = cveout
@@ -838,7 +845,7 @@ def index(request, filterservice="", filterportid=""):
             vendor = 'unknown'
 
         if vendor == "":
-            vendor = f'<a href="https://maclookup.app/search/result?mac={urllib.parse.quote(mac_address)}" style="color: #9e9e9e; text-decoration: none;">{mac_address}<sup style="font-size: 70%; position: relative; top: -0.9em;"><span class="material-icons" style="font-size: 12px; vertical-align: middle;">info</span></sup></a>'
+            vendor = f'<a href="https://maclookup.app/search/result?mac={urllib.parse.quote(mac_address)}" style="color: #9e9e9e; text-decoration: none;">{mac_address}<sup style="font-size: 70%; position: relative; top: -0.9em;"><span class="material-icons" style="font-size: 12px; vertical-align: middle;">question_mark</span></sup></a>'
 
         addressmd5 = hashlib.md5(str(address).encode('utf-8')).hexdigest()
 

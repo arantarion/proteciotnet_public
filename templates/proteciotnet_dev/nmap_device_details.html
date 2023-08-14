@@ -95,32 +95,32 @@
             </div>
         {% endif %}
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                var sortingDropdown = document.getElementById('dropdown_sorting');
-                var sortingLabel = document.getElementById('sortingLabel');
-
-                // Get the selected option from localStorage
-                var selectedOption = localStorage.getItem('selectedOption');
-                if (selectedOption) {
-                    sortingLabel.textContent = selectedOption;
-                }
-
-                sortingDropdown.addEventListener('click', function(event) {
-                    if (event.target.tagName === 'A') {
-                        var optionText = event.target.textContent.trim();
-                        sortingLabel.textContent = optionText;
-
-                        // Store the selected option in localStorage
-                        localStorage.setItem('selectedOption', optionText);
-                    }
-                });
-            });
-        </script>
-
-
 
         {% if cvelist %}
+
+{#            <script>#}
+{#                document.addEventListener('DOMContentLoaded', function () {#}
+{#                    var sortingDropdown = document.getElementById('dropdown_sorting');#}
+{#                    var sortingLabel = document.getElementById('sortingLabel');#}
+{##}
+{#                    // Get the selected option from localStorage#}
+{#                    var selectedOption = localStorage.getItem('selectedOption');#}
+{#                    if (selectedOption) {#}
+{#                        sortingLabel.textContent = selectedOption;#}
+{#                    }#}
+{##}
+{#                    sortingDropdown.addEventListener('click', function (event) {#}
+{#                        if (event.target.tagName === 'A') {#}
+{#                            var optionText = event.target.textContent.trim();#}
+{#                            sortingLabel.textContent = optionText;#}
+{##}
+{#                            // Store the selected option in localStorage#}
+{#                            localStorage.setItem('selectedOption', optionText);#}
+{#                        }#}
+{#                    });#}
+{#                });#}
+{#            </script>#}
+
             <div class="card wmcard">
 
 
@@ -129,20 +129,30 @@
                         <span class="card-title">CVE Overview</span>
                         <span style="font-size: 80%;"><i>Click the CVE number to get the full CVE entry / hover over the CVSS vectors & the CWE number to get more detail</i></span>
                         <div class="dropdown-wrapper">
-                            <ul id="dropdown_sorting" class="dropdown-content" style="min-width:300px; border-radius: 4px;">
+                            <ul id="dropdown_sorting" class="dropdown-content"
+                                style="min-width:300px; border-radius: 4px;">
                                 <li><a href="/report/{{ address }}" onclick="" style="color:#111111">Default sorting</a>
                                 </li>
                                 <li class="divider" tabindex="-1"></li>
-                                <li><a href="/report/{{ address }}/cvss2asc" onclick="" style="color:#111111">CVSS 2.0 ascending (lowest)</a></li>
-                                <li><a href="/report/{{ address }}/cvss2desc" onclick="" style="color:#111111">CVSS 2.0 descending (highest)</a></li>
-                                <li><a href="/report/{{ address }}/cvss3asc" onclick="" style="color:#111111">CVSS 3.x ascending</a></li>
-                                <li><a href="/report/{{ address }}/cvss3desc" onclick="" style="color:#111111">CVSS 3.x descending</a></li>
-                                <li><a href="/report/{{ address }}/cveasc" onclick="" style="color:#111111">CVE number ascending (oldest)</a></li>
-                                <li><a href="/report/{{ address }}/cvedesc" onclick="" style="color:#111111">CVE number descending (newest)</a></li>
-                                <li><a href="/report/{{ address }}/cweasc" onclick="" style="color:#111111">CWE ascending</a></li>
-                                <li><a href="/report/{{ address }}/cwedesc" onclick="" style="color:#111111">CWE descending</a></li>
+                                <li><a href="/report/{{ address }}/cvss2asc" onclick="" style="color:#111111">CVSS 2.0
+                                    ascending (lowest)</a></li>
+                                <li><a href="/report/{{ address }}/cvss2desc" onclick="" style="color:#111111">CVSS 2.0
+                                    descending (highest)</a></li>
+                                <li><a href="/report/{{ address }}/cvss3asc" onclick="" style="color:#111111">CVSS 3.x
+                                    ascending</a></li>
+                                <li><a href="/report/{{ address }}/cvss3desc" onclick="" style="color:#111111">CVSS 3.x
+                                    descending</a></li>
+                                <li><a href="/report/{{ address }}/cveasc" onclick="" style="color:#111111">CVE number
+                                    ascending (oldest)</a></li>
+                                <li><a href="/report/{{ address }}/cvedesc" onclick="" style="color:#111111">CVE number
+                                    descending (newest)</a></li>
+                                <li><a href="/report/{{ address }}/cweasc" onclick="" style="color:#111111">CWE
+                                    ascending</a></li>
+                                <li><a href="/report/{{ address }}/cwedesc" onclick="" style="color:#111111">CWE
+                                    descending</a></li>
                             </ul>
-                            <a class="dropdown-trigger" href="#!" data-target="dropdown_sorting"><i class="fas fa-sort"></i> <span id="sortingLabel">Sorting Options</span></a>
+                            <a class="dropdown-trigger" href="#!" data-target="dropdown_sorting"><i
+                                    class="fas fa-sort"></i> <span id="sortingLabel">Sorting Options</span></a>
                         </div>
                     </div>
 

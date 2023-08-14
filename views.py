@@ -15,7 +15,7 @@ import urllib.parse
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from proteciotnet_dev.functions import _get_cwe_description
+from proteciotnet_dev.functions import get_cwe_description
 from proteciotnet_dev.functions import *
 
 V2_PATTERN = "AV:([L|A|N])/AC:(H|M|L)/Au:([M|S|N])/C:([N|P|C])/I:([N|P|C])/A:([N|P|C])"
@@ -610,11 +610,11 @@ def details(request, address, sorting='standard'):
                     # cwe_string = f'<span class="label grey">' + html.escape(cveobj['cwe']) + '</span>'
 
                     if "Other" not in cveobj["cwe"] and "noinfo" not in cveobj["cwe"]:
-                        cwe_tooltip = f'<div class="tt2" style="color:white"><a href="https://cwe.mitre.org/data/definitions/{cveobj["cwe"][4:]}.html" target="_BLANK" style="color:white">{cveobj["cwe"]}</a><span class="ttt2">{_get_cwe_description(cveobj["cwe"])}</span></div>'
+                        cwe_tooltip = f'<div class="tt2" style="color:white"><a href="https://cwe.mitre.org/data/definitions/{cveobj["cwe"][4:]}.html" target="_BLANK" style="color:white">{cveobj["cwe"]}</a><span class="ttt2">{get_cwe_description(cveobj["cwe"])}</span></div>'
                         # cwe_tooltip = f'<a href="https://cwe.mitre.org/data/definitions/{cveobj["cwe"][4:]}.html" data-toggle="tooltip" data-placement="top" title="{_get_cwe_description(cveobj["cwe"])}" style="color:white">{cwe_string}</a>'
                     else:
                         # cwe_tooltip = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{_get_cwe_description(cveobj["cwe"])}" style="color:white">{html.escape(cveobj["cwe"])}</a>'
-                        cwe_tooltip = f'<div class="tt2" style="color:white">{cveobj["cwe"]}<span class="ttt2">{_get_cwe_description(cveobj["cwe"])}</span></div>'
+                        cwe_tooltip = f'<div class="tt2" style="color:white">{cveobj["cwe"]}<span class="ttt2">{get_cwe_description(cveobj["cwe"])}</span></div>'
 
                     cwe_string = f'<span class="label grey">' + cwe_tooltip + '</span>'
 

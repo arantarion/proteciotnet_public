@@ -5,6 +5,7 @@ import os
 import re
 
 import xmltodict
+
 try:
     from proteciotnet_dev.static.py.cwe_descriptions_dict import cwe_descriptions
 except ModuleNotFoundError:
@@ -70,7 +71,7 @@ def get_cvss_color(cvss_score, version=2):
     return 'black', 'white'
 
 
-def _get_cwe_description(cwe_nr):
+def get_cwe_description(cwe_nr):
     """
     Get the CWE description for a given CWE number.
 
@@ -241,7 +242,7 @@ def nmap_ports_stats(scanfile: str) -> dict:
             "pos": ports_open_string, "pcs:": ports_closed_string, "pfc": ports_filtered_string}
 
 
-def get_cve(scanmd5: str) -> dict:
+def get_cve(md5_hash_of_scan: str) -> dict:
     """
     Retrieve CVE information from files based on scan MD5 hash.
 
@@ -249,7 +250,7 @@ def get_cve(scanmd5: str) -> dict:
     the provided scan MD5 hash and extracts CVE information from them.
 
     Args:
-        scanmd5 (str): Scan MD5 hash to match against file names.
+        md5_hash_of_scan (str): Scan MD5 hash to match against file names.
 
     Returns:
         dict: A dictionary containing CVE information organized by host and CVE ID.
@@ -263,146 +264,161 @@ def get_cve(scanmd5: str) -> dict:
         #     }
         # }
     """
-    cvehost = {}
-    cvefiles = os.listdir('/opt/notes')
-    for cf in cvefiles:
-        match = re.match(f'^({scanmd5})_([a-z0-9]{{32,32}})\\.cve$', cf)
+    host_cves = {}
+    files = os.listdir('/opt/notes')
+    for file in files:
+        match = re.match(f'^({md5_hash_of_scan})_([a-z0-9]{{32,32}})\.cve$', file)
         if match is not None:
-            if match.group(1) not in cvehost:
-                cvehost[match.group(1)] = {}
+            if match.group(1) not in host_cves:
+                host_cves[match.group(1)] = {}
 
-            if match.group(2) not in cvehost[match.group(1)]:
-                cvehost[match.group(1)][match.group(2)] = open('/opt/notes/' + cf, 'r').read()
+            if match.group(2) not in host_cves[match.group(1)]:
+                host_cves[match.group(1)][match.group(2)] = open('/opt/notes/' + file, 'r').read()
 
-    return cvehost
+    return host_cves
 
 
 def get_ports_details(scanfile: str) -> dict:
-    faddress = ""
-    oo = xmltodict.parse(open('/opt/xml/' + scanfile, 'r').read())
-    out2 = json.dumps(oo['nmaprun'], indent=4)
-    o = json.loads(out2)
+    """
+    This function processes Nmap scan data from an XML file and retrieves details about ports, hosts, and associated information.
 
-    r = {'file': scanfile, 'hosts': {}}
-    scanmd5 = hashlib.md5(str(scanfile).encode('utf-8')).hexdigest()
+    Args:
+        scanfile (str): The name of the Nmap XML scan file. The file has to be in the folder /opt/xml/
 
-    # collect all labels in labelhost dict
-    labelhost = {}
-    labelfiles = os.listdir('/opt/notes')
-    for lf in labelfiles:
-        m = re.match('^(' + scanmd5 + ')_([a-z0-9]{32,32})\.host\.label$', lf)
-        if m is not None:
-            if m.group(1) not in labelhost:
-                labelhost[m.group(1)] = {}
-            labelhost[m.group(1)][m.group(2)] = open('/opt/notes/' + lf, 'r').read()
+    Returns:
+        dict: A dictionary containing port details and host information.
+            - 'file' (str): The scan file path.
+            - 'hosts' (dict): A dictionary of host details.
+                - Address (str): Dictionary with host details.
+                    - 'ports' (list): List of dictionaries containing port details.
+                        - 'port' (str): Port number.
+                        - 'name' (str): Service name.
+                        - 'state' (str): Port state.
+                        - 'protocol' (str): Protocol used by the port.
+                        - 'reason' (str): Type of scan to validate port state.
+                        - 'product' (str): Product information of the service.
+                        - 'version' (str): Version information of the service.
+                        - 'extrainfo' (str): Additional information about the service.
+                    - 'hostname' (dict): Hostname details.
+                    - 'label' (str): Host label.
+                    - 'notes' (str): Host notes.
+                    - 'CVE' (list): List of Common Vulnerabilities and Exposures (CVE) associated with the host.
+    """
 
-    # collect all notes in noteshost dict
-    noteshost = {}
-    notesfiles = os.listdir('/opt/notes')
-    for nf in notesfiles:
-        m = re.match('^(' + scanmd5 + ')_([a-z0-9]{32,32})\.notes$', nf)
-        if m is not None:
-            if m.group(1) not in noteshost:
-                noteshost[m.group(1)] = {}
-            noteshost[m.group(1)][m.group(2)] = open('/opt/notes/' + nf, 'r').read()
+    # I think unused and in api.py
 
-    # collect all cve in cvehost dict
-    cvehost = get_cve(scanmd5)
+    try:
+        parsed_xml_nmap_file = xmltodict.parse(open('/opt/xml/' + scanfile, 'r').read())
+    except:
+        return {}
 
-    for ik in o['host']:
+    nmap_run_dict = parsed_xml_nmap_file['nmaprun']
 
-        # this fix single host report
-        if type(ik) is dict:
-            i = ik
+    return_value_dict = {'file': scanfile, 'hosts': {}}
+    md5_hash_of_scanfile = hashlib.md5(str(scanfile).encode('utf-8')).hexdigest()
+
+    host_labels = {}
+    host_notes = {}
+    files = os.listdir('/opt/notes')
+    for file in files:
+        match_labels = re.match(f'^({md5_hash_of_scanfile})_([a-z0-9]{32, 32})\.host\.label$', file)
+        if match_labels is not None:
+            if match_labels.group(1) not in host_labels:
+                host_labels[match_labels.group(1)] = {}
+            host_labels[match_labels.group(1)][match_labels.group(2)] = open('/opt/notes/' + file, 'r').read()
+
+        match_notes = re.match(f'^({md5_hash_of_scanfile})_([a-z0-9]{32, 32})\.notes$', file)
+        if match_notes is not None:
+            if match_notes.group(1) not in host_notes:
+                host_notes[match_notes.group(1)] = {}
+            host_notes[match_notes.group(1)][match_notes.group(2)] = open('/opt/notes/' + file, 'r').read()
+
+    cve_of_host = get_cve(md5_hash_of_scanfile)
+
+    for items in nmap_run_dict['host']:
+
+        # this fixes single host report
+        if type(items) is dict:
+            item = items
         else:
-            i = o['host']
+            item = nmap_run_dict['host']
 
         hostname = {}
-        if 'hostnames' in i and type(i['hostnames']) is dict:
-            if 'hostname' in i['hostnames']:
-                if type(i['hostnames']['hostname']) is list:
-                    for hi in i['hostnames']['hostname']:
-                        hostname[hi['@type']] = hi['@name']
+        if 'hostnames' in item and type(item['hostnames']) is dict:
+            if 'hostname' in item['hostnames']:
+                if type(item['hostnames']['hostname']) is list:
+                    for hostname_item in item['hostnames']['hostname']:
+                        hostname[hostname_item['@type']] = hostname_item['@name']
                 else:
-                    hostname[i['hostnames']['hostname']['@type']] = i['hostnames']['hostname']['@name'];
+                    hostname[item['hostnames']['hostname']['@type']] = item['hostnames']['hostname']['@name']
 
-        if i['status']['@state'] == 'up':
-            po, pc, pf = 0, 0, 0
-            ss, pp, ost = {}, {}, {}
-            lastportid = 0
+        print(hostname)
 
-            if '@addr' in i['address']:
-                address = i['address']['@addr']
-            elif type(i['address']) is list:
-                for ai in i['address']:
+        if item['status']['@state'] == 'up':
+            services, ports = {}, {}
+            id_of_last_port = 0
+
+            address = None
+            if '@addr' in item['address']:
+                address = item['address']['@addr']
+            elif type(item['address']) is list:
+                for ai in item['address']:
                     if ai['@addrtype'] == 'ipv4':
                         address = ai['@addr']
 
-            if faddress != "" and faddress != address:
+            if not address:
                 continue
 
-            addressmd5 = hashlib.md5(str(address).encode('utf-8')).hexdigest()
+            md5_hash_address = hashlib.md5(str(address).encode('utf-8')).hexdigest()
 
-            labelout = ''
-            if scanmd5 in labelhost:
-                if addressmd5 in labelhost[scanmd5]:
-                    labelout = labelhost[scanmd5][addressmd5]
+            host_labels_out = host_labels.get(md5_hash_of_scanfile, {}).get(md5_hash_address, '')
+            host_notes_base64_out = host_notes.get(md5_hash_of_scanfile, {}).get(md5_hash_address, '')
 
-            notesout, notesb64, removenotes = '', '', ''
-            if scanmd5 in noteshost:
-                if addressmd5 in noteshost[scanmd5]:
-                    notesb64 = noteshost[scanmd5][addressmd5]
+            host_cves_out = cve_of_host.get(md5_hash_of_scanfile, {}).get(md5_hash_address, '')
+            if host_cves_out:
+                host_cves_out = json.loads(host_cves_out)
 
-            cveout = ''
-            if scanmd5 in cvehost:
-                if addressmd5 in cvehost[scanmd5]:
-                    cveout = json.loads(cvehost[scanmd5][addressmd5])
+            return_value_dict['hosts'][address] = {'ports': [],
+                                                   'hostname': hostname,
+                                                   'label': host_labels_out,
+                                                   'notes': host_notes_base64_out,
+                                                   'CVE': host_cves_out
+                                                   }
 
-            r['hosts'][address] = {'ports': [], 'hostname': hostname, 'label': labelout, 'notes': notesb64,
-                                   'CVE': cveout}
-
-            if 'ports' in i and 'port' in i['ports']:
-                for pobj in i['ports']['port']:
-                    if type(pobj) is dict:
-                        p = pobj
+            if 'ports' in item and 'port' in item['ports']:
+                for port_object in item['ports']['port']:
+                    if isinstance(port_object, dict):
+                        port = port_object
                     else:
-                        p = i['ports']['port']
+                        port = item['ports']['port']
 
-                    if lastportid == p['@portid']:
+                    if id_of_last_port == port['@portid']:
                         continue
                     else:
-                        lastportid = p['@portid']
+                        id_of_last_port = port['@portid']
 
-                    v, z, e = '', '', ''
-                    pp[p['@portid']] = p['@portid']
+                    ports[port['@portid']] = port['@portid']
+                    version = port.get('service', {}).get('@version', '')
+                    product = port.get('service', {}).get('@product', '')
+                    extra_info = port.get('service', {}).get('@extrainfo', '')
 
-                    servicename = ''
-                    if 'service' in p:
-                        ss[p['service']['@name']] = p['service']['@name']
+                    service_name = port.get('service', {}).get('@name', '')
 
-                        if '@version' in p['service']:
-                            v = p['service']['@version']
+                    if 'service' in port:
+                        services[port['service']['@name']] = port['service']['@name']
 
-                        if '@product' in p['service']:
-                            z = p['service']['@product']
-
-                        if '@extrainfo' in p['service']:
-                            e = p['service']['@extrainfo']
-
-                        servicename = p['service']['@name']
-
-                    # if faddress != "":
-                    r['hosts'][address]['ports'].append({
-                        'port': p['@portid'],
-                        'name': servicename,
-                        'state': p['state']['@state'],
-                        'protocol': p['@protocol'],
-                        'reason': p['state']['@reason'],
-                        'product': z,
-                        'version': v,
-                        'extrainfo': e
-                    })
-    return r
+                    return_value_dict['hosts'][address]['ports'].append(
+                        {
+                            'port': port['@portid'],
+                            'name': service_name,
+                            'state': port['state']['@state'],
+                            'protocol': port['@protocol'],
+                            'reason': port['state']['@reason'],
+                            'product': product,
+                            'version': version,
+                            'extrainfo': extra_info
+                        })
+    return return_value_dict
 
 
 def insert_linebreaks(input_string: str, max_line_length: int = 60) -> str:
@@ -510,7 +526,7 @@ def _extract_cvss3_score(cve):
     return 0.0
 
 
-def sort_cve_list(cve_list, key_function, reverse_order):
+def _sort_cve_list(cve_list, key_function, reverse_order):
     """
     Sort a list of CVE blocks based on a given key function and sorting order.
 
@@ -542,24 +558,24 @@ def sort_cve_html(cves_html, sorting_order):
     if sorting_order == "cvss2asc":
         for elem in split_cves:
             print(re.findall(_CVSS_2_PATTERN, elem))
-        return sort_cve_list(split_cves, _extract_cvss2_score, False)
+        return _sort_cve_list(split_cves, _extract_cvss2_score, False)
     elif sorting_order == "cvss2desc":
-        return sort_cve_list(split_cves, _extract_cvss2_score, True)
+        return _sort_cve_list(split_cves, _extract_cvss2_score, True)
 
     elif sorting_order == "cvss3asc":
-        return sort_cve_list(split_cves, _extract_cvss3_score, False)
+        return _sort_cve_list(split_cves, _extract_cvss3_score, False)
     elif sorting_order == "cvss3desc":
-        return sort_cve_list(split_cves, _extract_cvss3_score, True)
+        return _sort_cve_list(split_cves, _extract_cvss3_score, True)
 
     elif sorting_order == "cveasc":
-        return sort_cve_list(split_cves, lambda x: re.findall(_CVE_PATTERN, x)[0], False)
+        return _sort_cve_list(split_cves, lambda x: re.findall(_CVE_PATTERN, x)[0], False)
     elif sorting_order == "cvedesc":
-        return sort_cve_list(split_cves, lambda x: re.findall(_CVE_PATTERN, x)[0], True)
+        return _sort_cve_list(split_cves, lambda x: re.findall(_CVE_PATTERN, x)[0], True)
 
     elif sorting_order == "cweasc":
-        return sort_cve_list(split_cves, _extract_cwe_number_from_block, False)
+        return _sort_cve_list(split_cves, _extract_cwe_number_from_block, False)
     elif sorting_order == "cwedesc":
-        return sort_cve_list(split_cves, _extract_cwe_number_from_block, True)
+        return _sort_cve_list(split_cves, _extract_cwe_number_from_block, True)
 
     else:
         return cves_html

@@ -113,7 +113,7 @@ def reportPDFView(request):
             labelout = ''
             if scanmd5 in labelhost:
                 if addressmd5 in labelhost[scanmd5]:
-                    labelcolor = labelToColor(labelhost[scanmd5][addressmd5])
+                    labelcolor = label_to_color(labelhost[scanmd5][addressmd5])
                     # labelmargin = labelToMargin(labelhost[scanmd5][addressmd5])
                     labelout = '<span style="" class="label ' + labelcolor + '">' + html.escape(
                         labelhost[scanmd5][addressmd5]) + '</span>'

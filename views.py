@@ -20,17 +20,18 @@ from proteciotnet_dev.functions import *
 
 V2_PATTERN = "AV:([L|A|N])/AC:(H|M|L)/Au:([M|S|N])/C:([N|P|C])/I:([N|P|C])/A:([N|P|C])"
 
-
 logging_level = logging.DEBUG
 main_logger = logging.getLogger()
 main_logger.setLevel(logging_level)
 
 # Set up a stream handler to log to the console
 stream_handler = colorlog.StreamHandler()
-stream_handler.setFormatter(colorlog.ColoredFormatter("%(asctime)s - %(name)s - %(log_color)s%(levelname)s - %(message)s"))
+stream_handler.setFormatter(
+    colorlog.ColoredFormatter("%(asctime)s - %(name)s - %(log_color)s%(levelname)s - %(message)s"))
 
 # Add handler to logger
 main_logger.addHandler(stream_handler)
+
 
 # logger.debug("This is a debug message")
 # logger.info("This is an info message")
@@ -128,43 +129,43 @@ class Cvss3vector:
         tr_style = 'style="border: none;"'
 
         overview = f'<table style="border-collapse: collapse;">' \
-            f'<tr {tr_style}>' \
-            f'<td {td_style}>CVSS Version</td>' \
-            f'<td {td_style}>{self.version}</td>' \
-            f'</tr>' \
-            f'<tr {tr_style}>' \
-            f'<td {td_style}>Attack Vector (AV)</td>' \
-            f'<td {td_style}>{self.attack_vector}</td>' \
-            f'</tr>' \
-            f'<tr {tr_style}>' \
-            f'<td {td_style}>Attack Complexity (AC)</td>' \
-            f'<td {td_style}>{self.att_complexity}</td>' \
-            f'</tr>' \
-            f'<tr {tr_style}>' \
-            f'<td {td_style}>Privileges Required (PR)</td>' \
-            f'<td {td_style}>{self.priv_req}</td>' \
-            f'</tr>' \
-            f'<tr {tr_style}>' \
-            f'<td {td_style}>User Interaction (UI)</td>' \
-            f'<td {td_style}>{self.user_interaction}</td>' \
-            f'</tr>' \
-            f'<tr {tr_style}>' \
-            f'<td {td_style}>Scope (S)</td>' \
-            f'<td {td_style}>{self.scope}</td>' \
-            f'</tr>' \
-            f'<tr {tr_style}>' \
-            f'<td {td_style}>Confidentiality Impact (C)</td>' \
-            f'<td {td_style}>{self.confidentiality}</td>' \
-            f'</tr>' \
-            f'<tr {tr_style}>' \
-            f'<td {td_style}>Integrity Impact (I)</td>' \
-            f'<td {td_style}>{self.integrity}</td>' \
-            f'</tr>' \
-            f'<tr {tr_style}>' \
-            f'<td {td_style}>Availability Impact (A)</td>' \
-            f'<td {td_style}>{self.availability}</td>' \
-            f'</tr>'\
-            f'</table>'
+                   f'<tr {tr_style}>' \
+                   f'<td {td_style}>CVSS Version</td>' \
+                   f'<td {td_style}>{self.version}</td>' \
+                   f'</tr>' \
+                   f'<tr {tr_style}>' \
+                   f'<td {td_style}>Attack Vector (AV)</td>' \
+                   f'<td {td_style}>{self.attack_vector}</td>' \
+                   f'</tr>' \
+                   f'<tr {tr_style}>' \
+                   f'<td {td_style}>Attack Complexity (AC)</td>' \
+                   f'<td {td_style}>{self.att_complexity}</td>' \
+                   f'</tr>' \
+                   f'<tr {tr_style}>' \
+                   f'<td {td_style}>Privileges Required (PR)</td>' \
+                   f'<td {td_style}>{self.priv_req}</td>' \
+                   f'</tr>' \
+                   f'<tr {tr_style}>' \
+                   f'<td {td_style}>User Interaction (UI)</td>' \
+                   f'<td {td_style}>{self.user_interaction}</td>' \
+                   f'</tr>' \
+                   f'<tr {tr_style}>' \
+                   f'<td {td_style}>Scope (S)</td>' \
+                   f'<td {td_style}>{self.scope}</td>' \
+                   f'</tr>' \
+                   f'<tr {tr_style}>' \
+                   f'<td {td_style}>Confidentiality Impact (C)</td>' \
+                   f'<td {td_style}>{self.confidentiality}</td>' \
+                   f'</tr>' \
+                   f'<tr {tr_style}>' \
+                   f'<td {td_style}>Integrity Impact (I)</td>' \
+                   f'<td {td_style}>{self.integrity}</td>' \
+                   f'</tr>' \
+                   f'<tr {tr_style}>' \
+                   f'<td {td_style}>Availability Impact (A)</td>' \
+                   f'<td {td_style}>{self.availability}</td>' \
+                   f'</tr>' \
+                   f'</table>'
 
         return overview
 
@@ -306,8 +307,6 @@ def port(request, port):
 
 
 def details(request, address, sorting='standard'):
-
-
     # very bad fix but I don't know
     if address == "report":
         address = sorting
@@ -393,8 +392,8 @@ def details(request, address, sorting='standard'):
             labelout = '<span id="hostlabel"></span>'
             if scanmd5 in labelhost:
                 if addressmd5 in labelhost[scanmd5]:
-                    labelcolor = labelToColor(labelhost[scanmd5][addressmd5])
-                    _ = labelToMargin(labelhost[scanmd5][addressmd5])
+                    labelcolor = label_to_color(labelhost[scanmd5][addressmd5])
+                    _ = label_to_margin(labelhost[scanmd5][addressmd5])
                     _ = '<span id="hostlabel" style="margin-left:60px;margin-top:-24px;" class="rightlabel ' \
                         + labelcolor + '">' + html.escape(labelhost[scanmd5][addressmd5]) + '</span>'
 
@@ -608,44 +607,56 @@ def details(request, address, sorting='standard'):
 
                     label_color, font_color = get_cvss_color(cvss_score, 2)
 
-                    #cwe_string = f'<span class="label grey">' + html.escape(cveobj['cwe']) + '</span>'
+                    # cwe_string = f'<span class="label grey">' + html.escape(cveobj['cwe']) + '</span>'
 
                     if "Other" not in cveobj["cwe"] and "noinfo" not in cveobj["cwe"]:
                         cwe_tooltip = f'<div class="tt2" style="color:white"><a href="https://cwe.mitre.org/data/definitions/{cveobj["cwe"][4:]}.html" target="_BLANK" style="color:white">{cveobj["cwe"]}</a><span class="ttt2">{_get_cwe_description(cveobj["cwe"])}</span></div>'
-                        #cwe_tooltip = f'<a href="https://cwe.mitre.org/data/definitions/{cveobj["cwe"][4:]}.html" data-toggle="tooltip" data-placement="top" title="{_get_cwe_description(cveobj["cwe"])}" style="color:white">{cwe_string}</a>'
+                        # cwe_tooltip = f'<a href="https://cwe.mitre.org/data/definitions/{cveobj["cwe"][4:]}.html" data-toggle="tooltip" data-placement="top" title="{_get_cwe_description(cveobj["cwe"])}" style="color:white">{cwe_string}</a>'
                     else:
-                        #cwe_tooltip = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{_get_cwe_description(cveobj["cwe"])}" style="color:white">{html.escape(cveobj["cwe"])}</a>'
+                        # cwe_tooltip = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{_get_cwe_description(cveobj["cwe"])}" style="color:white">{html.escape(cveobj["cwe"])}</a>'
                         cwe_tooltip = f'<div class="tt2" style="color:white">{cveobj["cwe"]}<span class="ttt2">{_get_cwe_description(cveobj["cwe"])}</span></div>'
 
                     cwe_string = f'<span class="label grey">' + cwe_tooltip + '</span>'
 
-                    try:
-                        cvss_vector = cveobj["cvss-vector"]
-                        cvss_vec_obj = CvssVector(cvss_vector, cveobj["id"])
-                    except KeyError:
-                        cvss_vector = "AV:-/AC:-/Au:-/C:-/I:-/A:-"
+                    cvss_vector = cveobj.get('cvss-vector')
+                    if cvss_vector:
                         cvss_vec_obj = CvssVector(cvss_vector, cveobj["id"])
 
-                    #cvss_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss_vec_obj.__str__()}" style="color:white">{html.escape(cvss_vector)}</a>'
-                    cvss_vector_html = f'<div class="tooltip" style="color:white">{html.escape(cvss_vector)}<span class="tooltiptext">{cvss_vec_obj.__str__()}</span></div>'
+                    # cvss_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss_vec_obj.__str__()}" style="color:white">{html.escape(cvss_vector)}</a>'
+                        cvss_vector_html = f'<div class="tooltip" style="color:white">{html.escape(cvss_vector)}<span class="tooltiptext">{cvss_vec_obj.__str__()}</span></div>'
 
                     if cvss3_vector:
                         cvss3_vec_obj = Cvss3vector(cvss3_vector)
-                        #cvss3_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss3_vec_obj.__str__()}" style="color:white">{html.escape(cvss3_vector)}</a>'
+                        # cvss3_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss3_vec_obj.__str__()}" style="color:white">{html.escape(cvss3_vector)}</a>'
                         cvss3_vector_html = f'<div class="tooltip" style="color:white">{html.escape(cvss3_vector)}<span class="tooltiptext">{cvss3_vec_obj.__str__()}</span></div>'
 
-                    cveout += f'<div id="' + html.escape(cveobj['id']) + '" style="line-height:28px;padding:10px;border-bottom:solid #666 1px;margin-top:10px;">'
-                    cveout += f'<a href=https://nvd.nist.gov/vuln/detail/{html.escape(cveobj["id"])} style="color:white" target="_BLANK"> <span class="label blue" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);">' + html.escape(cveobj['id']) + '</span></a> '
+                    cveout += f'<div id="' + html.escape(cveobj[
+                                                             'id']) + '" style="line-height:28px;padding:10px;border-bottom:solid #666 1px;margin-top:10px;">'
+                    cveout += f'<a href=https://nvd.nist.gov/vuln/detail/{html.escape(cveobj["id"])} style="color:white" target="_BLANK"> <span class="label blue" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);">' + html.escape(
+                        cveobj['id']) + '</span></a> '
 
                     if cvss_score:
                         cveout += '&nbsp; - &nbsp;'
-                        cveout += f'<span class="label {label_color}" style="color:{font_color}">' + html.escape(f"CVSS 2.0 score: {str(cvss_score)}") + '</span> '
+                        cveout += f'<span class="label {label_color}" style="color:{font_color}">' + html.escape(
+                            f"CVSS 2.0 score: {str(cvss_score)}") + '</span> '
                         cveout += f'<span class="label grey">' + cvss_vector_html + '</span>' + " "
+                    else:
+                        cveout += '&nbsp; - &nbsp;'
+                        cveout += f'<span class="label grey" style="color:white;">' + html.escape(
+                            f"CVSS 2.0 score: N/A") + '</span> '
+                        cveout += f'<span class="label grey">' + "AV:-/AC:-/Au:-/C:-/I:-/A:-" + '</span>' + " "
 
                     if cvss3_score and cvss3_vector:
                         cveout += '&nbsp; - &nbsp;'
-                        cveout += f'<span class="label {label3_color}" style="color:{font3_color}">' + html.escape(f"CVSS {cvss3_vec_obj.version} score: {str(cvss3_score)}") + '</span> '
+                        cveout += f'<span class="label {label3_color}" style="color:{font3_color}">' + html.escape(
+                            f"CVSS {cvss3_vec_obj.version} score: {str(cvss3_score)}") + '</span> '
                         cveout += f'<span class="label grey">' + cvss3_vector_html + '</span>' + " "
+                        cveout += '&nbsp; - &nbsp;'
+                    else:
+                        cveout += '&nbsp; - &nbsp;'
+                        cveout += f'<span class="label grey" style="color: white;">' + html.escape(
+                            f"CVSS 3.x score: N/A") + '</span> '
+                        cveout += f'<span class="label grey">' + "CVSS:3.x/AV:-/AC:-/PR:-/UI:-/S:-/C:-/I:-/A:-" + '</span>' + " "
                         cveout += '&nbsp; - &nbsp;'
 
                     cveout += cwe_string
@@ -656,8 +667,8 @@ def details(request, address, sorting='standard'):
 
                     cveids[cveobj['id']] = cveobj['id']
 
-            #if sorting != "standard":
-            #    cveout = sort_cve_html(cveout, sorting)
+            if sorting != "standard":
+                cveout = sort_cve_html(cveout, sorting)
 
             r['cveids'] = cveids
             r['cvelist'] = cveout
@@ -934,7 +945,7 @@ def index(request, filterservice="", filterportid=""):
             service_counter = 0
             for s in ss:
                 if filterservice != ss[s]:
-                    services += '<a href="/report/service/' + ss[s] + '/">' + ss[s] + '</a>, '
+                    services += f'<a href="/report/service/{ss[s]}/">{ss[s]}</a>, '
                 else:
                     services += '<span class="tmlabel" style="background-color:#ffcc00;color:#333;">' + ss[
                         s] + '</span>, '
@@ -942,7 +953,7 @@ def index(request, filterservice="", filterportid=""):
 
             ostype = ''
             for oty in ost:
-                ostype += '<i class="' + fromOSTypeToFontAwesome(
+                ostype += '<i class="' + from_os_type_to_font_awesome(
                     html.escape(ost[oty])) + '"></i> <span class="grey-text small">' + ost[oty].lower() + '</span> '
 
             tdports = ''
@@ -962,8 +973,8 @@ def index(request, filterservice="", filterportid=""):
                 hostindex) + '"></div>'
             if scanmd5 in labelhost:
                 if addressmd5 in labelhost[scanmd5]:
-                    labelcolor = labelToColor(labelhost[scanmd5][addressmd5])
-                    labelmargin = labelToMargin(labelhost[scanmd5][addressmd5])
+                    labelcolor = label_to_color(labelhost[scanmd5][addressmd5])
+                    labelmargin = label_to_margin(labelhost[scanmd5][addressmd5])
                     labelout = '<span id="hostlabel' + str(
                         hostindex) + '" style="margin-left:' + labelmargin + '" class="rightlabel ' + labelcolor + '">' + html.escape(
                         labelhost[scanmd5][addressmd5]) + '</span>'
@@ -977,8 +988,10 @@ def index(request, filterservice="", filterportid=""):
             if scanmd5 in noteshost:
                 if addressmd5 in noteshost[scanmd5]:
                     notesb64 = noteshost[scanmd5][addressmd5]
-                    notesout = '<a id="noteshost' + str(hostindex) + '" class="grey-text" href="#!" onclick="javascript:openNotes(\'' + hashlib.md5(
-                        str(address).encode('utf-8')).hexdigest() + '\', \'' + notesb64 + '\');"><i class="fas fa-comment"></i> contains notes</a>'
+                    notesout = '<a id="noteshost' + str(
+                        hostindex) + '" class="grey-text" href="#!" onclick="javascript:openNotes(\'' + hashlib.md5(
+                        str(address).encode(
+                            'utf-8')).hexdigest() + '\', \'' + notesb64 + '\');"><i class="fas fa-comment"></i> contains notes</a>'
                     removenotes = '<li><a href="#!" class="grey-text" onclick="javascript:removeNotes(\'' + addressmd5 + '\', \'' + str(
                         hostindex) + '\');">Remove notes</a></li>'
 
@@ -1009,7 +1022,6 @@ def index(request, filterservice="", filterportid=""):
                     service_action += '<a href="/report/' + address + '" class="grey-text"><i class="material-icons">call_to_action</i> Bruteforce SSH</a>'
                 if any("http" in item for item in device_services):
                     service_action += '<a href="/report/' + address + '" class="grey-text"><i class="material-icons">web</i> Bruteforce Web-Server</a>'
-
 
             if (filterservice != "" and striggered is True) or (filterportid != "" and striggered is True) or (
                     filterservice == "" and filterportid == ""):
@@ -1059,7 +1071,6 @@ def index(request, filterservice="", filterportid=""):
                     'serviceaction': service_action,
                     'vendor': vendor
                 }
-
 
                 hostindex = (hostindex + 1)
 
@@ -1126,7 +1137,7 @@ def index(request, filterservice="", filterportid=""):
         'debugging': debugging,
         'numservices': numservices,
         'nmapver': o['@version'],
-        'nmapargs': insert_linebreaks(o['@args']), # o['@args'],
+        'nmapargs': insert_linebreaks(o['@args']),  # o['@args'],
         'xmlver': o['@xmloutputversion'],
         'hostsup': str(hostsup),
         'popen': ports['open'],
@@ -1175,31 +1186,31 @@ def index(request, filterservice="", filterportid=""):
 
     r['pretable'] = ''
     r['js'] = ''
-    if filterservice == "" and filterportid == "":
-        r['js'] += '<script>' + \
-                   '	$(document).ready(function() {' + \
-                   '		var ctx = document.getElementById("chart1").getContext("2d");' + \
-                   '		var myChart = new Chart(ctx, {' + \
-                   '			type: "doughnut", data: {labels:["Open", "Filtered", "Closed"], datasets: [{ data: [' + str(
-            ports['open']) + ',' + str(ports['filtered']) + ',' + str(ports[
-                                                                          'closed']) + '], backgroundColor:["rgba(0,150,0,0.8)","rgba(255,200,0,0.8)","rgba(255,0,0,0.8)"], borderColor:"#ccc", borderWidth:0 }]}, options: {legend: { position: "right", labels: { fontColor: "#ccc" }  }}' + \
-                   '		});' + \
-                   '		var ctx = document.getElementById("chart3").getContext("2d");' + \
-                   '		var myChart = new Chart(ctx, {' + \
-                   '			type: "doughnut", data: {labels:[' + allpilabels[
-                                                                     0:-2] + '], datasets: [{ data: [' + allpidata[
-                                                                                                         0:-1] + '], borderColor: "#fff", borderWidth:0,  backgroundColor:["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080", "#ffffff", "#000000"] }]}, options: {legend: { position: "right", labels: { fontColor: "#ccc" }}}' + \
-                   '		});' + \
-                   '		var ctx = document.getElementById("chart2").getContext("2d");' + \
-                   '		var myChart = new Chart(ctx, {' + \
-                   '			type: "horizontalBar", data: { labels:[' + allsslabels[
-                                                                           0:-2] + '], datasets: [{ data: [' + allssdata[
-                                                                                                               0:-1] + '], backgroundColor: "rgba(0,140,220,0.8)" }]}, options: {legend: { display: false }, scales: { xAxes: [{ ticks: { beginAtZero: true, fontColor: "#666" } }], yAxes: [{ ticks: { fontColor: "#666" } }] }  }' + \
-                   '		});' + \
-                   '	});' + \
-                   '</script>'
-    else:
-        r['pretablestyle'] = 'display:none;'
+    # if filterservice == "" and filterportid == "":
+    #     r['js'] += '<script>' + \
+    #                '	$(document).ready(function() {' + \
+    #                '		var ctx = document.getElementById("chart1").getContext("2d");' + \
+    #                '		var myChart = new Chart(ctx, {' + \
+    #                '			type: "doughnut", data: {labels:["Open", "Filtered", "Closed"], datasets: [{ data: [' + str(
+    #         ports['open']) + ',' + str(ports['filtered']) + ',' + str(ports[
+    #                                                                       'closed']) + '], backgroundColor:["rgba(0,150,0,0.8)","rgba(255,200,0,0.8)","rgba(255,0,0,0.8)"], borderColor:"#ccc", borderWidth:0 }]}, options: {legend: { position: "right", labels: { fontColor: "#ccc" }  }}' + \
+    #                '		});' + \
+    #                '		var ctx = document.getElementById("chart3").getContext("2d");' + \
+    #                '		var myChart = new Chart(ctx, {' + \
+    #                '			type: "doughnut", data: {labels:[' + allpilabels[
+    #                                                                  0:-2] + '], datasets: [{ data: [' + allpidata[
+    #                                                                                                      0:-1] + '], borderColor: "#fff", borderWidth:0,  backgroundColor:["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080", "#ffffff", "#000000"] }]}, options: {legend: { position: "right", labels: { fontColor: "#ccc" }}}' + \
+    #                '		});' + \
+    #                '		var ctx = document.getElementById("chart2").getContext("2d");' + \
+    #                '		var myChart = new Chart(ctx, {' + \
+    #                '			type: "horizontalBar", data: { labels:[' + allsslabels[
+    #                                                                        0:-2] + '], datasets: [{ data: [' + allssdata[
+    #                                                                                                            0:-1] + '], backgroundColor: "rgba(0,140,220,0.8)" }]}, options: {legend: { display: false }, scales: { xAxes: [{ ticks: { beginAtZero: true, fontColor: "#666" } }], yAxes: [{ ticks: { fontColor: "#666" } }] }  }' + \
+    #                '		});' + \
+    #                '	});' + \
+    #                '</script>'
+    # else:
+    #r['pretablestyle'] = 'display:none;'
 
     r['js'] += '<script>' + \
                '	$(document).ready(function() {' + \

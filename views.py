@@ -10,10 +10,12 @@ import colorlog
 import urllib.parse
 from collections import OrderedDict
 from datetime import datetime
-import urllib.parse
 
 from django.http import HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+
 
 from proteciotnet_dev.functions import get_cwe_description
 from proteciotnet_dev.functions import *
@@ -285,6 +287,27 @@ def login(request):
     return render(request, 'proteciotnet_dev/main.html', r)
 
 
+@csrf_exempt
+def toggle_state(request):
+    print("here")
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        checked = data.get('checked', None)
+
+        filepath = '.offline_mode.flag'
+
+        if checked:
+            # Create an empty file to indicate that offline mode is enabled
+            with open(filepath, 'w'):
+                pass
+        else:
+            # Delete the file to indicate that offline mode is disabled
+            if os.path.exists(filepath):
+                os.remove(filepath)
+
+        return JsonResponse({'status': 'success'})
+
+
 def setscanfile(request, scanfile):
     xmlfiles = os.listdir('/opt/xml')
 
@@ -346,6 +369,32 @@ def details(request, address, sorting='standard'):
     # collect all cve in cvehost dict
     cvehost = get_cve(scanmd5)
 
+
+
+
+    # tmp = o['host'].get('os', '').get('osmatch', '')
+    # if tmp and isinstance(tmp, list):
+    #     print(tmp[0])
+    # elif tmp:
+    #     print(tmp)
+
+    # oshtml = ''
+    # if 'service' in p:
+    #     if '@ostype' in p['service']:
+    #         ostype = p['service']['@ostype']
+    #         oshtml = '<div style="font-family:monospace;padding:6px;margin:6px;border-left:solid #666 1px;"><sup style="border-bottom:solid #ccc 1px;">Operating System</sup><br>' + html.escape(
+    #             ostype)
+    #
+    #         if "Windows" in ostype:
+    #             oshtml += ' <i class="fab fa-windows"></i>'
+    #         elif "Linux" in ostype:
+    #             oshtml += ' <i class="fab fa-linux"></i>'
+    #         elif "iOS" in ostype or "Mac OS" in ostype or "Apple" in ostype:
+    #             oshtml += ' <i class="fab fa-apple"></i>'
+    #
+    #         oshtml += '</div>'
+    #         r['tr']['os'] = oshtml
+
     r[
         'trhead'] = '<tr><th>Port</th><th style="width:300px;">Product / Version</th><th>Extra Info</th><th>&nbsp;</th></tr>'
     for ik in o['host']:
@@ -401,6 +450,51 @@ def details(request, address, sorting='standard'):
                     r['labelcolor'] = labelcolor
 
             rmdupl = {}
+
+            # OS info
+            r['os'] = {}
+            nmap_os_fingerprinting_dict = i.get('os', '').get('osmatch', '')
+            device_os_fingerprint = dict.fromkeys(["OS", "Accuracy", "Vendor", "osfamily"])
+            if nmap_os_fingerprinting_dict:
+
+                if isinstance(nmap_os_fingerprinting_dict, list):
+                    nmap_os_fingerprinting_dict = nmap_os_fingerprinting_dict[0]
+
+                device_os_fingerprint["OS"] = nmap_os_fingerprinting_dict.get('@name', '')
+                device_os_fingerprint["Accuracy"] = nmap_os_fingerprinting_dict.get('@accuracy', '')
+
+                dev_class = nmap_os_fingerprinting_dict.get('osclass', '')
+
+                if dev_class:
+                    if isinstance(dev_class, list):
+                        dev_class = dev_class[0]
+
+                    device_os_fingerprint["Vendor"] = dev_class.get('@vendor', '')
+
+                os_class = nmap_os_fingerprinting_dict.get('osclass', '')
+                if os_class:
+                    if isinstance(os_class, list):
+                        osfamilies = set()
+                        for device_os_class in os_class:
+                            osfamilies.add(device_os_class.get('@osfamily', ''))
+
+                        osfamilies_cleaned = []
+                        for item in list(osfamilies):
+                            if "OS X" in item:
+                                continue
+                            osfamilies_cleaned.append(item)
+
+                        device_os_fingerprint["osfamily"] = osfamilies_cleaned
+                    else:
+                        device_os_fingerprint["osfamily"] = os_class.get('@osfamily', '')
+
+            r['os'] = device_os_fingerprint
+            print(r['os'])
+            # TODO add html code back and work on styling
+            # oshtml = ''
+            #                         oshtml = '<div style="font-family:monospace;padding:6px;margin:6px;border-left:solid #666 1px;"><sup style="border-bottom:solid #ccc 1px;">Operating System</sup><br>' + html.escape(
+            #                             p['service']['@ostype']) + '</div>'
+
             r['tr'] = {}
             for pobj in i['ports']['port']:
                 if type(pobj) is dict:
@@ -421,11 +515,6 @@ def details(request, address, sorting='standard'):
                     pf = (pf + 1)
 
                 pel = (pel + 1)
-                oshtml = ''
-                if 'service' in p:
-                    if '@ostype' in p['service']:
-                        oshtml = '<div style="font-family:monospace;padding:6px;margin:6px;border-left:solid #666 1px;"><sup style="border-bottom:solid #ccc 1px;">Operating System</sup><br>' + html.escape(
-                            p['service']['@ostype']) + '</div>'
 
                 so = ''
                 if 'script' in p:
@@ -689,6 +778,9 @@ def details(request, address, sorting='standard'):
         pf) + '</h4><span class="small grey-text">FILTERED PORTS</span></center>\');' + \
               '}); ' + \
               '</script>'
+
+    with open("test.json", "w") as f:
+        json.dump(r['out2'] , f, indent=4)
 
     return render(request, 'proteciotnet_dev/nmap_device_details.html', r)
 

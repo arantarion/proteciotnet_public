@@ -7,6 +7,7 @@
             <div class="card-content">
                 <div id="hostlabel" style="z-index:99;transform: rotate(-8deg);margin-top:-14px;margin-left:-40px;"
                      class="leftlabel {{ labelcolor }}">{{ label }}</div>
+                {{ tr.os | safe }}
                 <div id="hostlabelbb" class="{{ labelcolor }}"
                      style="border-radius:0px 4px 0px 4px;z-index:98;position:absolute;width:18px;height:10px;margin-left:-43px;margin-top:-3px;"></div>
                 <div class="row">
@@ -24,6 +25,7 @@
 
         <div class="card wmcard">
             <div class="card-content">
+
                 <table>
                     <thead>
                     <tr>

@@ -25,4 +25,5 @@ urlpatterns = [
     path('view/login/', views.login, name='login'),
     path('view/pdf/', pdf.reportPDFView, name='reportPDFView'),
     path('api/v1/create_report', pdf.create_report, name='create_report'),
+    path('toggle_state/', views.toggle_state, name='toggle_state'),
 ]

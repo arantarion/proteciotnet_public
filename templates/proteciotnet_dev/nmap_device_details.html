@@ -4,21 +4,32 @@
     <div class="container" style="margin-top:30px;">
 
         <div class="card wmcard">
-            <div class="card-content">
+            <div class="card-content" style="margin-bottom: 0;">
                 <div id="hostlabel" style="z-index:99;transform: rotate(-8deg);margin-top:-14px;margin-left:-40px;"
                      class="leftlabel {{ labelcolor }}">{{ label }}</div>
-                {{ tr.os | safe }}
+
                 <div id="hostlabelbb" class="{{ labelcolor }}"
                      style="border-radius:0px 4px 0px 4px;z-index:98;position:absolute;width:18px;height:10px;margin-left:-43px;margin-top:-3px;"></div>
                 <div class="row">
                     <div class="col s3">
-                        <span class="card-title">{{ address }}</span>
-                        <h6>{{ hostname|safe }}</h6><span class="small">{{ scanfile }}.xml</span>
-                        <br><a class="small" href="/">Back to hosts</a>
+
+                        <span class="card-title">
+                            <a href="/">
+                            <button class="btn blue btn-danger btn-floating btn-lg" style="line-height: 0;" id="backbtn"
+                                    title="Go back">
+                                <i class="fas fa-arrow-left"></i> </a>
+                            </button>
+                            {{ address }}
+                        </span>
+
+                        {{ hostname | safe }}
+                        <span class="small grey-text"><b>Filename: </b> {{ scanfile }}.xml</span>
                     </div>
-                    <div class="col s3 hide-on-med-and-down" id="detailspo"></div>
-                    <div class="col s3 hide-on-med-and-down" id="detailspc"></div>
-                    <div class="col s3 hide-on-med-and-down" id="detailspf"></div>
+                    <div class="col s3 right" id="os_details">{{ os | safe }}</div>
+
+                    {#                    <div class="col s3 hide-on-med-and-down" id="detailspo"></div>#}
+                    {#                    <div class="col s3 hide-on-med-and-down" id="detailspc"></div>#}
+                    {#                    <div class="col s3 hide-on-med-and-down" id="detailspf"></div>#}
                 </div>
             </div>
         </div>
@@ -64,7 +75,8 @@
                                 {{ v.cpe|safe }}
                             </td>
                             <td>
-                                <button class="detail_button blue right white-text" onclick="apiPortDetails('{{ address }}','{{ v.portid }}')">
+                                <button class="detail_button blue right white-text"
+                                        onclick="apiPortDetails('{{ address }}','{{ v.portid }}')">
                                     Show details
                                 </button>
                             </td>
@@ -109,21 +121,24 @@
                         }
                     });
                 });
+
+
             </script>
 
             <div class="card wmcard">
-
-
                 <div class="card-content">
                     <div class="details-title-dropdown-container">
                         <span class="card-title">CVE Overview</span>
 
                         <div class="search-container right">
-                            <input type="text" id="search-input" class="search-input white-text" placeholder="Search...">
+                            <input type="text" id="search-input" class="search-input white-text"
+                                   placeholder="Search...">
                             <span class="delete-icon"><i class="material-icons">clear</i></span>
-                            <button id="search-button" class="search-button"><i class="material-icons">search</i></button>
+                            <button id="search-button2" class="search-button" onclick="redirectToUrl()"><i
+                                    class="material-icons">search</i>
+                            </button>
                         </div>
-                         <script src="{% static "js/search_cve.js" %}"></script>
+                        <script src="{% static "js/search_cve.js" %}"></script>
 
                         <div class="dropdown-wrapper">
                             <ul id="dropdown_sorting" class="dropdown-content"

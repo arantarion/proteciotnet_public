@@ -370,7 +370,7 @@ function openNotes(hashstr, notesb64) {
 
 function apiPortDetails(address, portid) {
 	$.get('/report/api/'+address+'/'+portid+'/').done(function(data) {
-		console.log(data);
+		// console.log(data);
 
 		$('#modaltitle').html('Port Details: <span class="blue-text">'+$('<span/>').text(data['@protocol']).html().toUpperCase()+' / '+$('<span/>').text(data['@portid']).html()+'</span>');
 
@@ -379,16 +379,16 @@ function apiPortDetails(address, portid) {
 			'fingerprint-strings':true
 		}
 
-		console.log(typeof(data['script']));
+		// console.log(typeof(data['script']));
 		if(typeof(data['script']) !== 'undefined') {
 			if(typeof(data['script']) === 'object' && typeof(data['script']['@id']) === 'undefined') {
 				for(sid in data['script']) {
 					if(typeof(ingorescriptid[data['script'][sid]['@id']]) !== 'undefined') { continue; }
-					tbody += '<tr><td class="orange-text">'+$('<span/>').text(data['script'][sid]['@id']).html()+'</td><td style="font-family:monospace;font-size:12px;">'+$('<span/>').text(data['script'][sid]['@output']).html()+'</td></tr>'
+					tbody += '<tr><td class="black-text">'+$('<span/>').text(data['script'][sid]['@id']).html()+'</td><td style="font-family:monospace;font-size:12px;">'+$('<span/>').text(data['script'][sid]['@output']).html()+'</td></tr>'
 				}
 			} else {
 				if(typeof(ingorescriptid[data['script']['@id']]) === 'undefined') {
-					tbody += '<tr><td class="orange-text">'+$('<span/>').text(data['script']['@id']).html()+'</td><td style="font-family:monospace;font-size:12px;">'+$('<span/>').text(data['script']['@output']).html()+'</td></tr>'
+					tbody += '<tr><td class="black-text">'+$('<span/>').text(data['script']['@id']).html()+'</td><td style="font-family:monospace;font-size:12px;">'+$('<span/>').text(data['script']['@output']).html()+'</td></tr>'
 				}
 			}
 		} else {

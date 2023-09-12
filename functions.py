@@ -60,12 +60,12 @@ def get_cvss_color(cvss_score, version=2):
     if version == 2:
         for score_range, color in score_range_version_2.items():
             if score_range[0] <= cvss_score <= score_range[1]:
-                return color, "black" if color != "yellow" else "white"
+                return color, "white" if color != "yellow" else "black"
 
     elif version == 3:
         for score_range_v3, color in score_range_version_3.items():
             if score_range_v3[0] <= cvss_score <= score_range_v3[1]:
-                return color, "black" if color != "yellow" else "white"
+                return color, "white" if color != "yellow" else "black"
 
     # Return None if the cvss_score is not within any defined range
     return 'black', 'white'
@@ -524,6 +524,13 @@ def _extract_cvss3_score(cve):
         except ValueError:
             return 0.0
     return 0.0
+
+
+def search_cve_html(cves_html, search_string):
+    search_string = search_string.replace("search=", "")
+    split_cves = _split_cve_html(cves_html)
+
+    return ''.join([cve for cve in split_cves if search_string in cve])
 
 
 def _sort_cve_list(cve_list, key_function, reverse_order):

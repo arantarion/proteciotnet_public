@@ -34,7 +34,6 @@ stream_handler.setFormatter(
 # Add handler to logger
 main_logger.addHandler(stream_handler)
 
-
 # logger.debug("This is a debug message")
 # logger.info("This is an info message")
 # logger.warning("This is a warning message")
@@ -369,32 +368,6 @@ def details(request, address, sorting='standard'):
     # collect all cve in cvehost dict
     cvehost = get_cve(scanmd5)
 
-
-
-
-    # tmp = o['host'].get('os', '').get('osmatch', '')
-    # if tmp and isinstance(tmp, list):
-    #     print(tmp[0])
-    # elif tmp:
-    #     print(tmp)
-
-    # oshtml = ''
-    # if 'service' in p:
-    #     if '@ostype' in p['service']:
-    #         ostype = p['service']['@ostype']
-    #         oshtml = '<div style="font-family:monospace;padding:6px;margin:6px;border-left:solid #666 1px;"><sup style="border-bottom:solid #ccc 1px;">Operating System</sup><br>' + html.escape(
-    #             ostype)
-    #
-    #         if "Windows" in ostype:
-    #             oshtml += ' <i class="fab fa-windows"></i>'
-    #         elif "Linux" in ostype:
-    #             oshtml += ' <i class="fab fa-linux"></i>'
-    #         elif "iOS" in ostype or "Mac OS" in ostype or "Apple" in ostype:
-    #             oshtml += ' <i class="fab fa-apple"></i>'
-    #
-    #         oshtml += '</div>'
-    #         r['tr']['os'] = oshtml
-
     r[
         'trhead'] = '<tr><th>Port</th><th style="width:300px;">Product / Version</th><th>Extra Info</th><th>&nbsp;</th></tr>'
     for ik in o['host']:
@@ -488,12 +461,50 @@ def details(request, address, sorting='standard'):
                     else:
                         device_os_fingerprint["osfamily"] = os_class.get('@osfamily', '')
 
-            r['os'] = device_os_fingerprint
-            print(r['os'])
-            # TODO add html code back and work on styling
-            # oshtml = ''
-            #                         oshtml = '<div style="font-family:monospace;padding:6px;margin:6px;border-left:solid #666 1px;"><sup style="border-bottom:solid #ccc 1px;">Operating System</sup><br>' + html.escape(
-            #                             p['service']['@ostype']) + '</div>'
+            if device_os_fingerprint:
+                device_os = device_os_fingerprint['OS']
+
+                oshtml = '<div style="font-family:monospace;padding:6px;margin:6px;border-left:solid #666 1px;font-size:75%;">'
+
+                oshtml += '<u><b>Operating System</b></u>'
+                if "Android" in device_os:
+                    oshtml += ' <i class="fab fa-android" style="font-size: 15px;"></i><br>'
+                elif "Linux" in device_os:
+                    oshtml += ' <i class="fab fa-linux" style="font-size: 15px;"></i><br>'
+                elif "Windows" in device_os:
+                    oshtml += ' <i class="fab fa-linux" style="font-size: 15px;"></i><br>'
+                elif "iOS" in device_os or "Mac OS" in device_os:
+                    oshtml += ' <i class="fab fa-linux" style="font-size: 15px;"></i><br>'
+                else:
+                    oshtml += ' <br>'
+
+                oshtml += html.escape(device_os)
+                oshtml += '<table cellspacing="0" cellpadding="0" style="border-collapse: collapse; margin: 0; padding: 0; border:0!;">'
+
+                vendor = device_os_fingerprint.get("Vendor", "")
+                if vendor:
+                    oshtml += '<tr style="border: none;"><td style="padding: 0; margin: 0; border: none;">Vendor</td><td style="padding: 0; margin: 0; border: none;">' + html.escape(
+                        vendor) + '</td></tr>'
+
+                os_family = device_os_fingerprint.get("osfamily", "")
+
+                if os_family and isinstance(os_family, list):
+                    oshtml += '<tr style="border: none;"><td style="padding: 0; margin: 0; border: none;">OS Family</td><td style="padding: 0; margin: 0; border: none;">' + html.escape(
+                        ', '.join(sorted(os_family))) + '</td></tr>'
+                elif os_family:
+                    oshtml += '<tr style="border: none;"><td style="padding: 0; margin: 0; border: none;">OS Family</td><td style="padding: 0; margin: 0; border: none;">' + html.escape(
+                        os_family) + '</td></tr>'
+
+                accuracy = device_os_fingerprint.get("Accuracy", "")
+                if accuracy:
+                    oshtml += '<tr style="border: none;"><td style="padding: 0; margin: 0; border: none;">Accuracy</td><td style="padding: 0; margin: 0; border: none;">' + html.escape(
+                        accuracy) + '%</td></tr>'
+
+                oshtml += '</table>'
+
+                oshtml += '</div>'
+                r['os'] = oshtml
+
 
             r['tr'] = {}
             for pobj in i['ports']['port']:
@@ -756,8 +767,12 @@ def details(request, address, sorting='standard'):
 
                     cveids[cveobj['id']] = cveobj['id']
 
-            if sorting != "standard":
+            print(sorting)
+            if sorting != "standard" and not sorting.startswith("search="):
                 cveout = sort_cve_html(cveout, sorting)
+
+            elif sorting.startswith("search="):
+                cveout = search_cve_html(cveout, sorting)
 
             r['cveids'] = cveids
             r['cvelist'] = cveout
@@ -778,9 +793,6 @@ def details(request, address, sorting='standard'):
         pf) + '</h4><span class="small grey-text">FILTERED PORTS</span></center>\');' + \
               '}); ' + \
               '</script>'
-
-    with open("test.json", "w") as f:
-        json.dump(r['out2'] , f, indent=4)
 
     return render(request, 'proteciotnet_dev/nmap_device_details.html', r)
 
@@ -1278,31 +1290,6 @@ def index(request, filterservice="", filterportid=""):
 
     r['pretable'] = ''
     r['js'] = ''
-    # if filterservice == "" and filterportid == "":
-    #     r['js'] += '<script>' + \
-    #                '	$(document).ready(function() {' + \
-    #                '		var ctx = document.getElementById("chart1").getContext("2d");' + \
-    #                '		var myChart = new Chart(ctx, {' + \
-    #                '			type: "doughnut", data: {labels:["Open", "Filtered", "Closed"], datasets: [{ data: [' + str(
-    #         ports['open']) + ',' + str(ports['filtered']) + ',' + str(ports[
-    #                                                                       'closed']) + '], backgroundColor:["rgba(0,150,0,0.8)","rgba(255,200,0,0.8)","rgba(255,0,0,0.8)"], borderColor:"#ccc", borderWidth:0 }]}, options: {legend: { position: "right", labels: { fontColor: "#ccc" }  }}' + \
-    #                '		});' + \
-    #                '		var ctx = document.getElementById("chart3").getContext("2d");' + \
-    #                '		var myChart = new Chart(ctx, {' + \
-    #                '			type: "doughnut", data: {labels:[' + allpilabels[
-    #                                                                  0:-2] + '], datasets: [{ data: [' + allpidata[
-    #                                                                                                      0:-1] + '], borderColor: "#fff", borderWidth:0,  backgroundColor:["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080", "#ffffff", "#000000"] }]}, options: {legend: { position: "right", labels: { fontColor: "#ccc" }}}' + \
-    #                '		});' + \
-    #                '		var ctx = document.getElementById("chart2").getContext("2d");' + \
-    #                '		var myChart = new Chart(ctx, {' + \
-    #                '			type: "horizontalBar", data: { labels:[' + allsslabels[
-    #                                                                        0:-2] + '], datasets: [{ data: [' + allssdata[
-    #                                                                                                            0:-1] + '], backgroundColor: "rgba(0,140,220,0.8)" }]}, options: {legend: { display: false }, scales: { xAxes: [{ ticks: { beginAtZero: true, fontColor: "#666" } }], yAxes: [{ ticks: { fontColor: "#666" } }] }  }' + \
-    #                '		});' + \
-    #                '	});' + \
-    #                '</script>'
-    # else:
-    #r['pretablestyle'] = 'display:none;'
 
     r['js'] += '<script>' + \
                '	$(document).ready(function() {' + \

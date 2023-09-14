@@ -527,6 +527,16 @@ def _extract_cvss3_score(cve):
 
 
 def search_cve_html(cves_html, search_string):
+    """
+    Search for a specific string within a list of HTML CVE (Common Vulnerabilities and Exposures) entries.
+
+    Parameters:
+    - cves_html (str): A string containing HTML for multiple CVEs.
+    - search_string (str): The string to search for within the CVE entries. Assumes the search_string is prefixed with "search=" and removes it before performing the search.
+
+    Returns:
+    - str: A HTML string containing all CVE entries that include the search string.
+    """
     search_string = search_string.replace("search=", "")
     split_cves = _split_cve_html(cves_html)
 

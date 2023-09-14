@@ -1,10 +1,5 @@
 import base64
 import subprocess
-import xmltodict
-import json
-import hashlib
-import re
-import os
 import logging
 import colorlog
 import urllib.parse
@@ -16,11 +11,10 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
-
-from proteciotnet_dev.functions import get_cwe_description
+from proteciotnet_dev.CVSS_Vectors import Cvss3vector, Cvss2Vector
 from proteciotnet_dev.functions import *
 
-V2_PATTERN = "AV:([L|A|N])/AC:(H|M|L)/Au:([M|S|N])/C:([N|P|C])/I:([N|P|C])/A:([N|P|C])"
+
 
 logging_level = logging.DEBUG
 main_logger = logging.getLogger()
@@ -41,242 +35,6 @@ main_logger.addHandler(stream_handler)
 # logger.critical("This is a critical message")
 
 
-class Cvss3vector:
-    def __init__(self, vector_string):
-        self.vector_string = vector_string
-        self.fields = self.parse_vector()
-        self.version = 0
-        self.attack_vector = ""
-        self.att_complexity = ""
-        self.priv_req = ""
-        self.user_interaction = ""
-        self.scope = ""
-        self.confidentiality = ""
-        self.integrity = ""
-        self.availability = ""
-        self.mapping = {
-            "AV": {
-                "N": "Network",
-                "A": "Adjacent Network",
-                "L": "Local",
-                "P": "Physical"
-            },
-            "AC": {
-                "H": "High",
-                "L": "Low"
-            },
-            "PR": {
-                "N": "None",
-                "L": "Low",
-                "H": "High"
-            },
-            "UI": {
-                "N": "None",
-                "R": "Required"
-            },
-            "S": {
-                "U": "Unchanged",
-                "C": "Changed"
-            },
-            "C": {
-                "N": "None",
-                "L": "Low",
-                "H": "High"
-            },
-            "I": {
-                "N": "None",
-                "L": "Low",
-                "H": "High"
-            },
-            "A": {
-                "N": "None",
-                "L": "Low",
-                "H": "High"
-            }
-        }
-        self.get_text()
-
-    def parse_vector(self):
-        fields = {}
-        parts = self.vector_string.split("/")
-        for part in parts:
-            field, value = part.split(":")
-            fields[field] = value
-        return fields
-
-    def get_text(self):
-        for key in self.fields.keys():
-            if key == "CVSS":
-                self.version = self.fields['CVSS']
-            elif key == "AV":
-                self.attack_vector = self.mapping.get('AV', '').get(self.fields['AV'], '')
-            elif key == "AC":
-                self.att_complexity = self.mapping.get('AC', '').get(self.fields['AC'], '')
-            elif key == "PR":
-                self.priv_req = self.mapping.get('PR', '').get(self.fields['PR'], '')
-            elif key == "UI":
-                self.user_interaction = self.mapping.get('UI', '').get(self.fields['UI'], '')
-            elif key == "S":
-                self.scope = self.mapping.get('S', '').get(self.fields['S'], '')
-            elif key == "C":
-                self.confidentiality = self.mapping.get('C', '').get(self.fields['C'], '')
-            elif key == "I":
-                self.integrity = self.mapping.get('I', '').get(self.fields['I'], '')
-            elif key == "A":
-                self.availability = self.mapping.get('A', '').get(self.fields['A'], '')
-
-    def __str__(self):
-        td_style = 'style="padding:0; margin:0; border: none;"'
-        tr_style = 'style="border: none;"'
-
-        overview = f'<table style="border-collapse: collapse;">' \
-                   f'<tr {tr_style}>' \
-                   f'<td {td_style}>CVSS Version</td>' \
-                   f'<td {td_style}>{self.version}</td>' \
-                   f'</tr>' \
-                   f'<tr {tr_style}>' \
-                   f'<td {td_style}>Attack Vector (AV)</td>' \
-                   f'<td {td_style}>{self.attack_vector}</td>' \
-                   f'</tr>' \
-                   f'<tr {tr_style}>' \
-                   f'<td {td_style}>Attack Complexity (AC)</td>' \
-                   f'<td {td_style}>{self.att_complexity}</td>' \
-                   f'</tr>' \
-                   f'<tr {tr_style}>' \
-                   f'<td {td_style}>Privileges Required (PR)</td>' \
-                   f'<td {td_style}>{self.priv_req}</td>' \
-                   f'</tr>' \
-                   f'<tr {tr_style}>' \
-                   f'<td {td_style}>User Interaction (UI)</td>' \
-                   f'<td {td_style}>{self.user_interaction}</td>' \
-                   f'</tr>' \
-                   f'<tr {tr_style}>' \
-                   f'<td {td_style}>Scope (S)</td>' \
-                   f'<td {td_style}>{self.scope}</td>' \
-                   f'</tr>' \
-                   f'<tr {tr_style}>' \
-                   f'<td {td_style}>Confidentiality Impact (C)</td>' \
-                   f'<td {td_style}>{self.confidentiality}</td>' \
-                   f'</tr>' \
-                   f'<tr {tr_style}>' \
-                   f'<td {td_style}>Integrity Impact (I)</td>' \
-                   f'<td {td_style}>{self.integrity}</td>' \
-                   f'</tr>' \
-                   f'<tr {tr_style}>' \
-                   f'<td {td_style}>Availability Impact (A)</td>' \
-                   f'<td {td_style}>{self.availability}</td>' \
-                   f'</tr>' \
-                   f'</table>'
-
-        return overview
-
-
-class CvssVector:
-    def __init__(self, cvss_vec, cve_id):
-        try:
-            matches = re.findall(V2_PATTERN, cvss_vec)
-        except IndexError:
-            matches = [('-', '-', '-', '-', '-', '-')]
-
-        if not matches:
-            matches = [('-', '-', '-', '-', '-', '-')]
-
-        self.cve_id = cve_id
-        self.access_vector = matches[0][0]
-        self.access_complexity = matches[0][1]
-        self.authentication = matches[0][2]
-        self.confidentiality_impact = matches[0][3]
-        self.integrity_impact = matches[0][4]
-        self.availability_impact = matches[0][5]
-
-        self.access_vector_text = self._get_full_access_vector(self.access_vector)
-        self.access_complexity_text = self._get_full_access_complexity(self.access_complexity)
-        self.authentication_text = self._get_full_authentication(self.authentication)
-        self.confidentiality_impact_text = self._get_full_con_impact(self.confidentiality_impact)
-        self.integrity_impact_text = self._get_full_con_impact(self.integrity_impact)
-        self.availability_impact_text = self._get_full_con_impact(self.availability_impact)
-
-    # TODO make like v3 version
-    def __str__(self):
-
-        td_style = 'style="padding:0; margin:0; border: none;"'
-        tr_style = 'style="border: none;"'
-
-        x = f'<table style="border-collapse: collapse;">' \
-            f'<tr {tr_style}>' \
-            f'<td {td_style}>Access Vector (AV)</td>' \
-            f'<td {td_style}>{self.access_vector_text}</td>' \
-            f'</tr>' \
-            f'<tr {tr_style}>' \
-            f'<td {td_style}>Access Complexity (AC)</td>' \
-            f'<td {td_style}>{self.access_complexity_text}</td>' \
-            f'</tr>' \
-            f'<tr {tr_style}>' \
-            f'<td {td_style}>Authentication (Au)</td>' \
-            f'<td {td_style}>{self.authentication_text}</td>' \
-            f'</tr>' \
-            f'<tr {tr_style}>' \
-            f'<td {td_style}>Confidentiality Impact (C)</td>' \
-            f'<td {td_style}>{self.confidentiality_impact_text}</td>' \
-            f'</tr>' \
-            f'<tr {tr_style}>' \
-            f'<td {td_style}>Integrity Impact (I)</td>' \
-            f'<td {td_style}>{self.integrity_impact_text}</td>' \
-            f'</tr>' \
-            f'<tr {tr_style}>' \
-            f'<td {td_style}>Availability Impact (A)</td>' \
-            f'<td {td_style}>{self.availability_impact_text}</td>' \
-            f'</tr>' \
-            f'</table>'
-
-        return x
-
-    def __repr__(self):
-        return f"CVSS_vector(cvss_vec='{self.access_vector}/{self.access_complexity}/" \
-               f"{self.authentication}/{self.confidentiality_impact}/" \
-               f"{self.integrity_impact}/{self.availability_impact}')"
-
-    def _get_full_access_vector(self, av):
-        if av == "L":
-            return "Local"
-        elif av == "A":
-            return "Adjacent Network"
-        elif av == "N":
-            return "Network"
-        else:
-            return "NaN"
-
-    def _get_full_access_complexity(self, ac):
-        if ac == "H":
-            return "High"
-        elif ac == "M":
-            return "Medium"
-        elif ac == "L":
-            return "Low"
-        else:
-            return "NaN"
-
-    def _get_full_authentication(self, a):
-        if a == "M":
-            return "Multiple"
-        elif a == "S":
-            return "Single"
-        elif a == "N":
-            return "None"
-        else:
-            return "NaN"
-
-    def _get_full_con_impact(self, ci):
-        if ci == "N":
-            return "None"
-        elif ci == "P":
-            return "Partial"
-        elif ci == "C":
-            return "Complete"
-        else:
-            return "NaN"
-
-
 def login(request):
     r = {}
 
@@ -284,27 +42,6 @@ def login(request):
         return HttpResponse(json.dumps(r), content_type="application/json")
 
     return render(request, 'proteciotnet_dev/main.html', r)
-
-
-@csrf_exempt
-def toggle_state(request):
-
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        checked = data.get('checked', None)
-
-        filepath = '.offline_mode.flag'
-
-        if checked:
-            # Create an empty file to indicate that offline mode is enabled
-            with open(filepath, 'w'):
-                pass
-        else:
-            # Delete the file to indicate that offline mode is disabled
-            if os.path.exists(filepath):
-                os.remove(filepath)
-
-        return JsonResponse({'status': 'success'})
 
 
 def setscanfile(request, scanfile):
@@ -720,9 +457,9 @@ def details(request, address, sorting='standard'):
 
                     cvss_vector = cveobj.get('cvss-vector')
                     if cvss_vector:
-                        cvss_vec_obj = CvssVector(cvss_vector, cveobj["id"])
+                        cvss_vec_obj = Cvss2Vector(cvss_vector)
 
-                    # cvss_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss_vec_obj.__str__()}" style="color:white">{html.escape(cvss_vector)}</a>'
+                        # cvss_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss_vec_obj.__str__()}" style="color:white">{html.escape(cvss_vector)}</a>'
                         cvss_vector_html = f'<div class="tooltip" style="color:white">{html.escape(cvss_vector)}<span class="tooltiptext">{cvss_vec_obj.__str__()}</span></div>'
 
                     if cvss3_vector:

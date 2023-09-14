@@ -1,0 +1,165 @@
+#!/usr/bin/env python3
+
+'''
+zbdump - a tcpdump-like tool for ZigBee/IEEE 802.15.4 networks
+
+Compatible with Wireshark 1.1.2 and later (jwright@willhackforsushi.com)
+The -p flag adds CACE PPI headers to the PCAP (ryan@rmspeers.com)
+'''
+from typing import Optional, Any, List, Dict, Union
+
+import sys
+import signal
+import argparse
+import os
+from scapy.all import Dot15d4FCS  # type: ignore
+from killerbee import KillerBee, PcapDumper, DainTreeDumper, DLT_IEEE802_15_4
+from killerbee.scapy_extensions import kbgetpanid
+
+packetcount: int = 0
+kb: Optional[KillerBee] = None
+pcap_dumper: Optional[PcapDumper] = None
+daintree_dumper: Optional[DainTreeDumper] = None
+unbuffered: Optional[Any] = None
+
+
+def interrupt(signum, frame) -> None:
+    global kb
+    global pcap_dumper
+    global daintree_dumper
+
+    kb.sniffer_off()
+    kb.close()
+
+    if pcap_dumper is not None:
+        pcap_dumper.close()
+    if daintree_dumper is not None:
+        daintree_dumper.close()
+
+
+def dump_packets(args):
+    global packetcount;
+    global kb
+    global pcap_dumper
+    global daintree_dumper
+    global unbuffered
+
+    if args.pan_id_hex:
+        panid: Optional[int] = int(args.pan_id_hex, 16)
+    else:
+        panid = None
+
+    rf_freq_mhz = kb.frequency(args.channel, args.subghz_page) / 1000.0
+
+    print((
+    "zbdump: listening on \'{0}\', channel {1}, page {2} ({3} MHz), link-type DLT_IEEE802_15_4, capture size 127 bytes".format(
+        args.devstring,
+        args.channel,
+        args.subghz_page,
+        rf_freq_mhz
+    )))
+
+    while args.count != packetcount:
+
+        packet: Optional[Dict[Union[int, str], Any]] = kb.pnext()
+
+        if packet is None:
+            continue
+
+        if panid is not None:
+            pan, layer = kbgetpanid(Dot15d4FCS(packet['bytes']))
+
+        if panid is None or panid == pan:
+            packetcount += 1
+            print(packet)
+            if args.verbose:
+                if unbuffered is None:
+                    print('ERROR: Could not open stdout for verbose mode.', file=sys.stderr)
+                    sys.exit(0)
+                else:
+                    unbuffered.write('.')
+
+            if pcap_dumper is not None:
+                pcap_dumper.pcap_dump(packet['bytes'], ant_dbm=packet['dbm'], freq_mhz=rf_freq_mhz)
+            if daintree_dumper is not None:
+                daintree_dumper.pwrite(packet['bytes'])
+
+
+def main():
+    global kb
+    global pcap_dumper
+    global daintree_dumper
+    global unbuffered
+
+    # Command-line arguments
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('-i', '--iface', '--dev', action='store', dest='devstring',
+                        help='(Required) String: Path to the interface of the device being used.')
+    parser.add_argument('-d', '--device', action='store',
+                        help='(Required) String: Name of the hardare device being used. E.g. apimote')
+    parser.add_argument('-w', '--pcapfile', action='store',
+                        help='(Optional) String: Path to pcap file to output results.')
+    parser.add_argument('-W', '--dsnafile', action='store',
+                        help='(Optional) String: Path to daintree file to output results.')
+    parser.add_argument('-p', '--ppi', action='store_true',
+                        help='(Optional) Path to daintree file to output results.')
+    parser.add_argument('-P', '--pan_id_hex', action='store', default=None,
+                        help='(Optional) Path to daintree file to output results.')
+    parser.add_argument('-c', '-f', '--channel', action='store', type=int, default=None,
+                        help='(Required) Int: Channel value to listen on.')
+    parser.add_argument('-s', '--subghz_page', action='store', type=int, default=0,
+                        help='(Optional) Int: Page value to listen on.')
+    parser.add_argument('-n', '--count', action='store', type=int, default=-1,
+                        help='(Optional) Int: Number of packets to capture. -1 to listen indefinitely.')
+    parser.add_argument('-v', action='store_true', dest='verbose',
+                        help='(Optional) Bool: Pass option to enable additional logging to stdout.')
+    args = parser.parse_args()
+
+    # Handle required args
+    if args.verbose:
+        unbuffered = os.fdopen(sys.stdout.fileno(), 'w', 0)
+
+    if args.channel == None:
+        print("ERROR: Must specify a channel.", file=sys.stderr)
+        sys.exit(1)
+
+    if args.pcapfile is None and args.dsnafile is None:
+        print("ERROR: Must specify a savefile with -w (libpcap) or -W (Daintree SNA)", file=sys.stderr)
+        sys.exit(1)
+
+    elif args.pcapfile is not None:
+        pcap_dumper = PcapDumper(DLT_IEEE802_15_4, args.pcapfile, ppi=args.ppi)
+    elif args.dsnafile is not None:
+        daintree_dumper = DainTreeDumper(args.dsnafile)
+
+    if args.devstring is None:
+        print("Autodetection features will be deprecated - please include interface string (e.g. -i /dev/ttyUSB0)")
+    if args.device is None:
+        print("Autodetection features will be deprecated - please include device string (e.g. -d apimote)")
+
+    kb = KillerBee(device=args.devstring, hardware=args.device)
+
+    signal.signal(signal.SIGINT, interrupt)
+
+    if not kb.is_valid_channel(args.channel, args.subghz_page):
+        print("ERROR: Must specify a valid IEEE 802.15.4 channel for the selected device.", file=sys.stderr)
+        kb.close()
+        sys.exit(1)
+
+    kb.set_channel(args.channel, args.subghz_page)
+    kb.sniffer_on()
+
+    dump_packets(args)
+
+    kb.sniffer_off()
+    kb.close()
+    if pcap_dumper is not None:
+        pcap_dumper.close()
+    if daintree_dumper is not None:
+        daintree_dumper.close()
+
+    print(("{0} packets captured".format(packetcount)))
+
+
+if __name__ == "__main__":
+    main()

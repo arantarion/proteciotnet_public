@@ -288,7 +288,7 @@ def login(request):
 
 @csrf_exempt
 def toggle_state(request):
-    print("here")
+
     if request.method == 'POST':
         data = json.loads(request.body)
         checked = data.get('checked', None)
@@ -767,7 +767,6 @@ def details(request, address, sorting='standard'):
 
                     cveids[cveobj['id']] = cveobj['id']
 
-            print(sorting)
             if sorting != "standard" and not sorting.startswith("search="):
                 cveout = sort_cve_html(cveout, sorting)
 

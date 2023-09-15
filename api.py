@@ -116,6 +116,7 @@ def port_details(request, address, portid):
                 if p['@portid'] == portid:
                     return HttpResponse(json.dumps(p, indent=4), content_type="application/json")
 
+
 # TODO: replace with nmap_formatter script
 def genPDF(request):
     if 'scanfile' in request.session:

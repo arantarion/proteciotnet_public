@@ -11,48 +11,6 @@
                 </div>
                 <div class="row hide-on-med-and-down">
                     <div class="col s12 m4">
-                        {#                        <table >#}
-                        {#                            <tr>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Start Time:</b></td>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.startstr }}</td>#}
-                        {#                            </tr>#}
-                        {#                            <tr>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Scan Type:</b></td>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.scantype }}</td>#}
-                        {#                            </tr>#}
-                        {#                            <tr>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Scan Protocol:</b></td>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.protocol }}</td>#}
-                        {#                            </tr>#}
-                        {#                            <tr>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Number of Services:</b></td>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.numservices }}</td>#}
-                        {#                            </tr>#}
-                        {#                        </table>#}
-                        {#                    </div>#}
-                        {#                    <div class="col s12 m4 hide-on-med-and-down">#}
-                        {#                        <table >#}
-                        {#                            <tr>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Nmap version:</b></td>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.nmapver }}</td>#}
-                        {#                            </tr>#}
-                        {#                            <tr>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">XML Output version:</b></td>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.xmlver }}</td>#}
-                        {#                            </tr>#}
-                        {#                            <tr>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Nmap command:</b></td>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.nmapargs }}</td>#}
-                        {#                            </tr>#}
-                        {#                            <tr>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Verbosity Level:</b></td>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.verbose }}</td>#}
-                        {#                            </tr>#}
-                        {#                            <tr>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;"><b class="orange-text">Debugging Level:</b></td>#}
-                        {#                                <td style="padding: 2px; white-space: nowrap;">{{ stats.debugging }}</td>#}
-                        {#                            </tr>#}
-                        {#                        </table>#}
                         <table class="custom-table">
                             <tr>
                                 <td><b class="orange-text">Filename:</b></td>
@@ -100,23 +58,22 @@
                     <div class="col s12 m4 title-small grey-text">Actions</div><br>
 
                     <ul id="dropdown{{ v.pel }}" class="dropdown-content" style="min-width:300px; border-radius: 4px;">
-                        <li><a href="#" onclick="javascript:createReport('{{ stats.filename }}')" style="color:#111111">Create PDF report</a></li>
+                        <li><a href="#" onclick="createReport('{{ stats.filename }}', 'pdf')" style="color:#111111">Create PDF report</a></li>
                         <li class="divider" tabindex="-1"></li>
-                        <li><a href="#!" onclick="" style="color:#111111">Create Markdown report</a></li>
-                        <li><a href="#!" onclick="" style="color:#111111">Create JSON file</a></li>
-                        <li><a href="#!" onclick="" style="color:#111111">Create CSV file</a></li>
-                        <li><a href="#!" onclick="" style="color:#111111">Create image</a></li>
+                        <li><a href="#!" onclick="createReport('{{ stats.filename }}', 'md')" style="color:#111111">Create Markdown report</a></li>
+                        <li><a href="#!" onclick="createReport('{{ stats.filename }}', 'html')" style="color:#111111">Create HTML report</a></li>
+                        <li><a href="#!" onclick="createReport('{{ stats.filename }}', 'json')" style="color:#111111">Create JSON file</a></li>
+                        <li><a href="#!" onclick="createReport('{{ stats.filename }}', 'csv')" style="color:#111111">Create CSV file</a></li>
+                        <li><a href="#!" onclick="createReport('{{ stats.filename }}', 'dot')" style="color:#111111">Create image</a></li>
                     </ul><a class="dropdown-trigger" href="#!" data-target="dropdown{{ v.pel }}" style="color: #ff9800;"><i class="fas fa-file-pdf"></i> Create Report</a><br><br>
 
-
-{#                    <a href="#!" onclick="javascript:genPDF('{{ scanmd5 }}');" style="color: #ff9800;"><i class="fas fa-file-pdf"></i> PDF Report</a><br><br>#}
-                    <a href="#!" onclick="javascript:checkCVE();" style="color: #ff9800;"><i class="fas fa-bug"></i> Check for CVE</a>
+                    <a href="#!" onclick="checkCVE();" style="color: #ff9800;"><i class="fas fa-bug"></i> Check for CVE</a>
                 </div>
             {% endif %}
         </div>
-
+{#        # class="blue-text"#}
         <div class="row" style="{{ pretablestyle }}">
-            <div class="col s12 m3" style="padding:1px;"><div class="card wmcard" style="text-align:center;padding:6px;"><h4><i class="fas fa-heartbeat" style="color: #0c7bbb"></i> <span class="blue-text">{{ stats.hostsup }}</span></h4><span class="small grey-text">HOSTS UP</span></div></div>
+            <div class="col s12 m3" style="padding:1px;"><div class="card wmcard" style="text-align:center;padding:6px;"><h4><i class="fas fa-heartbeat" style="color: #0c7bbb"></i> <span style="color: #0c7bbb;">{{ stats.hostsup }}</span></h4><span class="small grey-text">HOSTS UP</span></div></div>
             <div class="col s12 m3" style="padding:1px;"><div class="card wmcard" style="text-align:center;padding:6px;"><h4><i class="fas fa-lock-open green-text"></i> <span class="green-text">{{ stats.popen }}</span></h4><span class="small grey-text">OPEN PORTS</span></div></div>
             <div class="col s12 m3" style="padding:1px;"><div class="card wmcard" style="text-align:center;padding:6px;"><h4><i class="fas fa-lock red-text"></i> <span class="red-text">{{ stats.pclosed }}</span></h4><span class="small grey-text">CLOSED PORTS</span></div></div>
             <div class="col s12 m3" style="padding:1px;"><div class="card wmcard" style="text-align:center;padding:6px;"><h4><i class="fas fa-filter grey-text"></i> <span class="grey-text">{{ stats.pfiltered }}</span></h4><span class="small grey-text">FILTERED PORTS</span></div></div>
@@ -199,13 +156,13 @@
 
                 <div class="card-action">
                     <ul id="hostdd{{ v.hostindex }}" class="dropdown-content" style="min-width:200px;">
-                        <li><a href="#!" onclick="javascript:setLabel('host', 'Vulnerable', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span class="tmlabel red">Vulnerable</span></a></li>
+                        <li><a href="#!" onclick="setLabel('host', 'Vulnerable', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span class="tmlabel red">Vulnerable</span></a></li>
                         {#                        <li><a href="#!" onclick="javascript:setLabel('host', 'Critical', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span class="tmlabel black">Critical</span></a></li>#}
-                        <li><a href="#!" onclick="javascript:setLabel('host', 'Warning', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span class="tmlabel orange">Warning</span></a></li>
-                        <li><a href="#!" onclick="javascript:setLabel('host', 'Checked', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span class="tmlabel blue">Checked</span></a></li>
-                        <li><a class="grey-text" href="#!" onclick="javascript:removeLabel('host', '{{ v.addressmd5 }}', {{ v.hostindex }});">Remove label</a></li>
+                        <li><a href="#!" onclick="setLabel('host', 'Warning', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span class="tmlabel orange">Warning</span></a></li>
+                        <li><a href="#!" onclick="setLabel('host', 'Checked', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span class="tmlabel blue">Checked</span></a></li>
+                        <li><a class="grey-text" href="#!" onclick="removeLabel('host', '{{ v.addressmd5 }}', {{ v.hostindex }});">Remove label</a></li>
                         <li class="divider"></li>
-                        <li><a class="grey-text" href="#!" onclick="javascript:openNotes('{{ v.addressmd5 }}', '{{ v.notesb64 }}');">Insert notes</a></li>
+                        <li><a class="grey-text" href="#!" onclick="openNotes('{{ v.addressmd5 }}', '{{ v.notesb64 }}');">Insert notes</a></li>
                         {{ v.removenotes|safe }}
                     </ul>
                     <a href="#!" class="grey-text dropdown-trigger" data-target="hostdd{{ v.hostindex }}"><i class="fas fa-ellipsis-v"></i> Actions</a>

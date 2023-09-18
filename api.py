@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from proteciotnet_dev.functions import *
 
 logger = logging.getLogger(__name__)
+_BASE_STATIC_DIRECTORY = "/opt/proteciotnet/proteciotnet_dev/static"
 
 def rmNotes(request, hashstr):
     scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
@@ -139,10 +140,17 @@ def getCVE(request):
 
         logger.info("Trying to retrieve CVE entries")
 
-        # TODO: modernize and get error msg
-        cveproc = os.popen('sudo python3 /opt/proteciotnet/proteciotnet_dev/nmap/cve_cdn.py ' + request.session['scanfile'])
-        res['cveout'] = cveproc.read()
-        cveproc.close()
+        if "offline_mode.lock" in os.listdir(_BASE_STATIC_DIRECTORY):
+            logger.info("Using offline mode to scan CVE entries")
+            cveproc = os.popen('sudo python3 /opt/proteciotnet/proteciotnet_dev/nmap/cve_cdn.py ' + request.session['scanfile'])
+            res['cveout'] = cveproc.read()
+            cveproc.close()
+        else:
+            logger.info("Using online mode to scan CVE entries")
+            cveproc = os.popen(
+                'sudo python3 /opt/proteciotnet/proteciotnet_dev/nmap/cve.py ' + request.session['scanfile'])
+            res['cveout'] = cveproc.read()
+            cveproc.close()
 
         # TODO: log status
 

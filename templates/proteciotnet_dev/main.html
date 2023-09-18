@@ -39,33 +39,19 @@
             const toggleCheckbox = document.getElementById("modeToggle");
 
             toggleCheckbox.addEventListener("change", function () {
-                const isChecked = toggleCheckbox.checked;
-                fetch('/toggle_state/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({'checked': isChecked})
+                csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
+                $.post('/set_online_state', {
+                    'csrfmiddlewaretoken': csrftoken,
+                    'online_status': toggleCheckbox.checked
+                }).done(function (d) {
+                    if (typeof (d['error']) != 'undefined') {
+                        console.log("ERROR setting toggle");
+                    } else {
+                        console.log("SUCCESS setting toggle");
+                    }
                 });
             });
         });
-
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
 
     </script>
 
@@ -93,7 +79,7 @@
 <div class="navbar-fixed">
     <nav class="" id="topnavbar" style="background-color:rgba(10,10,10,0.0);box-shadow:none;">
         <div class="nav-wrapper">
-            <div class="row">
+            <div class="row no-margin">
                 <div class="col s1 hide-on-large-only" style="max-width:60px;">
                     <a href="#!" onclick="javascript:$('.sidenav').sidenav('open');"><i
                             class="material-icons white-text">menu</i></a>
@@ -102,13 +88,25 @@
                     <a href="/setscanfile/unset" class="brand-logo"><img src="/static/logo.png"
                                                                          style="max-width:200px;margin-top:8px;"
                                                                          alt="logo ProtecIoTnet"></a>
+
+                </div>
+                <div class="col s4">
+                    <form onsubmit="" role="search" class="search_form">
+                        <input class="search_input" id="search" type="search" placeholder="Search..." autofocus
+                               required/>
+                        <button class="nav_search_btn" type="submit">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </form>
                 </div>
 
-                <label class="toggle right">
-                    <input id="modeToggle" class="toggle-checkbox" type="checkbox" checked>
-                    <div class="toggle-switch"></div>
-                    <span class="toggle-label">Offline Mode</span>
-                </label>
+                <div class="col s3">
+                    <label class="toggle right">
+                        <input id="modeToggle" class="toggle-checkbox" type="checkbox" checked>
+                        <div class="toggle-switch"></div>
+                        <span class="toggle-label">Offline Mode</span>
+                    </label>
+                </div>
 
             </div>
 
@@ -127,13 +125,15 @@
         <li><i class="material-icons">bluetooth</i><a href="/">New Bluetooth Scan</a></li>
 
         {% if scanfile %}
-            <li><i class="fas fa-file-pdf" style="margin-left:2px;font-size:20px;"></i> <a href="#!"
-                                                                                           onclick="javascript:genPDF('{{ scanmd5 }}');">PDF
-                Report</a></li>
+            {#            <li><i class="fas fa-file-pdf" style="margin-left:2px;font-size:20px;"></i> <a href="#!"#}
+            {#                                                                                           onclick="javascript:genPDF('{{ scanmd5 }}');">PDF#}
+            {#                Report</a></li>#}
             <li><i class="fas fa-bug" style="margin-left:2px;font-size:20px;"></i> <a href="#!"
                                                                                       onclick="javascript:checkCVE();">Check
                 CVE</a></li>
+
         {% endif %}
+        <li></li>
         {#        <li id="activescan_line" class="wm_line"><div>scan</div></li>#}
         {#        <section id="activescan_info">#}
         {#            <li><i class="fas fa-info-circle"></i> <a href="#!" id="activescan_details">&nbsp;</a></li>#}

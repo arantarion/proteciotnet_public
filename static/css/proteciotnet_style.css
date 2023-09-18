@@ -436,3 +436,63 @@ table.custom-table td {
     cursor: pointer;
     color: #999;
 }
+
+.search_input:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.search_form {
+    display: flex;
+    align-items: center;
+    /*border: 1px solid #ccc;*/
+    /*border-radius: 25px;*/
+    padding: 5px 10px;
+    width: 300px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.search_form:hover {
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search_input {
+    flex: 1;
+    border: none;
+    outline: none;
+    /*padding: 10px 15px;*/
+    /*border-radius: 20px;*/
+    color: white;
+    font-size: 16px;
+    margin-right: 10px;
+    border-bottom-color: white;
+}
+
+.search_input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.search_input:focus {
+    border-bottom: 1px solid #0C7BBBFF !important;
+    box-shadow: 0 1px 0 0 #0C7BBBFF !important;
+}
+
+.nav_search_btn {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.nav_search_btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Using Font Awesome icon for the search button */
+.fa-search {
+    font-size: 18px;
+    color: white;
+}

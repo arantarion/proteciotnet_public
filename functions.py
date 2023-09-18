@@ -3,8 +3,10 @@ import html
 import json
 import os
 import re
+import logging
 
 import xmltodict
+from django.http import HttpResponse
 
 try:
     from proteciotnet_dev.static.py.cwe_descriptions_dict import cwe_descriptions
@@ -15,7 +17,11 @@ _CVSS_2_PATTERN = r"CVSS 2.0 score: (\d.\d|0|\d\d.\d)"
 _CVSS_3_PATTERN = r"CVSS 3.[\d|x] score: (\d.\d|0)"
 _CVE_PATTERN = r"CVE-\d{4}-\d{4,7}"
 _CWE_PATTERN = r"CWE-\d{1,3}"
-_BASE_DIR = "/opt/proteciotnet/proteciotnet_dev/static/reports/"
+_BASE_DIRECTORY = "/opt/proteciotnet/proteciotnet_dev/"
+_BASE_STATIC_DIRECTORY = f"{_BASE_DIRECTORY}static"
+_BASE_REPORTS_DIR = f"{_BASE_STATIC_DIRECTORY}/reports/"
+
+logger = logging.getLogger(__name__)
 
 def token_check(token):
     return True
@@ -668,31 +674,66 @@ def parse_config_file(filename: str = 'proteciotnet.config') -> dict:
 
 
 def create_file_dropdown(filename):
-    contents_directory = os.listdir(_BASE_DIR)
+    contents_directory = os.listdir(_BASE_REPORTS_DIR)
     filename_without_extension = filename.rsplit(".", 1)[0]
 
     dropdown_html = ''
     if any(filename_without_extension in local_file for local_file in contents_directory):
-        dropdown_html +=  f'<ul id="dropdown_{filename}_files" class="dropdown-content" style="min-width:300px; border-radius: 4px;">'
+        dropdown_html += f'<ul id="dropdown_{filename}_files" class="dropdown-content" style="min-width:300px; border-radius: 4px;">'
 
         if f"{filename_without_extension}.pdf" in contents_directory:
-            dropdown_html +=  f"""<li><a href="#" onclick="openReport('{filename}', 'pdf')" style="color:#111111">Open PDF report</a></li>"""
+            dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'pdf')" style="color:#111111">Open PDF report</a></li>"""
 
         if f"{filename_without_extension}.md" in contents_directory:
-            dropdown_html +=  f"""<li><a href="#" onclick="openReport('{filename}', 'md')" style="color:#111111">Open Markdown report</a></li>"""
+            dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'md')" style="color:#111111">Open Markdown report</a></li>"""
 
         if f"{filename_without_extension}.html" in contents_directory:
-            dropdown_html +=  f"""<li><a href="#" onclick="openReport('{filename}', 'html')" style="color:#111111">Open HTML report</a></li>"""
+            dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'html')" style="color:#111111">Open HTML report</a></li>"""
 
         if f"{filename_without_extension}.json" in contents_directory:
-            dropdown_html +=  f"""<li><a href="#" onclick="openReport('{filename}', 'json')" style="color:#111111">Open JSON report</a></li>"""
+            dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'json')" style="color:#111111">Open JSON report</a></li>"""
 
         if f"{filename_without_extension}.csv" in contents_directory:
-            dropdown_html +=  f"""<li><a href="#" onclick="openReport('{filename}', 'csv')" style="color:#111111">Open CSV report</a></li>"""
+            dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'csv')" style="color:#111111">Open CSV report</a></li>"""
 
         if f"{filename_without_extension}.png" in contents_directory:
-            dropdown_html +=  f"""<li><a href="#" onclick="openReport('{filename}', 'png')" style="color:#111111">Open image</a></li>"""
+            dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'png')" style="color:#111111">Open image</a></li>"""
 
-        dropdown_html +=  f'</ul><a class="dropdown-trigger" href="#!" data-target="dropdown_{filename}_files" style="color: #ff9800;"><i class="material-icons">file_open</i> Files</a><br><br>'
+        dropdown_html += f'</ul><a class="dropdown-trigger" href="#!" data-target="dropdown_{filename}_files" style="color: #ff9800;"><i class="material-icons">file_open</i> Files</a><br><br>'
 
     return dropdown_html
+
+
+def set_state(request):
+    res = {'p': request.POST}
+
+    if request.method == "POST":
+        toggle_status = request.POST['online_status']
+
+        if toggle_status == "true":
+            if "offline_mode.lock" not in os.listdir(_BASE_STATIC_DIRECTORY):
+
+                try:
+                    with open(f"{_BASE_STATIC_DIRECTORY}/offline_mode.lock", "w") as f:
+                        pass
+                except:
+                    logger.error("Could not create 'offline_mode.lock' file")
+                    return HttpResponse(json.dumps({'error': 'file creation problem'}, indent=4),
+                                        content_type="application/json")
+
+            logger.info("Successfully changed to offline mode")
+
+        else:
+            try:
+                if "offline_mode.lock" in os.listdir(_BASE_STATIC_DIRECTORY):
+                    os.remove(f"{_BASE_STATIC_DIRECTORY}/offline_mode.lock")
+            except:
+                logger.error("Could not delete offline_mode.lock' file")
+                return HttpResponse(json.dumps({'error': 'file deletion problem'}, indent=4), content_type="application/json")
+            logger.info("Successfully changed to online mode")
+
+        return HttpResponse(json.dumps(res, indent=4), content_type="application/json")
+    else:
+        logger.error("Something went wrong while trying to set offline/online mode toggle")
+        res = {'error': 'invalid syntax'}
+        return HttpResponse(json.dumps(res, indent=4), content_type="application/json")

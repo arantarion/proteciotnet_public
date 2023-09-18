@@ -206,3 +206,5 @@ target/
 
 # webmap PDF report
 static/*.pdf
+
+*.lock

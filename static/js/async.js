@@ -297,9 +297,8 @@ function checkCPETOT() {
     return cpetot <= 0;
 }
 
+
 function createReport(filename, filetype) {
-    console.log(filename);
-    console.log(filetype);
     $('#modal1').modal('close');
     csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
     $.post('api/v1/create_report', {
@@ -332,8 +331,6 @@ function createReport(filename, filetype) {
 }
 
 function openReport(filename, filetype) {
-    console.log(filename);
-    console.log(filetype);
     let new_filename = filename.split('.').slice(0, -1).join('.');
 
     if (filetype === "dot") {

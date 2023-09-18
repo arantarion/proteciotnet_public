@@ -12,7 +12,7 @@ import logging
 
 from proteciotnet_dev.functions import *
 
-_BASE_REPORTS_DIR = "/opt/proteciotnet/proteciotnet_dev/reports/"
+_BASE_REPORTS_DIR = "/opt/proteciotnet/proteciotnet_dev/static/reports/"
 _NMAP_FORMATTER_BASE_DIR = "/opt/nmap_formatter/nmap-formatter"
 _XML_BASE_DIR = "/opt/xml/"
 
@@ -30,8 +30,8 @@ def _create_yaml_header(filename):
     - str: A formatted YAML header string.
     """
 
-    _BACKGROUND_IMAGE_PATH = "/opt/reports/backgrounds/background.pdf"
-    _PAGE_BACKGROUND_IMAGE_PATH = "/opt/reports/backgrounds/page_background.pdf"
+    _BACKGROUND_IMAGE_PATH = "/opt/proteciotnet/proteciotnet_dev/static/reports/backgrounds/background.pdf"
+    _PAGE_BACKGROUND_IMAGE_PATH = "/opt/proteciotnet/proteciotnet_dev/static/reports/backgrounds/page_background.pdf"
     _DATE = datetime.datetime.now().strftime('%A, %d. %B %Y - %H:%M')
 
     logger.info("Retrieving nmap-formatter version")

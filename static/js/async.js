@@ -315,28 +315,18 @@ function createReport(filename, filetype) {
 
             new_filename = filename.split('.').slice(0, -1).join('.');
 
-            // var checkFileInterval = setInterval(function() {
-            //     $.get('/reports/' + new_filename + '.' + filetype)
-            //     .done(function(response) {
-            //         if (response.fileExists) {
-            //             clearInterval(checkFileInterval); // Stop polling
-            //             window.open(`/opt/reports/${new_filename}.${filetype}`, '_blank'); // Open the file in a new tab
-            //         }
-            //     });
-            // }, 3000); // Poll every 5 seconds (adjust as needed)
+             if (filetype === "dot") {
+                filetype = "png";
+            }
 
-            // var pdfcheck = setInterval(function () {
-            //     $.get('/reports/' + new_filename + '.' + filetype)
-            //     .done(function () {
-            //         setTimeout(function () {
-            //             // location.href= '/reports/' + new_filename + '.' + filetype
-            //             clearInterval(pdfcheck);
-            //             window.open('http://localhost:8000/reports/' + new_filename + '.' + filetype, '_blank');
-            //
-            //         }, 3000);
-            //     })
-            // }, 2000);
-
+            var checkFileInterval = setInterval(function() {
+                $.get('/static/reports/' + new_filename + '.' + filetype)
+                .done(function() {
+                    console.log("File created")
+                        clearInterval(checkFileInterval); // Stop polling
+                        window.open(`/static/reports/${new_filename}.${filetype}`, '_blank'); // Open the file in a new tab
+                });
+            }, 3000);
         }
     });
 }

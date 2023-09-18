@@ -1056,6 +1056,9 @@ def index(request, filterservice="", filterportid=""):
     r['cpestring'] = ' <input type="hidden" id="cpestring" value="' + urllib.parse.quote_plus(
         base64.b64encode(json.dumps(cpedict).encode())) + '" /> '
 
+    if r['scanfile']:
+        r['file_dropdown'] = create_file_dropdown(r['scanfile'])
+
     return render(request, 'proteciotnet_dev/nmap_device_overview.html', r)
 
 

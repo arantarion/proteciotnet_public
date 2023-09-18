@@ -311,7 +311,7 @@ function createReport(filename, filetype) {
         if (typeof (d['error']) != 'undefined') {
             swal("Error", "Something went wrong :C", "error");
         } else {
-            swal("Started", "Your report is being generated!", "success");
+            swal("Started", "Your report is being generated!\n(Reload the page to see the file selector)", "success");
 
             new_filename = filename.split('.').slice(0, -1).join('.');
 
@@ -324,12 +324,25 @@ function createReport(filename, filetype) {
                 .done(function() {
                     console.log("File created")
                         clearInterval(checkFileInterval); // Stop polling
-                        window.open(`/static/reports/${new_filename}.${filetype}`, '_blank'); // Open the file in a new tab
+                        window.open(`/static/reports/${new_filename}.${filetype}`, '_blank');
                 });
             }, 3000);
         }
     });
 }
+
+function openReport(filename, filetype) {
+    console.log(filename);
+    console.log(filetype);
+    let new_filename = filename.split('.').slice(0, -1).join('.');
+
+    if (filetype === "dot") {
+        filetype = "png";
+    }
+    window.open(`/static/reports/${new_filename}.${filetype}`, '_blank');
+
+}
+
 
 function genPDF(md5scan) {
     if (/^[a-f0-9]{32,32}$/.test(md5scan)) {

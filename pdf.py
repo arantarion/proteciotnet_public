@@ -47,7 +47,7 @@ def _create_yaml_header(filename):
                    f'date: "{_DATE}"\n'
                    f'subject: "nmap report"\n'
                    f'keywords: [nmap, report, proteciotnet]\n'
-                   f'subtitle: "for {filename}"\n'
+                   f'subtitle: "for {filename}.xml"\n'
                    f'lang: "en"\n'
                    f'titlepage: true\n'
                    f'titlepage-rule-color: "5F5F5F"\n'

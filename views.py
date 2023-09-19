@@ -11,6 +11,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
+from proteciotnet_dev.api import label
 from proteciotnet_dev.CVSS_Vectors import Cvss3vector, Cvss2Vector
 from proteciotnet_dev.functions import *
 
@@ -513,6 +514,10 @@ def details(request, address, sorting='standard'):
             r['cveids'] = cveids
             r['cvelist'] = cveout
 
+            # set label here
+            #label(request=request, objtype="host", label="Warning", hashstr=addressmd5)
+
+
     r['js'] = '<script> ' + \
               '$(document).ready(function() { ' + \
               '	$("#scantitle").html("' + html.escape(request.session['scanfile']) + '");' + \
@@ -851,7 +856,7 @@ def index(request, filterservice="", filterportid=""):
                                 cvecount = (cvecount + 1)
 
                     if cvecount > 0:
-                        cveout = '<a href="/report/' + address + '" class="grey-text"><i class="fas fa-bug"></i> ' + str(
+                        cveout = '<a href="/report/' + address + '" class="red-text"><i class="fas fa-bug"></i> ' + str(
                             cvecount) + ' CVE found</a>'
 
             service_action = ''
@@ -885,6 +890,10 @@ def index(request, filterservice="", filterportid=""):
                     if re.search('[a-zA-Z0-9\_]+\/[0-9\.]+', eis) is not None:
                         robj = re.search('([a-zA-Z0-9\_]+)\/([0-9\.]+)', eis)
                         tags.append(robj.group(1) + ' ' + robj.group(2))
+
+                # Auto setting labels if CVE detected
+                if cveout:
+                    label(request, objtype="host", label="Warning", hashstr=addressmd5)
 
                 r['tr'][address] = {
                     'hostindex': str(hostindex),

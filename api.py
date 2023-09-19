@@ -12,6 +12,7 @@ from proteciotnet_dev.functions import *
 logger = logging.getLogger(__name__)
 _BASE_STATIC_DIRECTORY = "/opt/proteciotnet/proteciotnet_dev/static"
 
+
 def rmNotes(request, hashstr):
     scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
     if re.match('^[a-f0-9]{32,32}$', hashstr) is not None:
@@ -57,8 +58,6 @@ def rmlabel(request, objtype, hashstr):
 
     logger.warning("No label to remove")
     return HttpResponse(json.dumps(res), content_type="application/json")
-
-
 
 
 def label(request, objtype, label, hashstr):
@@ -118,18 +117,17 @@ def port_details(request, address, portid):
                     return HttpResponse(json.dumps(p, indent=4), content_type="application/json")
 
 
-# TODO: replace with nmap_formatter script
-def genPDF(request):
-    if 'scanfile' in request.session:
-        pdffile = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
-        if os.path.exists('/opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf'):
-            os.remove('/opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf')
-
-        print('/opt/wkhtmltox/bin/wkhtmltopdf --cookie sessionid ' + request.session._session_key + ' --enable-javascript --javascript-delay 6000 http://127.0.0.1:8000/view/pdf/ /opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf')
-        os.popen(
-            '/opt/wkhtmltox/bin/wkhtmltopdf --cookie sessionid ' + request.session._session_key + ' --enable-javascript --javascript-delay 6000 http://127.0.0.1:8000/view/pdf/ /opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf')
-        res = {'ok': 'PDF created', 'file': '/static/' + pdffile + '.pdf'}
-        return HttpResponse(json.dumps(res), content_type="application/json")
+# def genPDF(request):
+#     if 'scanfile' in request.session:
+#         pdffile = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
+#         if os.path.exists('/opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf'):
+#             os.remove('/opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf')
+#
+#         print('/opt/wkhtmltox/bin/wkhtmltopdf --cookie sessionid ' + request.session._session_key + ' --enable-javascript --javascript-delay 6000 http://127.0.0.1:8000/view/pdf/ /opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf')
+#         os.popen(
+#             '/opt/wkhtmltox/bin/wkhtmltopdf --cookie sessionid ' + request.session._session_key + ' --enable-javascript --javascript-delay 6000 http://127.0.0.1:8000/view/pdf/ /opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf')
+#         res = {'ok': 'PDF created', 'file': '/static/' + pdffile + '.pdf'}
+#         return HttpResponse(json.dumps(res), content_type="application/json")
 
 
 def getCVE(request):
@@ -137,12 +135,14 @@ def getCVE(request):
 
     if request.method == "POST":
         scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
+        print(scanfilemd5)
 
         logger.info("Trying to retrieve CVE entries")
 
         if "offline_mode.lock" in os.listdir(_BASE_STATIC_DIRECTORY):
             logger.info("Using offline mode to scan CVE entries")
-            cveproc = os.popen('sudo python3 /opt/proteciotnet/proteciotnet_dev/nmap/cve_cdn.py ' + request.session['scanfile'])
+            cveproc = os.popen(
+                'sudo python3 /opt/proteciotnet/proteciotnet_dev/nmap/cve_cdn.py ' + request.session['scanfile'])
             res['cveout'] = cveproc.read()
             cveproc.close()
         else:

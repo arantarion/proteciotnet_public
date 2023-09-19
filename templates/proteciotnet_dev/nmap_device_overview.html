@@ -7,7 +7,13 @@
         <div class="card wmcard" style="display: flex; justify-content: space-between;">
             <div class="card-content">
                 <div class="row hide-on-med-and-down">
-                    <div class="col s12 m4 title-small grey-text">Scan Information</div>
+                    <div class="col s12 m4 title-small grey-text">
+                        <a href="/setscanfile/unset">
+                            <button class="btn blue btn-floating" id="backbtn"
+                                    title="Go back">
+                                <i class="fas fa-arrow-left"></i>
+                            </button></a>
+                        &nbsp;Scan Information</div>
                     <div class="col s12 m4 title-small red-text right">
                         <a href="#!" onclick="delete_file('{{ stats.filename }}');" class="red-text">
                         <span class="material-icons" style="font-size: 20px;">scan_delete</span>

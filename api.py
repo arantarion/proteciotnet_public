@@ -11,7 +11,7 @@ from proteciotnet_dev.functions import *
 
 logger = logging.getLogger(__name__)
 _BASE_STATIC_DIRECTORY = "/opt/proteciotnet/proteciotnet_dev/static"
-
+_BASE_FILE_DIR = "/opt/xml"
 
 def rmNotes(request, hashstr):
     scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
@@ -371,3 +371,24 @@ def apiv1_scan(request):
                                         'filtered': portstats['pf']}}
 
     return HttpResponse(json.dumps(r, indent=4), content_type="application/json")
+
+
+def delete_file(request):
+
+    if request.method != "POST":
+        return HttpResponse(json.dumps({'error': 'invalid syntax'}, indent=4), content_type="application/json")
+
+    filename = request.POST['file_to_delete']
+
+    logger.info(f"Trying to delete {filename}")
+
+    xml_files = os.listdir(_BASE_FILE_DIR)
+    if filename in xml_files:
+        os.remove(f"{_BASE_FILE_DIR}/{filename}")
+        logger.info(f"Successfully deleted {filename}")
+        res = {'ok': f'file {filename} deleted'}
+        return HttpResponse(json.dumps(res), content_type="application/json")
+
+    logger.error(f"Could not find {filename} in {_BASE_FILE_DIR}")
+    res = {'error': request.method}
+    return HttpResponse(json.dumps(res), content_type="application/json")

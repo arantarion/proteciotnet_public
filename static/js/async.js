@@ -521,4 +521,20 @@ function setLabel(type, label, hashstr, i) {
     });
 }
 
+function delete_file(filename) {
+    csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
+    $.post('api/v1/delete_file', {
+        'csrfmiddlewaretoken': csrftoken,
+        'file_to_delete': filename
+    }).done(function (d) {
+        if (typeof (d['error']) != 'undefined') {
+            swal("Error", "Could not delete the file", "error");
+        } else {
+            swal("Deletion", "File successfully deleted. This page will reload automatically in 3 seconds", "success");
 
+            setTimeout(function(){
+                location.href = "/setscanfile/unset"
+            }, 4000);
+        }
+    });
+}

@@ -100,7 +100,7 @@ def create_report(request):
     Returns:
     - HttpResponse: A response object containing the result or error message.
     """
-    print("HERE")
+
     if request.method != "POST":
         return HttpResponse(json.dumps({'error': 'invalid syntax'}, indent=4), content_type="application/json")
 

@@ -8,6 +8,11 @@
             <div class="card-content">
                 <div class="row hide-on-med-and-down">
                     <div class="col s12 m4 title-small grey-text">Scan Information</div>
+                    <div class="col s12 m4 title-small red-text right">
+                        <a href="#!" onclick="delete_file('{{ stats.filename }}');" class="red-text">
+                        <span class="material-icons" style="font-size: 20px;">scan_delete</span>
+                         Delete File</a>
+                    </div>
                 </div>
                 <div class="row hide-on-med-and-down">
                     <div class="col s12 m4">
@@ -86,7 +91,8 @@
                     {{ file_dropdown | safe }}
 
                     {#                    <a href="#" style="color: #ff9800; font-size: 10px;"><i class="material-icons" style="font-size: 20px">lightbulb</i> what are CVE and why should you care</a>#}
-                    <a href="https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures" target="_blank" style="color: #ff9800; font-size: 10px; display: flex; align-items: center;">
+                    <a href="https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures" target="_blank"
+                       style="color: #ff9800; font-size: 10px; display: flex; align-items: center;">
                         <i class="material-icons" style="font-size: 20px; margin-right: 5px;">lightbulb</i>
                         <div>
                             what are CVE and<br>

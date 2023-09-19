@@ -543,10 +543,22 @@ def search_cve_html(cves_html, search_string):
     Returns:
     - str: A HTML string containing all CVE entries that include the search string.
     """
-    search_string = search_string.replace("search=", "")
-    split_cves = _split_cve_html(cves_html)
 
-    return ''.join([cve for cve in split_cves if search_string in cve])
+    search_string = search_string.replace("search=", "").strip().lower()
+    logger.info(f"Trying to search in CVE entries for {search_string}")
+
+    split_cves = _split_cve_html(cves_html)
+    result = ''.join([cve for cve in split_cves if search_string in cve.lower()])
+
+    if result:
+        return result
+    else:
+        return """
+        <div id="no_results" style="line-height:28px;padding:10px;border-bottom:solid #666 1px;margin-top:10px;" class="center">
+            Your search returned no results. You can use your browser to get back or click the "x" icon in the search bar.
+            <br><br>
+        </div>
+        """
 
 
 def _sort_cve_list(cve_list, key_function, reverse_order):
@@ -576,6 +588,7 @@ def sort_cve_html(cves_html, sorting_order):
         str: Sorted HTML content of CVE entries.
     """
 
+    logger.info("Trying to sort CVE entries")
     split_cves = _split_cve_html(cves_html)
 
     if sorting_order == "cvss2asc":

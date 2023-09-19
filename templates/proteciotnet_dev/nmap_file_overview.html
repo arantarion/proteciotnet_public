@@ -27,17 +27,26 @@
                     </div>
                 </div>
             </div>
+            <div class="col s12 m3">
+                <div class="card darken-1">
+                    <div class="card-content grey darken-3 white-text">
+                        <span class="card-title"><i class="material-icons">person</i> About </span>
+                     </div>
+                </div>
+            </div>
         </div>
 
         <div class="card wmcard">
             <div class="card-content">
                 <table>
-                    <thead><tr>
+                    <thead>
+                    <tr>
                         <th>Filename</th>
                         <th class="hide-on-small-only">Timestamp</th>
                         <th class="hide-on-small-only">Host Count</th>
                         <th>Stats</th>
-                    </tr></thead>
+                    </tr>
+                    </thead>
                     <tbody>
                     {% for i,v in tr.items %}
                         <tr>
@@ -46,12 +55,12 @@
                             <td class="hide-on-small-only">{{ v.hostnum }}</td>
                             <td class="evenly-spaced">
                                 <div>
-{#                                    <i class="fas fa-door-open green-text"></i>#}
+                                    {#                                    <i class="fas fa-door-open green-text"></i>#}
                                     <i class="fas fa-lock-open"></i>
                                     <span class="text">&nbsp;{{ v.portstats.po }}</span>
                                 </div>
                                 <div>
-{#                                    <i class="fas fa-door-closed red-text"></i>#}
+                                    {#                                    <i class="fas fa-door-closed red-text"></i>#}
                                     <i class="fas fa-lock"></i>
                                     <span class="text">&nbsp;{{ v.portstats.pc }}</span>
                                 </div>
@@ -60,7 +69,7 @@
                                     <span class="text">&nbsp;{{ v.portstats.pf }}</span>
                                 </div>
                             </td>
-                        <td></td>
+                            <td></td>
                         </tr>
                     {% endfor %}
                     </tbody>
@@ -69,13 +78,13 @@
 
         </div>
 
-{#        <div class="card" id="activescancard" style="display:none;">#}
-{#            <div class="card-content">#}
-{#                <b>Active Scan</b><br><br>#}
-{#                <div id="activescan">#}
-{#                </div>#}
-{#            </div>#}
-{#        </div>#}
+        {#        <div class="card" id="activescancard" style="display:none;">#}
+        {#            <div class="card-content">#}
+        {#                <b>Active Scan</b><br><br>#}
+        {#                <div id="activescan">#}
+        {#                </div>#}
+        {#            </div>#}
+        {#        </div>#}
 
 
         <div class="small grey-text right">

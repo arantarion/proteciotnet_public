@@ -608,7 +608,7 @@ def index(request, filterservice="", filterportid=""):
                 'portstats': portstats
             }
 
-        r['tr'] = OrderedDict(sorted(r['tr'].items()))
+        r['tr'] = OrderedDict(sorted(r['tr'].items(), reverse=True))
         r['stats']['xmlcount'] = xmlfilescount
 
         return render(request, 'proteciotnet_dev/nmap_file_overview.html', r)

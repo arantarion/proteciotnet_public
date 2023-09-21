@@ -15,7 +15,12 @@ from proteciotnet_dev.api import label
 from proteciotnet_dev.CVSS_Vectors import Cvss3vector, Cvss2Vector
 from proteciotnet_dev.functions import *
 
+_MEDUSA_SUPPORTED_SERVICES = ['ssh', 'ftp', 'postgresql', 'telnet', 'mysql', 'ms-sql-s', 'rsh',
+                              'vnc', 'imap', 'imaps', 'nntp', 'pcanywheredata', 'pop3', 'pop3s',
+                              'exec', 'login', 'microsoft-ds', 'smtp', 'smtps', 'submission',
+                              'svn', 'iss-realsecure', 'snmptrap', 'snmp', 'http']
 
+bruteforce_available_in_file = False
 
 logging_level = logging.DEBUG
 main_logger = logging.getLogger()
@@ -24,10 +29,11 @@ main_logger.setLevel(logging_level)
 # Set up a stream handler to log to the console
 stream_handler = colorlog.StreamHandler()
 stream_handler.setFormatter(
-    colorlog.ColoredFormatter("%(asctime)s - %(name)s - %(log_color)s%(levelname)s - %(message)s"))
+    colorlog.ColoredFormatter("%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
 
 # Add handler to logger
 main_logger.addHandler(stream_handler)
+
 
 # logger.debug("This is a debug message")
 # logger.info("This is an info message")
@@ -242,7 +248,6 @@ def details(request, address, sorting='standard'):
 
                 oshtml += '</div>'
                 r['os'] = oshtml
-
 
             r['tr'] = {}
             for pobj in i['ports']['port']:
@@ -515,8 +520,7 @@ def details(request, address, sorting='standard'):
             r['cvelist'] = cveout
 
             # set label here
-            #label(request=request, objtype="host", label="Warning", hashstr=addressmd5)
-
+            # label(request=request, objtype="host", label="Warning", hashstr=addressmd5)
 
     r['js'] = '<script> ' + \
               '$(document).ready(function() { ' + \
@@ -863,10 +867,21 @@ def index(request, filterservice="", filterportid=""):
             if service_counter > 0:
                 device_services = list(ss.keys())
                 # any(specified_string in item for item in string_list)
-                if any("ssh" in item for item in device_services):
-                    service_action += '<a href="/report/' + address + '" class="grey-text"><i class="material-icons">call_to_action</i> Bruteforce SSH</a>'
-                if any("http" in item for item in device_services):
-                    service_action += '<a href="/report/' + address + '" class="grey-text"><i class="material-icons">web</i> Bruteforce Web-Server</a>'
+                # if any("ssh" in item for item in device_services):
+                #     service_action += '<a href="/report/' + address + '" class="grey-text"><i class="material-icons">call_to_action</i> Bruteforce SSH</a>'
+                # if any("http" in item for item in device_services):
+                #     service_action += '<a href="/report/' + address + '" class="grey-text"><i class="material-icons">web</i> Bruteforce Web-Server</a>'
+
+                count = 0
+                for service in device_services:
+                    if service in _MEDUSA_SUPPORTED_SERVICES:
+                        count += 1
+                        bruteforce_available_in_file = True
+
+                if count == 1:
+                    service_action += f"""<a href="" onclick="start_bruteforcer('{r['scanfile']}', '{address}');" class="grey-text"><i class="material-icons">call_to_action</i> {count} Bruteforce Option Available</a>"""
+                elif count > 1:
+                    service_action += f"""<a href="" onclick="start_bruteforcer('{r['scanfile']}', '{address}');" class="grey-text"><i class="material-icons">call_to_action</i> {count} Bruteforce Options Available</a>"""
 
             if (filterservice != "" and striggered is True) or (filterportid != "" and striggered is True) or (
                     filterservice == "" and filterportid == ""):
@@ -1067,6 +1082,14 @@ def index(request, filterservice="", filterportid=""):
 
     if r['scanfile']:
         r['file_dropdown'] = create_file_dropdown(r['scanfile'])
+
+        if bruteforce_available_in_file:
+            r['bruteforce_all_action'] = f"""
+                <a href="#!" onclick="start_bruteforcer('{r['scanfile']}', 'all');" style="color: #ff9800;">
+                    <i class="material-icons">dynamic_form</i> Bruteforce all                  
+                </a><br><br>
+            """
+
 
     return render(request, 'proteciotnet_dev/nmap_device_overview.html', r)
 

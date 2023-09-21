@@ -8,6 +8,7 @@ import requests
 from django.http import HttpResponse
 
 from proteciotnet_dev.functions import *
+from proteciotnet_dev.bruteforce_attacks.automatic_service_bruteforce import auto_bruteforce
 
 logger = logging.getLogger(__name__)
 _BASE_STATIC_DIRECTORY = "/opt/proteciotnet/proteciotnet_dev/static"
@@ -390,5 +391,28 @@ def delete_file(request):
         return HttpResponse(json.dumps(res), content_type="application/json")
 
     logger.error(f"Could not find {filename} in {_BASE_FILE_DIR}")
+    res = {'error': request.method}
+    return HttpResponse(json.dumps(res), content_type="application/json")
+
+
+def bruteforce(request):
+
+    if request.method != "POST":
+        return HttpResponse(json.dumps({'error': 'invalid syntax'}, indent=4), content_type="application/json")
+
+    filename = request.POST['filename']
+    specified_host = request.POST['specified_host']
+
+    logger.info(f"Trying to bruteforce {specified_host} in {filename}")
+
+    try:
+        auto_bruteforce(filename, specified_host)
+        logger.info("Successfully ran auto-bruteforcer script")
+        res = {'ok': f'file {filename} deleted'}
+        return HttpResponse(json.dumps(res), content_type="application/json")
+    except Exception as e:
+        print(e)
+        logger.error("Could not run function to auto bruteforce")
+
     res = {'error': request.method}
     return HttpResponse(json.dumps(res), content_type="application/json")

@@ -1,0 +1,166 @@
+import os
+import subprocess
+import tempfile
+import xml.etree.ElementTree as ET
+import logging
+
+# Medusa Docu http://foofus.net/goons/jmk/medusa/medusa.html
+
+logger = logging.getLogger(__name__)
+
+NAME_MAP = {
+    "ms-sql-s": "mssql",
+    "microsoft-ds": "smbnt",
+    "cifs": "smbnt",
+    "pcanywheredata": "pcanywhere",
+    "postgresql": "postgres",
+    "shell": "rsh",
+    "exec": "rexec",
+    "login": "rlogin",
+    "smtps": "smtp",
+    "submission": "smtp",
+    "imaps": "imap",
+    "pop3s": "pop3",
+    "iss-realsecure": "vmauthd",
+    "snmptrap": "snmp"
+}
+
+_USERLIST_BASE_LOCATION = "/home/henry/Downloads/wordlist/"
+_PASSWORDLIST_BASE_LOCATION = "/home/henry/Downloads/wordlist/"
+_OUTPUT_DIRECTORY = "/home/henry/Downloads/protec_medusa_output"
+_XML_STANDARD_DIR = "/opt/xml/"
+
+_services = {}
+
+
+def _parse_xml(filename):
+    supported = ['ssh', 'ftp', 'postgresql', 'telnet', 'mysql', 'ms-sql-s', 'rsh',
+                 'vnc', 'imap', 'imaps', 'nntp', 'pcanywheredata', 'pop3', 'pop3s',
+                 'exec', 'login', 'microsoft-ds', 'smtp', 'smtps', 'submission',
+                 'svn', 'iss-realsecure', 'snmptrap', 'snmp', 'http']
+
+    tree = ET.parse(filename)
+    root = tree.getroot()
+    for host in root.iter('host'):
+        ipaddr = host.find('address').attrib['addr']
+        for port in host.iter('port'):
+            cstate = port.find('state').attrib['state']
+            if cstate == "open":
+                try:
+                    name = port.find('service').attrib['name']
+                    tmp_port = port.attrib['portid']
+                    iplist = ipaddr.split(',')
+                except:
+                    continue
+                if name in supported:
+                    name = NAME_MAP.get(name, name)
+                    if name in _services:
+                        if tmp_port in _services[name]:
+                            _services[name][tmp_port] += iplist
+                        else:
+                            _services[name][tmp_port] = iplist
+                    else:
+                        _services[name] = {tmp_port: iplist}
+
+
+def _check_file_format(filename):
+    in_format = None
+    with open(filename) as f:
+        filename_line = f.readlines()
+        if '<?xml ' in filename_line[0] and 'nmaprun' in filename_line[1]:
+            return "xml"
+
+    return in_format
+
+
+def _brute(service, port, filename, output, single_host=""):
+    userlist = f'{_USERLIST_BASE_LOCATION}{service}/user2'
+    passlist = f'{_PASSWORDLIST_BASE_LOCATION}{service}/password2'
+    output_file = f'{output}/{port}-{service}-success.txt'
+
+    cmd = ['medusa', '-b', '-H', filename, '-U', userlist, '-P', passlist, '-M', service, '-t', '2', '-n', port, '-T',
+           '1', '-F', '-v', '5', '-w', '5', '-e' 'ns', '-O', f'{_OUTPUT_DIRECTORY}medusalog.log']
+
+    if single_host:
+        cmd = ['medusa', '-b', '-h', single_host, '-U', userlist, '-P', passlist, '-M', service, '-t', '2', '-n', port,
+               '-T', '1', '-F', '-v', '5', '-w', '5', '-e' 'ns', '-O', f'{_OUTPUT_DIRECTORY}medusalog.log']
+
+    if service == "smtp":
+        cmd.extend(["-m", "AUTH:LOGIN"])
+
+    logger.info(f"Using username list: {userlist}")
+    logger.info(f"Using password list: {passlist}")
+    logger.info(f"Output directory is set to: {output_file}")
+    logger.info(f"Starting medusa with: {' '.join(cmd)}")
+    return
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, bufsize=1)
+
+    for line in p.stdout:
+        if 'SUCCESS' in line:
+            with open(output_file, 'a') as out_file:
+                out_file.write("[+]" + line)
+
+    logger.info("Medusa has finished. Your files are now available.")
+    exit(0)
+
+
+def auto_bruteforce(filename, host):
+    logger.info("Starting auto bruteforcing attempt using medusa.")
+    filename = f"{_XML_STANDARD_DIR}{filename}"
+    if os.system("command -v medusa > /dev/null") != 0:
+        logger.error("Command medusa not found. Please install medusa")
+        return
+
+    if not os.path.exists(_OUTPUT_DIRECTORY):
+        logger.warning(f"{_OUTPUT_DIRECTORY} does not exist. Trying to create it.")
+        os.mkdir(_OUTPUT_DIRECTORY)
+
+    if os.path.isfile(filename) and _check_file_format(filename) == "xml":
+        _parse_xml(filename)
+    else:
+        logger.error("Error loading file, please check your filename.")
+        return
+
+    try:
+        tmppath = tempfile.mkdtemp(prefix="proteciotnet-tmp")
+    except:
+        logger.error("Error while creating temporary directory.")
+        exit(4)
+
+    logger.info("Successfully passed all preliminary checks and parsing")
+
+    for service in _services:
+        if host == "all":
+            for port in _services[service]:
+                logger.info(f"Instructing medusa with bruteforcing on port {port} for service {service}")
+                temp_ip_filename = f'{tmppath}/tmp-{service}-{port}'
+                iplist = set(_services[service][port])
+                with open(temp_ip_filename, 'w+') as f:
+                    for ip in iplist:
+                        f.write(ip + '\n')
+                logger.info(f"Successfully wrote IPs to temporary file {temp_ip_filename}")
+                #brute_process = Process(target=_brute, args=(service, port, temp_ip_filename, _OUTPUT_DIRECTORY))
+                #brute_process.start()
+                _brute(service=service, port=port, filename=temp_ip_filename, output=_OUTPUT_DIRECTORY)
+        else:
+            for port in _services[service]:
+                logger.info(f"Instructing medusa with bruteforcing {host} on port {port} for service {service}")
+                temp_ip_filename = f'/tmp/tmp-{service}-{port}'
+                _brute(service=service, port=port, filename=temp_ip_filename, output=_OUTPUT_DIRECTORY, single_host=host)
+
+            # for port in _services[service]:
+            #     if host in _services[service][port]:
+            #         logger.info(f"Instructing medusa with bruteforcing {host} on port {port} for service {service}")
+            #         temp_ip_filename = f'/tmp/tmp-{service}-{port}'
+            #         iplist = set(_services[service][port])
+            #         with open(temp_ip_filename, 'w+') as f:
+            #             for ip in iplist:
+            #                 f.write(ip + '\n')
+            #         logger.info(f"Successfully wrote IPs to temporary file {temp_ip_filename}")
+            #         # brute_process = Process(target=_brute, args=(service, port, temp_ip_filename, _OUTPUT_DIRECTORY))
+            #         # brute_process.start()
+            #         _brute(service=service, port=port, filename=temp_ip_filename, output=_OUTPUT_DIRECTORY)
+
+
+    logger.error(f"Specified host {host} was not found in file {filename} or has no services to bruteforce with this "
+                 f"toolchain")

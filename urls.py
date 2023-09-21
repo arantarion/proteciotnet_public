@@ -27,4 +27,5 @@ urlpatterns = [
     # path('view/pdf/', pdf.report_pdf_view, name='reportPDFView'),
     path('api/v1/create_report', pdf.create_report, name='create_report'),
     path('api/v1/delete_file', api.delete_file, name="delete_file"),
+    path('api/v1/bruteforce', api.bruteforce, name="bruteforce")
 ]

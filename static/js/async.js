@@ -538,3 +538,18 @@ function delete_file(filename) {
         }
     });
 }
+
+function start_bruteforcer(filename, host) {
+    csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
+    $.post('api/v1/bruteforce', {
+        'csrfmiddlewaretoken': csrftoken,
+        'filename': filename,
+        'specified_host': host
+    }).done(function (d) {
+        if (typeof (d['error']) != 'undefined') {
+            swal("Error", "Could not start the automated bruteforcing script.", "error");
+        } else {
+            swal("Start", "Trying to guess the password and username for " + host + ". This will take some time", "success");
+        }
+    });
+}

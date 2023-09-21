@@ -9,7 +9,6 @@ from datetime import datetime
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
 
 from proteciotnet_dev.api import label
 from proteciotnet_dev.CVSS_Vectors import Cvss3vector, Cvss2Vector
@@ -865,11 +864,6 @@ def index(request, filterservice="", filterportid=""):
             service_action = ''
             if service_counter > 0:
                 device_services = list(ss.keys())
-                # any(specified_string in item for item in string_list)
-                # if any("ssh" in item for item in device_services):
-                #     service_action += '<a href="/report/' + address + '" class="grey-text"><i class="material-icons">call_to_action</i> Bruteforce SSH</a>'
-                # if any("http" in item for item in device_services):
-                #     service_action += '<a href="/report/' + address + '" class="grey-text"><i class="material-icons">web</i> Bruteforce Web-Server</a>'
 
                 count = 0
                 for service in device_services:
@@ -878,9 +872,9 @@ def index(request, filterservice="", filterportid=""):
                         bruteforce_available_in_file = True
 
                 if count == 1:
-                    service_action += f"""<a href="#!" onclick="start_bruteforcer('{r['scanfile']}', '{address}');" class="grey-text"><i class="material-icons">call_to_action</i> {count} Bruteforce Option Available</a>"""
+                    service_action += f"""<a href="#!" onclick="start_bruteforcer('{r['scanfile']}', '{address}');" class="grey-text"><i class="material-icons">dynamic_form</i> {count} Bruteforce Option Available</a>"""
                 elif count > 1:
-                    service_action += f"""<a href="#!" onclick="start_bruteforcer('{r['scanfile']}', '{address}');" class="grey-text"><i class="material-icons">call_to_action</i> {count} Bruteforce Options Available</a>"""
+                    service_action += f"""<a href="#!" onclick="start_bruteforcer('{r['scanfile']}', '{address}');" class="grey-text"><i class="material-icons">dynamic_form</i> {count} Bruteforce Options Available</a>"""
 
             if (filterservice != "" and striggered is True) or (filterportid != "" and striggered is True) or (
                     filterservice == "" and filterportid == ""):

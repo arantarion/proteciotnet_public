@@ -427,9 +427,9 @@ def get_ports_details(scanfile: str) -> dict:
     return return_value_dict
 
 
-def insert_linebreaks(input_string: str, max_line_length: int = 60) -> str:
+def insert_linebreaks(input_string: str, max_line_length: int = 40) -> str:
     """
-    Insert line breaks into a long string to ensure each line's length does not exceed a given limit.
+    Insert line breaks into a long string to ensure each line'input_string length does not exceed a given limit.
 
     Args:
         input_string (str): The input string to insert line breaks into.
@@ -438,25 +438,64 @@ def insert_linebreaks(input_string: str, max_line_length: int = 60) -> str:
     Returns:
         str: The input string with inserted line breaks into HTML paragraphs.
     """
-    words = input_string.split()
+
+    # words = input_string.split()
+    # lines = []
+    # line = ""
+    # 
+    # for word in words:
+    #     if len(line) + len(word) + 1 <= max_line_length:
+    #         if line:
+    #             line += " " + word
+    #         else:
+    #             line = word
+    #     else:
+    #         lines.append(line)
+    #         line = word
+    # 
+    # if line:
+    #     lines.append(line)
+    # 
+    # joined_lines = "<br>".join(lines)
+    # return f"<p>{joined_lines}</p>"
+
     lines = []
-    line = ""
+    current_line = ""
+    i = 0
 
-    for word in words:
-        if len(line) + len(word) + 1 <= max_line_length:
-            if line:
-                line += " " + word
+    while i < len(input_string):
+
+        match = re.match(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", input_string[i:])
+        if match:
+            ip = match.group()
+            if len(current_line) + len(ip) <= 60:
+                current_line += ip
+                i += len(ip)
+                continue
             else:
-                line = word
+                lines.append(current_line)
+                current_line = ip
+                i += len(ip)
+                continue
+
+        if len(current_line) + 1 <= max_line_length:
+            current_line += input_string[i]
+            i += 1
+
+        elif input_string[i] == ' ' or (
+                input_string[i] in ['/', ',', ';', ':', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '+', '?'] and
+                input_string[i - 1] != '-'):
+            lines.append(current_line)
+            current_line = ""
+
         else:
-            lines.append(line)
-            line = word
+            current_line += input_string[i]
+            i += 1
 
-    if line:
-        lines.append(line)
+    if current_line:
+        lines.append(current_line)
 
-    joined_lines = "<br>".join(lines)
-    return f"<p>{joined_lines}</p>"
+    return f"<p>{'<br>'.join(lines)}</p>"
 
 
 def _split_cve_html(CVEs):

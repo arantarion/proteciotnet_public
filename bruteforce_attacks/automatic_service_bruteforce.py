@@ -3,6 +3,7 @@ import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
 import logging
+from datetime import datetime
 
 # Medusa Docu http://foofus.net/goons/jmk/medusa/medusa.html
 
@@ -27,7 +28,7 @@ NAME_MAP = {
 
 _USERLIST_BASE_LOCATION = "/home/henry/Downloads/wordlist/"
 _PASSWORDLIST_BASE_LOCATION = "/home/henry/Downloads/wordlist/"
-_OUTPUT_DIRECTORY = "/home/henry/Downloads/protec_medusa_output"
+_OUTPUT_DIRECTORY = "/home/henry/Downloads/protec_medusa_logs/"
 _XML_STANDARD_DIR = "/opt/xml/"
 
 _services = {}
@@ -73,17 +74,45 @@ def _check_file_format(filename):
     return in_format
 
 
+"""
+Syntax: Medusa [-h host|-H file] [-u username|-U file] [-p password|-P file] [-C file] -M module [OPT]
+    -b           : Suppress startup banner
+    -H [FILE]    : File containing target hostnames or IP addresses
+----------------------------------------------------------------------------------------------
+    -h [TEXT]    : Target hostname or IP address
+----------------------------------------------------------------------------------------------   
+    -U [FILE]    : File containing usernames to test
+    -P [FILE]    : File containing passwords to test
+    -M [TEXT]    : Name of the module to execute (without the .mod extension)
+    -t [NUM]     : Total number of logins to be tested concurrently
+    -n [NUM]     : Use for non-default TCP port number
+    -T [NUM]     : Total number of hosts to be tested concurrently
+    -f           : Stop scanning host after first valid username/password found.
+    -v [NUM]     : Verbose level [0 - 6 (more)]
+    -w [NUM]     : Error debug level [0 - 10 (more)]
+    -e [n/s/ns]  : Additional password checks ([n] No Password, [s] Password = Username)
+    -O [FILE]    : File to append log information to
+----------------------------------------------------------------------------------------------
+    -V           : Display version
+    -m [TEXT]    : Parameter to pass to the module. This can be passed multiple times with a
+                 different parameter each time and they will all be sent to the module (i.e.
+                 -m Param1 -m Param2, etc.)
+    -F           : Stop audit after first valid username/password found on any host.
+"""
+
 def _brute(service, port, filename, output, single_host=""):
     userlist = f'{_USERLIST_BASE_LOCATION}{service}/user2'
     passlist = f'{_PASSWORDLIST_BASE_LOCATION}{service}/password2'
     output_file = f'{output}/{port}-{service}-success.txt'
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    logfile_name = f'{_OUTPUT_DIRECTORY}{timestamp}_proteciotnet_medusa.log'
 
     cmd = ['medusa', '-b', '-H', filename, '-U', userlist, '-P', passlist, '-M', service, '-t', '2', '-n', port, '-T',
-           '1', '-F', '-v', '5', '-w', '5', '-e' 'ns', '-O', f'{_OUTPUT_DIRECTORY}medusalog.log']
+           '1', '-f', '-v', '5', '-w', '5', '-e' 'ns', '-O', logfile_name]
 
     if single_host:
         cmd = ['medusa', '-b', '-h', single_host, '-U', userlist, '-P', passlist, '-M', service, '-t', '2', '-n', port,
-               '-T', '1', '-F', '-v', '5', '-w', '5', '-e' 'ns', '-O', f'{_OUTPUT_DIRECTORY}medusalog.log']
+               '-T', '1', '-f', '-v', '5', '-w', '5', '-e' 'ns', '-O', logfile_name]
 
     if service == "smtp":
         cmd.extend(["-m", "AUTH:LOGIN"])
@@ -92,21 +121,24 @@ def _brute(service, port, filename, output, single_host=""):
     logger.info(f"Using password list: {passlist}")
     logger.info(f"Output directory is set to: {output_file}")
     logger.info(f"Starting medusa with: {' '.join(cmd)}")
-    return
+
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, bufsize=1)
 
+    print("#"*150)
     for line in p.stdout:
+        print(line.strip('\n'))
         if 'SUCCESS' in line:
             with open(output_file, 'a') as out_file:
                 out_file.write("[+]" + line)
-
-    logger.info("Medusa has finished. Your files are now available.")
-    exit(0)
+    print("#" * 150)
+    logger.info("Medusa has finished.")
+    return logfile_name
 
 
 def auto_bruteforce(filename, host):
     logger.info("Starting auto bruteforcing attempt using medusa.")
     filename = f"{_XML_STANDARD_DIR}{filename}"
+
     if os.system("command -v medusa > /dev/null") != 0:
         logger.error("Command medusa not found. Please install medusa")
         return
@@ -127,8 +159,10 @@ def auto_bruteforce(filename, host):
         logger.error("Error while creating temporary directory.")
         exit(4)
 
-    logger.info("Successfully passed all preliminary checks and parsing")
+    logger.info(f"Successfully passed all preliminary checks and parsing / {filename}")
 
+    logfile_name = ""
+    something_worked = False
     for service in _services:
         if host == "all":
             for port in _services[service]:
@@ -139,28 +173,18 @@ def auto_bruteforce(filename, host):
                     for ip in iplist:
                         f.write(ip + '\n')
                 logger.info(f"Successfully wrote IPs to temporary file {temp_ip_filename}")
-                #brute_process = Process(target=_brute, args=(service, port, temp_ip_filename, _OUTPUT_DIRECTORY))
-                #brute_process.start()
-                _brute(service=service, port=port, filename=temp_ip_filename, output=_OUTPUT_DIRECTORY)
+                logfile_name = _brute(service=service, port=port, filename=temp_ip_filename, output=_OUTPUT_DIRECTORY)
+                something_worked = True
         else:
             for port in _services[service]:
-                logger.info(f"Instructing medusa with bruteforcing {host} on port {port} for service {service}")
-                temp_ip_filename = f'/tmp/tmp-{service}-{port}'
-                _brute(service=service, port=port, filename=temp_ip_filename, output=_OUTPUT_DIRECTORY, single_host=host)
+                if host in _services[service][port]:
+                    logger.info(f"Instructing medusa with bruteforcing {host} on port {port} for service {service}")
+                    temp_ip_filename = f'{tmppath}/tmp-{service}-{port}'
+                    logfile_name = _brute(service=service, port=port, filename=temp_ip_filename, output=_OUTPUT_DIRECTORY, single_host=host)
+                    something_worked = True
 
-            # for port in _services[service]:
-            #     if host in _services[service][port]:
-            #         logger.info(f"Instructing medusa with bruteforcing {host} on port {port} for service {service}")
-            #         temp_ip_filename = f'/tmp/tmp-{service}-{port}'
-            #         iplist = set(_services[service][port])
-            #         with open(temp_ip_filename, 'w+') as f:
-            #             for ip in iplist:
-            #                 f.write(ip + '\n')
-            #         logger.info(f"Successfully wrote IPs to temporary file {temp_ip_filename}")
-            #         # brute_process = Process(target=_brute, args=(service, port, temp_ip_filename, _OUTPUT_DIRECTORY))
-            #         # brute_process.start()
-            #         _brute(service=service, port=port, filename=temp_ip_filename, output=_OUTPUT_DIRECTORY)
+    if not something_worked:
+        logger.error(f"Specified host {host} was not found in file {filename} or has no services to bruteforce with this toolchain")
 
-
-    logger.error(f"Specified host {host} was not found in file {filename} or has no services to bruteforce with this "
-                 f"toolchain")
+    if something_worked and logfile_name:
+        logger.info(f"The log of this scan is available at {logfile_name}")

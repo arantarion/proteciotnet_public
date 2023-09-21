@@ -20,8 +20,6 @@ _MEDUSA_SUPPORTED_SERVICES = ['ssh', 'ftp', 'postgresql', 'telnet', 'mysql', 'ms
                               'exec', 'login', 'microsoft-ds', 'smtp', 'smtps', 'submission',
                               'svn', 'iss-realsecure', 'snmptrap', 'snmp', 'http']
 
-bruteforce_available_in_file = False
-
 logging_level = logging.DEBUG
 main_logger = logging.getLogger()
 main_logger.setLevel(logging_level)
@@ -544,6 +542,7 @@ def details(request, address, sorting='standard'):
 
 def index(request, filterservice="", filterportid=""):
     r = {'auth': True}
+    bruteforce_available_in_file = False
 
     gitcmd = subprocess.check_output('cd /opt/proteciotnet/proteciotnet_dev && git describe --long --abbrev=10 --tag',
                                      shell=True, text=True).strip()
@@ -879,9 +878,9 @@ def index(request, filterservice="", filterportid=""):
                         bruteforce_available_in_file = True
 
                 if count == 1:
-                    service_action += f"""<a href="" onclick="start_bruteforcer('{r['scanfile']}', '{address}');" class="grey-text"><i class="material-icons">call_to_action</i> {count} Bruteforce Option Available</a>"""
+                    service_action += f"""<a href="#!" onclick="start_bruteforcer('{r['scanfile']}', '{address}');" class="grey-text"><i class="material-icons">call_to_action</i> {count} Bruteforce Option Available</a>"""
                 elif count > 1:
-                    service_action += f"""<a href="" onclick="start_bruteforcer('{r['scanfile']}', '{address}');" class="grey-text"><i class="material-icons">call_to_action</i> {count} Bruteforce Options Available</a>"""
+                    service_action += f"""<a href="#!" onclick="start_bruteforcer('{r['scanfile']}', '{address}');" class="grey-text"><i class="material-icons">call_to_action</i> {count} Bruteforce Options Available</a>"""
 
             if (filterservice != "" and striggered is True) or (filterportid != "" and striggered is True) or (
                     filterservice == "" and filterportid == ""):
@@ -1089,7 +1088,6 @@ def index(request, filterservice="", filterportid=""):
                     <i class="material-icons">dynamic_form</i> Bruteforce all                  
                 </a><br><br>
             """
-
 
     return render(request, 'proteciotnet_dev/nmap_device_overview.html', r)
 

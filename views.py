@@ -175,41 +175,44 @@ def details(request, address, sorting='standard'):
             rmdupl = {}
 
             # OS info
-            r['os'] = {}
-            nmap_os_fingerprinting_dict = i.get('os', '').get('osmatch', '')
-            device_os_fingerprint = dict.fromkeys(["OS", "Accuracy", "Vendor", "osfamily"])
-            if nmap_os_fingerprinting_dict:
+            r['os'] = ""
+            device_os_fingerprint = None
 
-                if isinstance(nmap_os_fingerprinting_dict, list):
-                    nmap_os_fingerprinting_dict = nmap_os_fingerprinting_dict[0]
+            if isinstance(i, dict) and i.get('os', ''):
+                nmap_os_fingerprinting_dict = i.get('os', '').get('osmatch', '')
+                device_os_fingerprint = dict.fromkeys(["OS", "Accuracy", "Vendor", "osfamily"])
+                if nmap_os_fingerprinting_dict:
 
-                device_os_fingerprint["OS"] = nmap_os_fingerprinting_dict.get('@name', '')
-                device_os_fingerprint["Accuracy"] = nmap_os_fingerprinting_dict.get('@accuracy', '')
+                    if isinstance(nmap_os_fingerprinting_dict, list):
+                        nmap_os_fingerprinting_dict = nmap_os_fingerprinting_dict[0]
 
-                dev_class = nmap_os_fingerprinting_dict.get('osclass', '')
+                    device_os_fingerprint["OS"] = nmap_os_fingerprinting_dict.get('@name', '')
+                    device_os_fingerprint["Accuracy"] = nmap_os_fingerprinting_dict.get('@accuracy', '')
 
-                if dev_class:
-                    if isinstance(dev_class, list):
-                        dev_class = dev_class[0]
+                    dev_class = nmap_os_fingerprinting_dict.get('osclass', '')
 
-                    device_os_fingerprint["Vendor"] = dev_class.get('@vendor', '')
+                    if dev_class:
+                        if isinstance(dev_class, list):
+                            dev_class = dev_class[0]
 
-                os_class = nmap_os_fingerprinting_dict.get('osclass', '')
-                if os_class:
-                    if isinstance(os_class, list):
-                        osfamilies = set()
-                        for device_os_class in os_class:
-                            osfamilies.add(device_os_class.get('@osfamily', ''))
+                        device_os_fingerprint["Vendor"] = dev_class.get('@vendor', '')
 
-                        osfamilies_cleaned = []
-                        for item in list(osfamilies):
-                            if "OS X" in item:
-                                continue
-                            osfamilies_cleaned.append(item)
+                    os_class = nmap_os_fingerprinting_dict.get('osclass', '')
+                    if os_class:
+                        if isinstance(os_class, list):
+                            osfamilies = set()
+                            for device_os_class in os_class:
+                                osfamilies.add(device_os_class.get('@osfamily', ''))
 
-                        device_os_fingerprint["osfamily"] = osfamilies_cleaned
-                    else:
-                        device_os_fingerprint["osfamily"] = os_class.get('@osfamily', '')
+                            osfamilies_cleaned = []
+                            for item in list(osfamilies):
+                                if "OS X" in item:
+                                    continue
+                                osfamilies_cleaned.append(item)
+
+                            device_os_fingerprint["osfamily"] = osfamilies_cleaned
+                        else:
+                            device_os_fingerprint["osfamily"] = os_class.get('@osfamily', '')
 
             if device_os_fingerprint:
                 device_os = device_os_fingerprint['OS']

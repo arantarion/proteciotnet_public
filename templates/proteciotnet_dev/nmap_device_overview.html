@@ -92,15 +92,12 @@
                     </ul>
                     <a class="dropdown-trigger" href="#!" data-target="dropdown{{ v.pel }}" style="color: #ff9800;"><i
                             class="material-icons">note_add</i> Create Report</a><br><br>
-                    {#                    </ul><a class="dropdown-trigger" href="#!" data-target="dropdown{{ v.pel }}" style="color: #ff9800;"><i class="fas fa-file-pdf"></i> Create Report</a><br><br>#}
 
                     {{ file_dropdown | safe }}
 
                     {{ bruteforce_all_action | safe }}
 
-                    {#                    <a href="#" style="color: #ff9800; font-size: 10px;"><i class="material-icons" style="font-size: 20px">lightbulb</i> what are CVE and why should you care</a>#}
-                    <a href="https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures" target="_blank"
-                       style="color: #ff9800; font-size: 10px; display: flex; align-items: center;">
+                    <a href="#!" onclick="cve_info()" style="color: #ff9800; font-size: 10px; display: flex; align-items: center;">
                         <i class="material-icons" style="font-size: 20px; margin-right: 5px;">lightbulb</i>
                         <div>
                             what are CVE and<br>
@@ -108,8 +105,6 @@
                         </div>
                     </a>
 
-
-                    {#                <a href="#!" onclick="checkCVE();" style="color: #ff9800;"><i class="fas fa-bug"></i> Check for CVE</a>#}
                 </div>
             {% endif %}
         </div>
@@ -142,8 +137,6 @@
             <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">
                 <div class="card-content">
                     <div class="row">
-{#                        <div class="col s4 title-small grey-text">Services:</div>#}
-
                         <div class="col" style="margin-top:10px;">
                             <span class="title-small grey-text">Services:</span><br>
                             <span style="font-family:monospace;font-size:12px;">{{ stats.services|safe }}</span><br><br>
@@ -254,11 +247,11 @@
 
 
 
-    <div id="activescancard" class="small grey-text"
-         style="bottom:0px;left:0px;width:100%;position:fixed;background-color:rgba(0,0,0,0.8);padding:10px;z-index:999;display:none;">
-        <b>Active Scan:</b>
-        <div id="activescan">asd</div>
-    </div>
+{#    <div id="activescancard" class="small grey-text"#}
+{#         style="bottom:0px;left:0px;width:100%;position:fixed;background-color:rgba(0,0,0,0.8);padding:10px;z-index:999;display:none;">#}
+{#        <b>Active Scan:</b>#}
+{#        <div id="activescan">asd</div>#}
+{#    </div>#}
 
 
 {% endblock %}

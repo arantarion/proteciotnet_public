@@ -310,7 +310,7 @@ function createReport(filename, filetype) {
         if (typeof (d['error']) != 'undefined') {
             swal("Error", "Something went wrong :C", "error");
         } else {
-            swal("Started", "Your report is being generated!\n(Reload the page to see the file selector)", "success");
+            swal("Started", "Your report is being generated! (Reload the page to see the file selector)", "success");
 
             new_filename = filename.split('.').slice(0, -1).join('.');
 
@@ -401,7 +401,7 @@ function openNotes(hashstr, notesb64) {
         } else {
             savednotes = ''
         }
-        // $('#modal1').css('background-color','#3e3e3e');
+
         $('#modaltitle').html('Save Notes');
         $('#modalbody').html(
             'Here you can write all the notes you want. The notes you wrote will be displayed on the devices page. ' +
@@ -553,5 +553,83 @@ function start_bruteforcer(filename, host) {
         'specified_host': host
     });
     swal("Start", "Trying to guess the password and username for " + host + ". This will take some time", "success");
+
+}
+
+function cve_info() {
+    $('#modaltitle').html('What are CVEs and why you should care');
+    $('#modalbody').html(
+        '<p style="text-align: justify;">' +
+        '"Common Vulnerabilities and Exposures (CVE)"  is a standardized list of entries, each denoting ' +
+        'a specific security vulnerability or exposure in publicly available software. Each entry is identified with a ' +
+        'unique CVE Identifier (CVE ID), facilitating the sharing of data across separate vulnerability capabilities ' +
+        '(tools, databases, and services).<br>' +
+        'The inception of CVE dates back to 1999 when it was launched by the MITRE Corporation, a not-for-profit ' +
+        'organization that operates federally funded research and development centers. The primary objective was to ' +
+        'standardize the way vulnerabilities and exposures are identified, thus promoting a universal standard for ' +
+        'vulnerability management, security tools, and services.<br>' +
+        'The anatomy of a CVE entry encompasses a unique identifier, a description of the vulnerability or exposure, ' +
+        'and references, i.e., pointers to related resources where one can learn more information about the vulnerability. ' +
+        'The CVE list does not encompass metrics or information regarding the risks, impacts, fixes, or other related ' +
+        'nuances. However, it serves as a baseline for the National Vulnerability Database (NVD) that provides such details.<br>' +
+        'Over the years, the CVE system has evolved, embracing new structures to encapsulate more information and adapt ' +
+        'to the complexity of cybersecurity landscapes. The initial flat structure has morphed into a more ' +
+        'hierarchical model, allowing for better organization and identification of vulnerabilities.<br>' +
+        'Now, why should an average homeowner concern themselves with CVEs? The answer lies in the adoption ' +
+        'of smart home devices and IoT (Internet of Things) technologies. Today\'s home networks are no longer confined ' +
+        'to computers and smartphones. They now encompass a myriad of devices ranging from smart thermostats, ' +
+        'security cameras, smart TVs, to intelligent refrigerators. Each of these devices, being a node on the network, ' +
+        'presents a potential entry point for malicious actors if they harbor vulnerabilities.<br>' +
+        'The relevance of CVEs in home network security is multifold:<br>' +
+        '<ol>' +
+        '<li><b>Awareness:</b> By perusing CVE databases, homeowners can become aware of the known vulnerabilities in ' +
+        'the devices they own or intend to purchase. This awareness is the first step towards a secure home network.</li>' +
+        '<li><b>Mitigation:</b> Once aware of the vulnerabilities, homeowners can take steps to mitigate the risks. ' +
+        'This could range from applying patches, changing configurations, or even replacing highly vulnerable devices.</li>' +
+        '<li><b>Vendor Accountability:</b> CVEs also serve as a mechanism to hold vendors accountable. A vendor with ' +
+        'a long list of CVEs may not be following best security practices in their product development.</li>' +
+        '<li><b>Community Support:</b> The CVE system fosters a community where individuals and organizations share ' +
+        'information about vulnerabilities in a standardized manner, promoting collective security improvement.</li>' +
+        '<li><b>Informed Purchasing Decisions:</b> Before adding a new device to their network, homeowners can check ' +
+        'the CVE database to understand the security posture of the device, thus making informed purchasing decisions.</li>' +
+        '</ol>' +
+        'The process of keeping abreast of CVEs has been simplified with the advent of automated tools and platforms ' +
+        'that provide real-time updates and even mitigation strategies for known vulnerabilities. Moreover, some ' +
+        'platforms offer user-friendly interfaces and are tailored for individuals with no advanced technical knowledge, ' +
+        'thus demystifying the notion that CVEs are the reserve of cybersecurity professionals.<br>' +
+
+        'In conclusion, the CVE system is an invaluable resource in the quest for enhanced cybersecurity in home ' +
+        'networks. As smart homes become the norm rather than the exception, embracing a proactive approach towards ' +
+        'understanding and mitigating vulnerabilities is imperative for safeguarding personal data and ensuring a ' +
+        'secure and resilient home network environment.' +
+      '</p>' +
+        '<br><br>' +
+        '<h4>External Resources:</h4>' +
+        '<p style="text-align: justify;">' +
+        '<b>General Information:</b><br>' +
+        '<a href="https://www.cve.org/About/Overview" target="_blank">https://www.cve.org/About/Overview</a><br>' +
+        '<a href="https://nvd.nist.gov/general/cve-process" target="_blank">https://nvd.nist.gov/general/cve-process</a><br>' +
+        '<a href="https://nvd.nist.gov/general/cna-counting" target="_blank">https://nvd.nist.gov/general/cna-counting</a><br>' +
+        '<a href="https://www.redhat.com/en/topics/security/what-is-cve" target="_blank">https://www.redhat.com/en/topics/security/what-is-cve</a><br>' +
+        '<a href="https://snyk.io/de/learn/what-is-cve-vulnerablity/" target="_blank">https://snyk.io/de/learn/what-is-cve-vulnerablity/</a><br>' +
+        '<a href="https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures" target="_blank">https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures</a><br>' +
+        '<br><b>Specifications:</b><br>' +
+        '<a href="https://www.first.org/cvss/v2/guide" target="_blank">https://www.first.org/cvss/v2/guide</a><br>' +
+        '<a href="https://www.first.org/cvss/v3.0/specification-document" target="_blank">https://www.first.org/cvss/v3.0/specification-document</a><br>' +
+        '<a href="https://www.first.org/cvss/v3.1/specification-document" target="_blank">https://www.first.org/cvss/v3.1/specification-document</a><br>' +
+        '<a href="https://www.first.org/cvss/v4.0/specification-document" target="_blank">https://www.first.org/cvss/v4.0/specification-document</a><br>' +
+        '<a href="https://cpe.mitre.org/specification/" target="_blank">https://cpe.mitre.org/specification/</a><br>' +
+        '<br><b>CVE Databases:</b><br>' +
+        '<a href="https://nvd.nist.gov/vuln/search" target="_blank">https://nvd.nist.gov/vuln/search</a><br>' +
+        '<a href="https://www.cve.org/" target="_blank">https://www.cve.org/</a><br>' +
+        '<a href="https://www.cvedetails.com/" target="_blank">https://www.cvedetails.com/</a><br>' +
+        '<a href="https://www.opencve.io/welcome" target="_blank">https://www.opencve.io/welcome</a><br>' +
+        '<a href="https://vuldb.com/" target="_blank">https://vuldb.com/</a><br>' +
+        '<a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank">https://www.cisa.gov/known-exploited-vulnerabilities-catalog</a><br> ' +
+        '</p>'
+
+    );
+    $('#modalfooter').html('<button class="modal-close waves-effect waves-green btn grey">Close</button>');
+    $('#modal1').modal('open');
 
 }

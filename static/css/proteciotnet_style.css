@@ -1,5 +1,9 @@
 @import "open-props.min.css";
 
+html {
+    scrollbar-width: none;
+  }
+
 table.custom-table td {
     padding: 2px 10px;
     white-space: nowrap;
@@ -494,5 +498,9 @@ table.custom-table td {
 /* Using Font Awesome icon for the search button */
 .fa-search {
     font-size: 18px;
+    color: white;
+}
+
+.about-content h1, .about-content h4, .about-content p, .about-content strong, .about-content table, .about-content tr, .about-content td {
     color: white;
 }

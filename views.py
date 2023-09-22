@@ -48,6 +48,11 @@ def login(request):
     return render(request, 'proteciotnet_dev/main.html', r)
 
 
+def about(request):
+    r = {}
+    return render(request, 'proteciotnet_dev/about.html', r)
+
+
 def setscanfile(request, scanfile):
     xmlfiles = os.listdir('/opt/xml')
 
@@ -75,6 +80,10 @@ def details(request, address, sorting='standard'):
         address = sorting
 
     r = {'auth': True}
+
+    if "about" in request.path:
+        return render(request, 'proteciotnet_dev/about.html', r)
+
 
     oo = xmltodict.parse(open('/opt/xml/' + request.session['scanfile'], 'r').read())
     r['out2'] = json.dumps(oo['nmaprun'], indent=4)
@@ -1084,8 +1093,3 @@ def index(request, filterservice="", filterportid=""):
             """
 
     return render(request, 'proteciotnet_dev/nmap_device_overview.html', r)
-
-
-def about(request):
-    r = {'auth': True}
-    return render(request, 'proteciotnet_dev/nmap_about.html', r)

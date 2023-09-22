@@ -6,6 +6,7 @@ import urllib.parse
 import xmltodict, json, hashlib, re
 import requests
 from django.http import HttpResponse
+from django.shortcuts import render
 
 from proteciotnet_dev.functions import *
 from proteciotnet_dev.bruteforce_attacks.automatic_service_bruteforce import auto_bruteforce
@@ -416,3 +417,5 @@ def bruteforce(request):
 
     res = {'error': request.method}
     return HttpResponse(json.dumps(res), content_type="application/json")
+
+

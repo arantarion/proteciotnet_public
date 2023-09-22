@@ -219,8 +219,6 @@ function startscan() {
     });
 }
 
-var cpetot = 0;
-var cpetimer;
 
 function checkCVE() {
     if ($('#cpestring').length <= 0) {
@@ -244,57 +242,15 @@ function checkCVE() {
         'cpe': $('#cpestring').val(),
         'csrfmiddlewaretoken': csrftoken
     }).done(function (d) {
-        console.log(d);
-        $('#modalbody').html('Done. Please, reload this page by clicking on Reload button.');
-        $('#modalfooter').html('<button class="btn blue" onclick="javascript:location.reload();">Reload</button>');
-    });
-
-    return 0;
-
-    cpetot = Object.keys(cpe).length;
-    console.log(cpetot);
-
-    for (host in cpe) {
-        for (port in cpe[host]) {
-            for (cpestr in cpe[host][port]) {
-                if (/^cpe:.+:.+:.+:.*$/.test(cpestr)) {
-                    console.log(cpestr);
-                    $.post('/report/api/getcve/', {
-                        'cpe': cpestr,
-                        'host': host,
-                        'port': port,
-                        'csrfmiddlewaretoken': csrftoken
-                    }).done(function (d) {
-                        console.log(d);
-                        for (rhost in d) {
-                            for (rport in d[rhost]) {
-                                $('#modalbody').append('<div class="small"><i>Received: ' + d[rhost][rport]['id'] + ' host:' + rhost + ' port:' + rport + '</i></div>');
-                            }
-                        }
-                    }).always(function () {
-                        cpetot = (cpetot - 1);
-                    });
-                } else {
-                    cpetot = (cpetot - 1);
-                }
-
-                console.log(cpetot);
-            }
-        }
-    }
-
-    cpetimer = setInterval(function () {
-        if (checkCPETOT()) {
-            console.log('END');
-            window.clearInterval(cpetimer);
+        if (typeof (d['error']) != 'undefined') {
+            $('#modalbody').html('Error. Could not connect to local CVE database. Is the IP and Port correctly set?');
+            $('#modalfooter').html('<button class="modal-close waves-effect waves-red btn red">Close</button>');
+        } else {
             $('#modalbody').html('Done. Please, reload this page by clicking on Reload button.');
-            $('#modalfooter').html('<button class="btn blue" onclick="javascript:location.reload();">Reload</button>');
+            $('#modalfooter').html('<button class="btn blue" onclick="location.reload();">Reload</button>');
         }
-    }, 2000);
-}
-
-function checkCPETOT() {
-    return cpetot <= 0;
+    });
+    return 0;
 }
 
 
@@ -602,7 +558,7 @@ function cve_info() {
         'networks. As smart homes become the norm rather than the exception, embracing a proactive approach towards ' +
         'understanding and mitigating vulnerabilities is imperative for safeguarding personal data and ensuring a ' +
         'secure and resilient home network environment.' +
-      '</p>' +
+        '</p>' +
         '<br><br>' +
         '<h4>External Resources:</h4>' +
         '<p style="text-align: justify;">' +

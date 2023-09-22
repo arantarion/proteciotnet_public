@@ -2,14 +2,30 @@ import hashlib
 import json
 import re
 import requests
-import sys
 import xmltodict
 import urllib3
+import socket
+import sys
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-_IP = "192.168.1.225"
+_IP = "192.168.178.38"
 _PORT = "5000"
+_TIMEOUT = 1
+
+
+def _check_network_connection(ip, port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(_TIMEOUT)
+    try:
+        s.connect((ip, int(port)))
+        s.shutdown(socket.SHUT_RDWR)
+        return True
+    except:
+        return False
+    finally:
+        s.close()
+
 
 def getcpe(xmlfile):
     cpe, cve = {}, {}
@@ -76,6 +92,7 @@ def getcpe(xmlfile):
 
 
 def getcve(xmlfile):
+
     scanfilemd5 = hashlib.md5(str(xmlfile).encode('utf-8')).hexdigest()
     cpecve = getcpe(xmlfile)
     cvejson = {}
@@ -117,4 +134,7 @@ def getcve(xmlfile):
             f.close()
 
 
-getcve(sys.argv[1])
+if _check_network_connection(_IP, _PORT):
+    getcve(sys.argv[1])
+else:
+    exit(-1)

@@ -8,6 +8,8 @@ import requests
 from django.http import HttpResponse
 from django.shortcuts import render
 
+import subprocess
+
 from proteciotnet_dev.functions import *
 from proteciotnet_dev.bruteforce_attacks.automatic_service_bruteforce import auto_bruteforce
 
@@ -119,19 +121,6 @@ def port_details(request, address, portid):
                     return HttpResponse(json.dumps(p, indent=4), content_type="application/json")
 
 
-# def genPDF(request):
-#     if 'scanfile' in request.session:
-#         pdffile = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
-#         if os.path.exists('/opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf'):
-#             os.remove('/opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf')
-#
-#         print('/opt/wkhtmltox/bin/wkhtmltopdf --cookie sessionid ' + request.session._session_key + ' --enable-javascript --javascript-delay 6000 http://127.0.0.1:8000/view/pdf/ /opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf')
-#         os.popen(
-#             '/opt/wkhtmltox/bin/wkhtmltopdf --cookie sessionid ' + request.session._session_key + ' --enable-javascript --javascript-delay 6000 http://127.0.0.1:8000/view/pdf/ /opt/proteciotnet/proteciotnet_dev/static/' + pdffile + '.pdf')
-#         res = {'ok': 'PDF created', 'file': '/static/' + pdffile + '.pdf'}
-#         return HttpResponse(json.dumps(res), content_type="application/json")
-
-
 def getCVE(request):
     res = {}
 
@@ -143,18 +132,31 @@ def getCVE(request):
 
         if "offline_mode.lock" in os.listdir(_BASE_STATIC_DIRECTORY):
             logger.info("Using offline mode to scan CVE entries")
-            cveproc = os.popen(
-                'sudo python3 /opt/proteciotnet/proteciotnet_dev/nmap/cve_cdn.py ' + request.session['scanfile'])
-            res['cveout'] = cveproc.read()
-            cveproc.close()
+            # cveproc = os.popen(
+            #     'sudo python3 /opt/proteciotnet/proteciotnet_dev/nmap/cve_cdn.py ' + request.session['scanfile'])
+            # res['cveout'] = cveproc.read()
+            # cveproc.close()
+
+            command = ['sudo', 'python3', '/opt/proteciotnet/proteciotnet_dev/nmap/cve_cdn.py',
+                       request.session['scanfile']]
+            cveproc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            stdout, stderr = cveproc.communicate()
+            exit_code = cveproc.returncode
+
+            if exit_code == 0:
+                res['cveout'] = stdout
+            else:
+                logger.error("Could not reach host")
+                res = {'error': request.method}
+                return HttpResponse(json.dumps(res), content_type="application/json")
+
+            logger.info("Done with CVEs")
         else:
             logger.info("Using online mode to scan CVE entries")
             cveproc = os.popen(
                 'sudo python3 /opt/proteciotnet/proteciotnet_dev/nmap/cve.py ' + request.session['scanfile'])
             res['cveout'] = cveproc.read()
             cveproc.close()
-
-        # TODO: log status
 
         return HttpResponse(json.dumps(res), content_type="application/json")
 

@@ -27,9 +27,6 @@
                     </div>
                     <div class="col s3 right" id="os_details">{{ os | safe }}</div>
 
-                    {#                    <div class="col s3 hide-on-med-and-down" id="detailspo"></div>#}
-                    {#                    <div class="col s3 hide-on-med-and-down" id="detailspc"></div>#}
-                    {#                    <div class="col s3 hide-on-med-and-down" id="detailspf"></div>#}
                 </div>
             </div>
         </div>
@@ -105,7 +102,6 @@
                     var sortingDropdown = document.getElementById('dropdown_sorting');
                     var sortingLabel = document.getElementById('sortingLabel');
 
-                    // Get the selected option from localStorage
                     var selectedOption = localStorage.getItem('selectedOption');
                     if (selectedOption) {
                         sortingLabel.textContent = selectedOption;
@@ -116,7 +112,6 @@
                             var optionText = event.target.textContent.trim();
                             sortingLabel.textContent = optionText;
 
-                            // Store the selected option in localStorage
                             localStorage.setItem('selectedOption', optionText);
                         }
                     });

@@ -142,10 +142,12 @@
             <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">
                 <div class="card-content">
                     <div class="row">
-                        <div class="col s4 title-small grey-text">Services:</div>
+{#                        <div class="col s4 title-small grey-text">Services:</div>#}
 
                         <div class="col" style="margin-top:10px;">
+                            <span class="title-small grey-text">Services:</span><br>
                             <span style="font-family:monospace;font-size:12px;">{{ stats.services|safe }}</span><br><br>
+
                             <span class="title-small grey-text">Top 10 Ports:</span><br><span
                                 style="font-family:monospace;font-size:12px;">{{ stats.portids|safe }}</span><br><br>
                             {% if stats.ostypes != "" %}

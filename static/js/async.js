@@ -314,17 +314,17 @@ function createReport(filename, filetype) {
 
             new_filename = filename.split('.').slice(0, -1).join('.');
 
-             if (filetype === "dot") {
+            if (filetype === "dot") {
                 filetype = "png";
             }
 
-            var checkFileInterval = setInterval(function() {
+            var checkFileInterval = setInterval(function () {
                 $.get('/static/reports/' + new_filename + '.' + filetype)
-                .done(function() {
-                    console.log("File created")
+                    .done(function () {
+                        console.log("File created")
                         clearInterval(checkFileInterval); // Stop polling
                         window.open(`/static/reports/${new_filename}.${filetype}`, '_blank');
-                });
+                    });
             }, 3000);
         }
     });
@@ -388,7 +388,7 @@ function saveNotes() {
     }).done(function (d) {
         console.log(d);
         if (typeof (d['ok']) !== 'undefined' && d['ok'] == 'notes saved') {
-            $('#modalbody').html('<span class="green-text">Notes successfully saved!</span><br> Now this page needs a reload. Please, click on the &quot;Reload&quot; button.');
+            $('#modalbody').html('<span class="green-text">Notes successfully saved!</span><br> The page needs to be reloaded. Please, click on the &quot;Reload&quot; button.');
             $('#modalfooter').html('<button class="btn blue" onclick="javascript:location.reload();">Reload</button>');
         }
     });
@@ -404,18 +404,24 @@ function openNotes(hashstr, notesb64) {
         // $('#modal1').css('background-color','#3e3e3e');
         $('#modaltitle').html('Save Notes');
         $('#modalbody').html(
-            'In the text area below, you can insert notes that will appear on the PDF report. ' +
-            'All input here are <b class="blue-text">intentionally not sanitized</b>, so you can use HTML markup and JavaScript. ' +
-            'Please, keep in mind that <b class="orange-text">you can break the PDF View HTML</b> and, of course, this represents a stored XSS vector.<br><br>' +
+            'Here you can write all the notes you want. The notes you wrote will be displayed on the devices page. ' +
+            'Your input is <b class="blue-text">not sanitized</b>, so you can use HTML and JavaScript.<br></br>Don\'t forget to use <b class="blue-text">&lt;br&gt;</b> to make linebreaks. <br>' +
+            'For a template idea please click <a class="blue-text" href="https://gist.githubusercontent.com/arantarion/28ea49a46552dcf6537dfdb056fe7dd6/raw/9866e3a1af7b7236465dd9412e131f5ea8b5465a/notes_template.html">here</a>. <br><br>' +
             '<textarea id="notes" style="min-height:160px;border-radius:4px;border:solid #ccc 1px;padding:10px;font-family:monospace;">' + $('<span/>').text(savednotes).html() + '</textarea>' +
             '<input type="hidden" id="hashstr" value="' + hashstr + '" /><br><br>' +
             '<b>Tips:</b><br>' +
             '<code class="grey-text">&lt;b&gt;bold text&lt;/b&gt;</code> = <b>bold text</b><br>' +
             '<code class="grey-text">&lt;i&gt;italic text&lt;/i&gt;</code> = <i>italic text</i><br>' +
-            '<code class="grey-text">&lt;span class="label green"&gt;A green label&lt;/span&gt;</code> = <span class="label green">A green label</span><br>' +
-            '<code class="grey-text">&lt;code&gt;monospace font&lt;/code&gt;</code> = <code>monospace font</code>'
+            '<code class="grey-text">&lt;span class="label red"&gt;A red label&lt;/span&gt;</code> = <span class="label red">A red label</span><br>' +
+            '<code class="grey-text">&lt;code&gt;monospace font&lt;/code&gt;</code> = <code>monospace font</code><br>' +
+            '<code class="grey-text">&lt;button onclick="alert(\'Hello, World!\')"&gt;Click me&lt;/button&gt;</code> = <button onclick="alert(\'Hello, World!\')">Click me</button><br>' +
+            '<code class="grey-text">&lt;img src="https://example.com/image.jpg" alt="Example Image" width="100"&gt;</code> = <img src="https://example.com/image.jpg" alt="Example Image" width="100"><br>' +
+            '<code class="grey-text">&lt;a href="https://example.com" target="_blank"&gt;Visit Example.com&lt;/a&gt;</code> = <a href="https://example.com" target="_blank">Visit Example.com</a><br>' +
+            '<code class="grey-text">&lt;blockquote&gt;A blockquote for highlighting text.&lt;/blockquote&gt;</code> = <blockquote>A blockquote for highlighting text.</blockquote><br>' +
+            '<code class="grey-text">&lt;ol&gt;&lt;li&gt;Step 1&lt;/li&gt;&lt;li&gt;Step 2&lt;/li&gt;&lt;/ol&gt;</code> = <ol><li>Step 1</li><li>Step 2</li></ol><br>' +
+            '<code class="grey-text">&lt;table border="1"&gt;&lt;tr&gt;&lt;th&gt;Header 1&lt;/th&gt;&lt;th&gt;Header 2&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Data 1&lt;/td&gt;&lt;td&gt;Data 2&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</code> = <table border="1"><tr><th>Header 1</th><th>Header 2</th></tr><tr><td>Data 1</td><td>Data 2</td></tr></table><br>'
         );
-        $('#modalfooter').html('<button class="modal-close waves-effect waves-green btn grey">Close</button> <button onclick="javascript:saveNotes();" class="waves-effect waves-green btn green white-text">Save</button>');
+        $('#modalfooter').html('<button class="modal-close waves-effect waves-green btn grey">Close</button> <button onclick="saveNotes();" class="waves-effect waves-green btn green white-text">Save</button>');
         $('#modal1').modal('open');
     }
 }
@@ -532,7 +538,7 @@ function delete_file(filename) {
         } else {
             swal("Deletion", "File successfully deleted. This page will reload automatically in 3 seconds", "success");
 
-            setTimeout(function(){
+            setTimeout(function () {
                 location.href = "/setscanfile/unset"
             }, 4000);
         }

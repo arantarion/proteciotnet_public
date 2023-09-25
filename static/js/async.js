@@ -166,26 +166,129 @@ function checkActiveScan() {
 function newscan() {
     $('#modaltitle').html('<i class="material-icons">wifi_tethering</i> New Nmap Scan');
     $('#modalbody').html(
-        'Run a new Nmap scan by setting the following 3 parameters:' +
+        '' +
         '<div class="input-field">' +
         '	<div class="small">' +
         '		<div style="padding:20px;">' +
-        '		<b>Filename:</b><br>Name of the Nmap XML file. This name must has the <code class="language-markup">.xml</code> extension.<br>Allowed chars: <code>[a-zA-Z0-9], _, - and .</code><br><br>' +
-        '		<b>Target:</b><br>This could be the target IP address or hostname (e.g. 192.168.1.0/24)<br><br>' +
-        '		<b>Parameters:</b><br>NMAP parameters, more information at <a href="https://nmap.org/book/man-briefoptions.html">https://nmap.org/book/man-briefoptions.html</a>' +
+        '<p style="font-size: medium;">' +
+        '    Nmap, short for Network Mapper, is an open-source tool used to identify available hosts, the services they offer, their operating systems, and even the type of firewalls in use.' +
+        '</p>' +
+         '<br>' +
+        '<h5>1. Filename:</h5>' +
+        '<p style="font-size: medium;">' +
+        '    The filename refers to the output file where the scan results will be saved. All scans will be saved as a XML file for further analysis. Please provide a fitting name (you can omit the <code class="language-markup">.xml</code> in the filename if you want).' +
+        '</p>' +
+         '<br>' +
+        '<h5>2. Target:</h5>' +
+        '<p style="font-size: medium;">' +
+        '    The target specifies the host or network to be scanned. A single IP address, a hostname, or a subnet can be specified.' +
+        '</p>' +
+        '<p style="font-size: medium;">Examples:<br></p>' +
+
+        '<table style="border-collapse: collapse; width: 30%; font-size: 13px; border: none;">' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>192.168.1.1</code></td>' +
+        '<td style="padding: 10px; border: none;">to scan a single host</td>' +
+    '</tr>' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>example.com</code></td>' +
+        '<td style="padding: 10px; border: none;">to scan a single domain</td>' +
+    '</tr>' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>192.168.1.0/24</code></td>' +
+        '<td style="padding: 10px; border: none;">to scan a whole subnet</td>' +
+    '</tr>' +
+'</table>' +
+ '<br>' +
+        '<h5>3. Parameters:</h5>' +
+        '<p style="font-size: medium;">' +
+        '    Parameters in Nmap are utilized to customize the scan. Here are some common and useful parameters:' +
+        '</p>' +
+
+        '<table style="border-collapse: collapse; width: 50%; font-size: 13px; border: none;">' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>-p</code></td>' +
+        '<td style="padding: 10px; border: none;">Specify the port range (e.g., <code>-p 20-1024</code>).</td>' +
+    '</tr>' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>-T4</code></td>' +
+        '<td style="padding: 10px; border: none;">Set the timing template to "aggressive" (speeds up the scan).</td>' +
+    '</tr>' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>-A</code></td>' +
+        '<td style="padding: 10px; border: none;">Enable OS detection, version detection, script scanning, and traceroute.</td>' +
+    '</tr>' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>-sV</code></td>' +
+        '<td style="padding: 10px; border: none;">Probe open ports to determine service/version info</td>' +
+    '</tr>' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>-sC</code></td>' +
+        '<td style="padding: 10px; border: none;">equivalent to --script=default.</td>' +
+    '</tr>' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>-O</code></td>' +
+        '<td style="padding: 10px; border: none;">Enable OS detection.</td>' +
+    '</tr>' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>-Pn</code></td>' +
+        '<td style="padding: 10px; border: none;">Skip host discovery and scan anyway.</td>' +
+    '</tr>' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>-sS/sT/sA/sW/sM</code></td>' +
+        '<td style="padding: 10px; border: none;">TCP SYN/Connect()/ACK/Window/Maimon scans.</td>' +
+    '</tr>' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>-sU</code></td>' +
+        '<td style="padding: 10px; border: none;">Perform a UDP scan.</td>' +
+    '</tr>' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>-F</code></td>' +
+        '<td style="padding: 10px; border: none;">Fast mode - Scan fewer ports than the default scan</td>' +
+    '</tr>' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>--open</code></td>' +
+        '<td style="padding: 10px; border: none;">Only show open ports.</td>' +
+    '</tr>' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>--script</code></td>' +
+        '<td style="padding: 10px; border: none;">Specify custom NSE scripts to run (e.g., <code>--script=vuln</code>).</td>' +
+    '</tr>' +
+    '<tr>' +
+        '<td style="padding: 10px; border: none;"><code>--script-args</code></td>' +
+        '<td style="padding: 10px; border: none;">Provide arguments to NSE scripts (e.g., <code>--script-args=user=foo,pass=bar</code>).</td>' +
+    '</tr>' +
+'</table>' +
+
+        '<p style="font-size: medium;">more information at <a href="https://nmap.org/book/man-briefoptions.html">https://nmap.org/book/man-briefoptions.html</a></p>' +
+
         '		<div>' +
         '	</div>' +
         '<br>' +
-        '	<input placeholder="XML Filename (ex. my_scan.xml)" id="xmlfilename" type="text" class="validate">' +
-        '	<input placeholder="Target IP or hostname (ex. 192.168.1.0/24)" id="targethost" type="text" class="validate">' +
-        '	<input placeholder="Nmap Parameters (ex. -sT -A -T4)" id="params" type="text" class="validate">' +
+
+        '<hr>' +
+        '<table style=" border-collapse: collapse; width: 60%; max-width: 800px;">' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="xmlfilename">XML Filename:</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><input placeholder="e.g., my_scan.xml (you can omit the .xml)" id="xmlfilename" type="text" class="validate"></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="targethost">Target IP or Hostname:</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><input placeholder="e.g., 192.168.1.0/24" id="targethost" type="text" class="validate"></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="params">Nmap Parameters:</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><input placeholder="e.g., -sT -A -T4" id="params" type="text" class="validate"></td>' +
+        '    </tr>' +
+        '</table>' +
+
         '	<br><br>' +
         '	<div class="row">' +
-        '		<div class="col s4 grey-text darken-3"><h6>Schedule:</h6></div>' +
-        '		<div class="col s8" style="padding:10px;"><div class="switch"><label>Off<input id="schedule" name="schedule" type="checkbox"><span class="lever"></span>On</label></div></div>' +
+        '		<div class="col s4 black-text darken-5"><h6>Schedule:</h6></div>' +
+        '		<div class="col s8 black-text" style="padding:10px;"><div class="switch"><label>Off<input id="schedule" name="schedule" type="checkbox"><span class="lever"></span>On</label></div></div>' +
         '		<div class="col s12" style="border-bottom:solid 1px #ccc;margin-bottom:20px;">&nbsp;</div>' +
-        '		<div class="col s4 grey-text darken-3"><h6>Frequency:</h6></div>' +
-        '		<div class="col s8"><select id="frequency" name="frequency">' +
+        '		<div class="col s4 black-text darken-3"><h6>Frequency:</h6></div>' +
+        '		<div class="col s6" style="width: 200px;"><select id="frequency" name="frequency">' +
         '			<option value="1h">Hourly</option>' +
         '			<option value="1d">Daily</option>' +
         '			<option value="1w">Weekly</option>' +
@@ -195,7 +298,7 @@ function newscan() {
         '</div>' +
         ''
     );
-    $('#modalfooter').html('<button onclick="javascript:startscan();" class="btn green">Start</button>');
+    $('#modalfooter').html('<button onclick="startscan();" class="btn green">Start</button>');
     $('#modal1').modal('open');
     $('select').formSelect();
 }
@@ -203,9 +306,15 @@ function newscan() {
 function startscan() {
     $('#modal1').modal('close');
     csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
+
+    let xmlFilename = $('#xmlfilename').val();
+    if (!xmlFilename.endsWith('.xml')) {
+        xmlFilename += '.xml';
+    }
+
     $.post('/api/v1/nmap/scan/new', {
         'csrfmiddlewaretoken': csrftoken,
-        'filename': $('#xmlfilename').val(),
+        'filename': xmlFilename,
         'target': $('#targethost').val(),
         'params': $('#params').val(),
         'schedule': $('#schedule').prop('checked'),
@@ -214,7 +323,7 @@ function startscan() {
         if (typeof (d['error']) != 'undefined') {
             swal("Error", "Invalid syntax or disallowed characters", "error");
         } else {
-            swal("Started", "Your new Nmap scan is running.\nThis can take quite some time.\nMake yourself a tea and relax.", "success");
+            swal("Started", "Your new Nmap scan is running.This can take quite some time.Make yourself a tea and relax.", "success");
         }
     });
 }
@@ -497,7 +606,7 @@ function delete_file(filename) {
     });
 }
 
-function start_bruteforcer_real(filename, host){
+function start_bruteforcer_real(filename, host) {
     csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
     $.post('api/v1/bruteforce', {
         'csrfmiddlewaretoken': csrftoken,
@@ -507,6 +616,7 @@ function start_bruteforcer_real(filename, host){
     swal("Start", "Trying to guess the password and username for " + host + ". This will take some time", "success");
 
 }
+
 function start_bruteforcer(filename, host) {
 
     $('#modaltitle').html('CAUTION - Before you proceed');
@@ -519,10 +629,9 @@ function start_bruteforcer(filename, host) {
         '</p>'
     );
 
-        $('#modalfooter').html('<button class="modal-close waves-effect waves-green btn grey">Close</button> <button onclick="start_bruteforcer_real(\'' + filename + '\', \'' + host + '\'); $(\'#modal1\').modal(\'close\');" class="waves-effect waves-red btn red white-text">Start Process</button>');
-        $('#modal1').modal('open');
+    $('#modalfooter').html('<button class="modal-close waves-effect waves-green btn grey">Close</button> <button onclick="start_bruteforcer_real(\'' + filename + '\', \'' + host + '\'); $(\'#modal1\').modal(\'close\');" class="waves-effect waves-red btn red white-text">Start Process</button>');
+    $('#modal1').modal('open');
 }
-
 
 
 function cve_info() {
@@ -596,7 +705,6 @@ function cve_info() {
         '<a href="https://vuldb.com/" target="_blank">https://vuldb.com/</a><br>' +
         '<a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank">https://www.cisa.gov/known-exploited-vulnerabilities-catalog</a><br> ' +
         '</p>'
-
     );
     $('#modalfooter').html('<button class="modal-close waves-effect waves-green btn grey">Close</button>');
     $('#modal1').modal('open');

@@ -649,7 +649,7 @@ function cve_info() {
         'The anatomy of a CVE entry encompasses a unique identifier, a description of the vulnerability or exposure, ' +
         'and references, i.e., pointers to related resources where one can learn more information about the vulnerability. ' +
         'The CVE list does not encompass metrics or information regarding the risks, impacts, fixes, or other related ' +
-        'nuances. However, it serves as a baseline for the National Vulnerability Database (NVD) that provides such details.<br>' +
+        'nuances. However, it serves as a baseline for the National Vulnerability Database (NVD) that provides such details.' +
         'Over the years, the CVE system has evolved, embracing new structures to encapsulate more information and adapt ' +
         'to the complexity of cybersecurity landscapes. The initial flat structure has morphed into a more ' +
         'hierarchical model, allowing for better organization and identification of vulnerabilities.<br>' +
@@ -657,8 +657,8 @@ function cve_info() {
         'of smart home devices and IoT (Internet of Things) technologies. Today\'s home networks are no longer confined ' +
         'to computers and smartphones. They now encompass a lot of devices ranging from smart thermostats, ' +
         'security cameras, smart TVs, to intelligent refrigerators. Each of these devices, being a node on the network, ' +
-        'presents a potential entry point for malicious actors if they harbor vulnerabilities.<br>' +
-        'The relevance of CVEs in home network security is can be summarized into:<br>' +
+        'presents a potential entry point for malicious actors if they harbor vulnerabilities.<br><br>' +
+        'The relevance of CVEs can be summarized into:<br>' +
         '<ol>' +
         '<li><b>Awareness:</b> By perusing CVE databases, you can become aware of the known vulnerabilities in ' +
         'the devices you own or intend to purchase. This awareness is the first step towards a secure home network.</li>' +

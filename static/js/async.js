@@ -509,10 +509,6 @@ function start_bruteforcer_real(filename, host){
 }
 function start_bruteforcer(filename, host) {
 
-    $('#modal1').css({
-        width  : "700px",
-        height : "345px"
-    });
     $('#modaltitle').html('CAUTION - Before you proceed');
     $('#modalbody').html(
         '<p>You are about to bruteforce one or multiple devices. Please make sure that you have the necessary permissions to do so. <br><br>' +

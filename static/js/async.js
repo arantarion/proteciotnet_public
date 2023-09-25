@@ -497,7 +497,7 @@ function delete_file(filename) {
     });
 }
 
-function start_bruteforcer(filename, host) {
+function start_bruteforcer_real(filename, host){
     csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
     $.post('api/v1/bruteforce', {
         'csrfmiddlewaretoken': csrftoken,
@@ -507,16 +507,37 @@ function start_bruteforcer(filename, host) {
     swal("Start", "Trying to guess the password and username for " + host + ". This will take some time", "success");
 
 }
+function start_bruteforcer(filename, host) {
+
+    $('#modal1').css({
+        width  : "700px",
+        height : "345px"
+    });
+    $('#modaltitle').html('CAUTION - Before you proceed');
+    $('#modalbody').html(
+        '<p>You are about to bruteforce one or multiple devices. Please make sure that you have the necessary permissions to do so. <br><br>' +
+        'If you are in germany here are some related links:<br>' +
+        '<a href="https://www.gesetze-im-internet.de/stgb/__202a.html">- StGB $202a Auspähen von Daten</a> <br>' +
+        '<a href="https://www.gesetze-im-internet.de/stgb/__202b.html">- StGB $202b Abfangen von Daten</a> <br>' +
+        '<a href="https://www.gesetze-im-internet.de/stgb/__202c.html">- StGB $202c Vorbereiten des Ausspähens und Abfangens von Daten</a> ' +
+        '</p>'
+    );
+
+        $('#modalfooter').html('<button class="modal-close waves-effect waves-green btn grey">Close</button> <button onclick="start_bruteforcer_real(\'' + filename + '\', \'' + host + '\'); $(\'#modal1\').modal(\'close\');" class="waves-effect waves-red btn red white-text">Start Process</button>');
+        $('#modal1').modal('open');
+}
+
+
 
 function cve_info() {
     $('#modaltitle').html('What are CVEs and why you should care');
     $('#modalbody').html(
         '<p style="text-align: justify;">' +
         '"Common Vulnerabilities and Exposures (CVE)"  is a standardized list of entries, each denoting ' +
-        'a specific security vulnerability or exposure in publicly available software. Each entry is identified with a ' +
+        'a specific security vulnerability or exposure in a software. Each entry is identified with a ' +
         'unique CVE Identifier (CVE ID), facilitating the sharing of data across separate vulnerability capabilities ' +
         '(tools, databases, and services).<br>' +
-        'The inception of CVE dates back to 1999 when it was launched by the MITRE Corporation, a not-for-profit ' +
+        'CVE dates back to 1999 when it was launched by the MITRE Corporation, a not-for-profit ' +
         'organization that operates federally funded research and development centers. The primary objective was to ' +
         'standardize the way vulnerabilities and exposures are identified, thus promoting a universal standard for ' +
         'vulnerability management, security tools, and services.<br>' +
@@ -527,33 +548,33 @@ function cve_info() {
         'Over the years, the CVE system has evolved, embracing new structures to encapsulate more information and adapt ' +
         'to the complexity of cybersecurity landscapes. The initial flat structure has morphed into a more ' +
         'hierarchical model, allowing for better organization and identification of vulnerabilities.<br>' +
-        'Now, why should an average homeowner concern themselves with CVEs? The answer lies in the adoption ' +
+        'Now, why should you concern yourself with CVEs? The answer lies in the adoption ' +
         'of smart home devices and IoT (Internet of Things) technologies. Today\'s home networks are no longer confined ' +
-        'to computers and smartphones. They now encompass a myriad of devices ranging from smart thermostats, ' +
+        'to computers and smartphones. They now encompass a lot of devices ranging from smart thermostats, ' +
         'security cameras, smart TVs, to intelligent refrigerators. Each of these devices, being a node on the network, ' +
         'presents a potential entry point for malicious actors if they harbor vulnerabilities.<br>' +
-        'The relevance of CVEs in home network security is multifold:<br>' +
+        'The relevance of CVEs in home network security is can be summarized into:<br>' +
         '<ol>' +
-        '<li><b>Awareness:</b> By perusing CVE databases, homeowners can become aware of the known vulnerabilities in ' +
-        'the devices they own or intend to purchase. This awareness is the first step towards a secure home network.</li>' +
-        '<li><b>Mitigation:</b> Once aware of the vulnerabilities, homeowners can take steps to mitigate the risks. ' +
+        '<li><b>Awareness:</b> By perusing CVE databases, you can become aware of the known vulnerabilities in ' +
+        'the devices you own or intend to purchase. This awareness is the first step towards a secure home network.</li>' +
+        '<li><b>Mitigation:</b> Once aware of the vulnerabilities, you can take steps to mitigate the risks. ' +
         'This could range from applying patches, changing configurations, or even replacing highly vulnerable devices.</li>' +
         '<li><b>Vendor Accountability:</b> CVEs also serve as a mechanism to hold vendors accountable. A vendor with ' +
         'a long list of CVEs may not be following best security practices in their product development.</li>' +
         '<li><b>Community Support:</b> The CVE system fosters a community where individuals and organizations share ' +
         'information about vulnerabilities in a standardized manner, promoting collective security improvement.</li>' +
-        '<li><b>Informed Purchasing Decisions:</b> Before adding a new device to their network, homeowners can check ' +
-        'the CVE database to understand the security posture of the device, thus making informed purchasing decisions.</li>' +
+        '<li><b>Informed Purchasing Decisions:</b> Before adding a new device to you network, you can check ' +
+        'the CVE database to understand the security risks of the device, thus making informed purchasing decisions.</li>' +
         '</ol>' +
-        'The process of keeping abreast of CVEs has been simplified with the advent of automated tools and platforms ' +
+        'The process of keeping up to date with CVEs has been simplified with the advent of automated tools and platforms ' +
         'that provide real-time updates and even mitigation strategies for known vulnerabilities. Moreover, some ' +
         'platforms offer user-friendly interfaces and are tailored for individuals with no advanced technical knowledge, ' +
-        'thus demystifying the notion that CVEs are the reserve of cybersecurity professionals.<br>' +
+        'thus demystifying the notion that CVEs are the reserve of cybersecurity professionals. (some are listed below)<br>' +
 
         'In conclusion, the CVE system is an invaluable resource in the quest for enhanced cybersecurity in home ' +
         'networks. As smart homes become the norm rather than the exception, embracing a proactive approach towards ' +
         'understanding and mitigating vulnerabilities is imperative for safeguarding personal data and ensuring a ' +
-        'secure and resilient home network environment.' +
+        'secure and resilient network.' +
         '</p>' +
         '<br><br>' +
         '<h4>External Resources:</h4>' +

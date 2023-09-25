@@ -7,6 +7,8 @@ cdir = os.path.dirname(os.path.realpath(__file__))
 
 schedfiles = os.listdir(cdir + '/schedule/')
 
+print(f"cdir {cdir}")
+print(f"schedfile {schedfiles}")
 
 def gethours(f):
     return {
@@ -21,13 +23,27 @@ for i in schedfiles:
     if re.search('^[a-f0-9]{32,32}\.json$', i.strip()) is not None:
         sched = json.loads(open(cdir + '/schedule/' + i, "r").read())
 
+        print(f"sched {sched}")
+
         nextrun = (sched['lastrun'] + gethours(sched['params']['frequency']))
+        print(nextrun)
+
         if nextrun <= time.time():
             sched['number'] = (sched['number'] + 1)
             print("[RUN]   scan:" + sched['params']['filename'] + " id:" + str(sched['number']) + " (nextrun:" + str(
                 nextrun) + " / now:" + str(time.time()) + ")")
 
             sched['lastrun'] = time.time()
+
+            print('nmap ' + sched['params']['params'] + ' --script=' + cdir + '/nse/ -oX /tmp/' + str(
+                sched['number']) + '_' + sched['params']['filename'] + '.active ' + sched['params'][
+                                   'target'] + ' > /dev/null 2>&1 && ' +
+                               'sleep 5 && mv /tmp/' + str(sched['number']) + '_' + sched['params'][
+                                   'filename'] + '.active /opt/xml/webmapsched_' + str(sched['lastrun']) + '_' +
+                               sched['params']['filename'] + ' && ' +
+                               'ls -lart /opt/xml/webmapsched_' + str(sched['lastrun']) + '_' + sched['params'][
+                                   'filename'] + ' && python3 ' + cdir + '/cve.py webmapsched_' + str(
+                sched['lastrun']) + '_' + sched['params']['filename'] + '')
 
             nmapout = os.popen('nmap ' + sched['params']['params'] + ' --script=' + cdir + '/nse/ -oX /tmp/' + str(
                 sched['number']) + '_' + sched['params']['filename'] + '.active ' + sched['params'][

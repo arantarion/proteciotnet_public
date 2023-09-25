@@ -1,14 +1,12 @@
-import base64
-import html
-import urllib.parse
-import os, xmltodict, json, hashlib, re
 from time import sleep
 
 from django.http import HttpResponse
-from django.shortcuts import render
 import subprocess
 import datetime
+import json
 import logging
+
+from django.shortcuts import render
 
 from proteciotnet_dev.functions import *
 
@@ -36,10 +34,9 @@ def _create_yaml_header(filename):
 
     logger.info("Retrieving nmap-formatter version")
     _NMAP_FORMATTER_VERSION = (subprocess.check_output('/opt/nmap_formatter/nmap-formatter --version',
-                                                      shell=True,
-                                                      text=True)
+                                                       shell=True,
+                                                       text=True)
                                .strip().replace("version: ", "v."))
-    # _NMAP_FORMATTER_VERSION = _NMAP_FORMATTER_VERSION.replace("version: ", "v.")
 
     yaml_header = (f'---\n'
                    f'title: "NMAP Scan Result"\n'
@@ -85,7 +82,7 @@ def _append_yaml_header(filename):
 
         logger.info("Successfully added YAML header to file")
 
-    except:
+    except Exception:
         logger.error(f"Could not append YAML header to {_BASE_REPORTS_DIR}{filename}.md")
 
 
@@ -108,24 +105,36 @@ def create_report(request):
     res = {'p': request.POST}
 
     report_type = request.POST['report_type']
+    report_type_orig = report_type
     name = request.POST['filename']
-    # filename_without_ext = name.replace(name.split(".")[-1], "")
     filename_without_ext = name.rsplit('.', 1)[0]
 
     cmd = ""
     convert_to_pdf_cmd = ""
     convert_to_png_cmd = ""
 
+    if os.path.isfile(f"{_BASE_REPORTS_DIR}{filename_without_ext}.{report_type}"):
+        logger.warning(f"file {filename_without_ext}.{report_type} already exists. Deleting it to create anew.")
+        os.remove(f"{_BASE_REPORTS_DIR}{filename_without_ext}.{report_type}")
+    elif report_type == "png" and os.path.isfile(f"{_BASE_REPORTS_DIR}{filename_without_ext}.dot"):
+        logger.warning(f"file {filename_without_ext}.dot already exists. Deleting it to create anew.")
+        os.remove(f"{_BASE_REPORTS_DIR}{filename_without_ext}.dot")
+
+    if report_type == "svg":
+        report_type = "dot"
+
     base_cmd = f'{_NMAP_FORMATTER_BASE_DIR} {report_type} {_XML_BASE_DIR}{name} -f {_BASE_REPORTS_DIR}{filename_without_ext}'.replace("pdf", "md")
 
     if report_type == "pdf":
         cmd = f'{base_cmd}.md &'
         convert_to_pdf_cmd = f'sudo pandoc {_BASE_REPORTS_DIR}{filename_without_ext}.md -o {_BASE_REPORTS_DIR}{filename_without_ext}.pdf --from markdown --template eisvogel &'
-    elif report_type in ["md", "html", "json", "csv"]:
+    elif report_type in ["md", "html", "json", "csv", "dot"] and not report_type_orig == "svg":
         cmd = f'{base_cmd}.{report_type} &'
-    elif report_type == "dot":
+    elif report_type == "sqlite":
+        cmd = f'{_NMAP_FORMATTER_BASE_DIR} {report_type} {_XML_BASE_DIR}{name} --sqlite-dsn {_BASE_REPORTS_DIR}{filename_without_ext}.sqlite &'
+    elif report_type_orig == "svg":
         cmd = f'{base_cmd}.dot &'
-        convert_to_png_cmd = f"sudo dot -Tpng {_BASE_REPORTS_DIR}{filename_without_ext}.dot -o {_BASE_REPORTS_DIR}{filename_without_ext}.png &"
+        convert_to_png_cmd = f"sudo dot -Tsvg {_BASE_REPORTS_DIR}{filename_without_ext}.dot -o {_BASE_REPORTS_DIR}{filename_without_ext}.svg &"
 
     if cmd:
         logger.info(f"Using {cmd} to create file")
@@ -140,26 +149,21 @@ def create_report(request):
 
     if convert_to_png_cmd:
         logger.info(f"Converting to PNG using graphviz")
-        while not os.path.isfile(f"{_BASE_REPORTS_DIR}{filename_without_ext}.dot"):
+        dot_filename = f"{_BASE_REPORTS_DIR}{filename_without_ext}.dot"
+        while not os.path.isfile(dot_filename):
             sleep(1)
+
+        # replace layout engine
+        with open(dot_filename, 'r') as file:
+            file_contents = file.read()
+
+        updated_contents = file_contents.replace('layout=dot', 'layout=circo')
+
+        with open(dot_filename, 'w') as file:
+            file.write(updated_contents)
+
         os.popen(convert_to_png_cmd)
 
-    logger.info("Creation (and conversion) successfull")
+    logger.info("Creation (and conversion) completed successfully")
 
     return HttpResponse(json.dumps(res, indent=4), content_type="application/json")
-
-
-# if report_type == "pdf":
-#     cmd = f'{_NMAP_FORMATTER_BASE_DIR} md {_XML_BASE_DIR}{name} -f {_BASE_REPORTS_DIR}{filename_without_ext}.md &'
-#     convert_to_pdf_cmd = f'sudo pandoc {_BASE_REPORTS_DIR}{filename_without_ext}.md -o {_BASE_REPORTS_DIR}{filename_without_ext}.pdf --from markdown --template eisvogel &'
-# elif report_type == "md":
-#     cmd = f'{_NMAP_FORMATTER_BASE_DIR} md {_XML_BASE_DIR}{name} -f {_BASE_REPORTS_DIR}{filename_without_ext}.md &'
-# elif report_type == "html":
-#     cmd = f'{_NMAP_FORMATTER_BASE_DIR} html {_XML_BASE_DIR}{name} -f {_BASE_REPORTS_DIR}{filename_without_ext}.html &'
-# elif report_type == "json":
-#     cmd = f'{_NMAP_FORMATTER_BASE_DIR} json {_XML_BASE_DIR}{name} --json-pretty=true -f {_BASE_REPORTS_DIR}{filename_without_ext}.json &'
-# elif report_type == "csv":
-#     cmd = f'{_NMAP_FORMATTER_BASE_DIR} csv {_XML_BASE_DIR}{name} -f {_BASE_REPORTS_DIR}{filename_without_ext}.csv &'
-# elif report_type == "dot":
-#     cmd = f'{_NMAP_FORMATTER_BASE_DIR} dot {_XML_BASE_DIR}{name} -f {_BASE_REPORTS_DIR}{filename_without_ext}.dot &'
-#     convert_to_png_cmd = f"sudo dot -Tpng {_BASE_REPORTS_DIR}{filename_without_ext}.dot -o {_BASE_REPORTS_DIR}{filename_without_ext}.png &"

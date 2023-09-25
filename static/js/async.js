@@ -264,15 +264,11 @@ function createReport(filename, filetype) {
     }).done(function (d) {
         let new_filename;
         if (typeof (d['error']) != 'undefined') {
-            swal("Error", "Something went wrong :C", "error");
+            swal("Error", "Something went wrong. The requests was not a POST", "error");
         } else {
-            swal("Started", "Your report is being generated! (Reload the page to see the file selector)", "success");
+            swal("Started", "Your report is being generated and should open automatically. (Reload the page to see the file selector)", "success");
 
             new_filename = filename.split('.').slice(0, -1).join('.');
-
-            if (filetype === "dot") {
-                filetype = "png";
-            }
 
             var checkFileInterval = setInterval(function () {
                 $.get('/static/reports/' + new_filename + '.' + filetype)

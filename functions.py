@@ -23,6 +23,7 @@ _BASE_REPORTS_DIR = f"{_BASE_STATIC_DIRECTORY}/reports/"
 
 logger = logging.getLogger(__name__)
 
+
 def token_check(token):
     return True
 
@@ -737,7 +738,7 @@ def create_file_dropdown(filename):
             dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'pdf')" style="color:#111111">Open PDF report</a></li>"""
 
         if f"{filename_without_extension}.md" in contents_directory:
-            dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'md')" style="color:#111111">Open Markdown report</a></li>"""
+            dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'md')" style="color:#111111">Download Markdown report</a></li>"""
 
         if f"{filename_without_extension}.html" in contents_directory:
             dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'html')" style="color:#111111">Open HTML report</a></li>"""
@@ -746,10 +747,16 @@ def create_file_dropdown(filename):
             dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'json')" style="color:#111111">Open JSON report</a></li>"""
 
         if f"{filename_without_extension}.csv" in contents_directory:
-            dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'csv')" style="color:#111111">Open CSV report</a></li>"""
+            dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'csv')" style="color:#111111">Download CSV report</a></li>"""
 
-        if f"{filename_without_extension}.png" in contents_directory:
-            dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'png')" style="color:#111111">Open image</a></li>"""
+        if f"{filename_without_extension}.svg" in contents_directory:
+            dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'svg')" style="color:#111111">Open image</a></li>"""
+
+        if f"{filename_without_extension}.dot" in contents_directory:
+            dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'dot')" style="color:#111111">Download .dot file</a></li>"""
+
+        if f"{filename_without_extension}.sqlite" in contents_directory:
+            dropdown_html += f"""<li><a href="#" onclick="openReport('{filename}', 'sqlite')" style="color:#111111">Download SQLite database</a></li>"""
 
         dropdown_html += f'</ul><a class="dropdown-trigger" href="#!" data-target="dropdown_{filename}_files" style="color: #ff9800;"><i class="material-icons">file_open</i> Files</a><br><br>'
 
@@ -781,7 +788,8 @@ def set_state(request):
                     os.remove(f"{_BASE_STATIC_DIRECTORY}/offline_mode.lock")
             except:
                 logger.error("Could not delete offline_mode.lock' file")
-                return HttpResponse(json.dumps({'error': 'file deletion problem'}, indent=4), content_type="application/json")
+                return HttpResponse(json.dumps({'error': 'file deletion problem'}, indent=4),
+                                    content_type="application/json")
             logger.info("Successfully changed to online mode")
 
         return HttpResponse(json.dumps(res, indent=4), content_type="application/json")

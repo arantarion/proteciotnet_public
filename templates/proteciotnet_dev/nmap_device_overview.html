@@ -87,8 +87,12 @@
                             JSON file</a></li>
                         <li><a href="#!" onclick="createReport('{{ stats.filename }}', 'csv')" style="color:#111111">Create
                             CSV file</a></li>
-                        <li><a href="#!" onclick="createReport('{{ stats.filename }}', 'dot')" style="color:#111111">Create
+                        <li><a href="#!" onclick="createReport('{{ stats.filename }}', 'svg')" style="color:#111111">Create
                             image</a></li>
+                        <li><a href="#!" onclick="createReport('{{ stats.filename }}', 'dot')" style="color:#111111">Create
+                            .dot file</a></li>
+                        <li><a href="#!" onclick="createReport('{{ stats.filename }}', 'sqlite')" style="color:#111111">Create
+                            SQLite database</a></li>
                     </ul>
                     <a class="dropdown-trigger" href="#!" data-target="dropdown{{ v.pel }}" style="color: #ff9800;"><i
                             class="material-icons">note_add</i> Create Report</a><br><br>

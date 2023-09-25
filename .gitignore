@@ -209,3 +209,5 @@ static/*.pdf
 
 /static/reports/*
 !/static/reports/backgrounds/*
+
+*.sqlite

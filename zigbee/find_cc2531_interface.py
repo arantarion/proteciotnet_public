@@ -27,7 +27,7 @@ def _get_all_usb_devices():
     return devices
 
 
-def _extract_specific_device(devices: list, target_tag: str) -> dict:
+def _extract_specific_device(devices: list, target_tag: str) -> dict or None:
     """
    Extract a specific device from the list of devices based on its tag.
 
@@ -44,7 +44,7 @@ def _extract_specific_device(devices: list, target_tag: str) -> dict:
     return None
 
 
-def _extract_interface_position(device: dict) -> str:
+def _extract_interface_position(device: dict) -> str or None:
     """
     Extract the interface from the device details.
 

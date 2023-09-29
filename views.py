@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render
 
+from proteciotnet_dev.view_zigbee import zigbee
 from proteciotnet_dev.api import label
 from proteciotnet_dev.CVSS_Vectors import Cvss3vector, Cvss2Vector
 from proteciotnet_dev.functions import *
@@ -55,18 +56,36 @@ def about(request):
 
 def setscanfile(request, scanfile):
     xmlfiles = os.listdir('/opt/xml')
-
-    for i in xmlfiles:
-        if i == scanfile:
-            request.session['scanfile'] = i
-            break
+    jsonfiles = os.listdir('/opt/zigbee')
 
     if scanfile == 'unset':
         if 'scanfile' in request.session:
             del (request.session['scanfile'])
 
-    return render(request, 'proteciotnet_dev/nmap_device_overview.html',
-                  {'js': '<script> location.href="/"; </script>'})
+        return render(request, 'proteciotnet_dev/nmap_device_overview.html',
+                      {'js': '<script> location.href="/"; </script>'})
+
+    if ".xml" in scanfile:
+        for i in xmlfiles:
+            if i == scanfile:
+                request.session['scanfile'] = i
+                break
+
+        return render(request, 'proteciotnet_dev/nmap_device_overview.html',
+                      {'js': '<script> location.href="/"; </script>'})
+
+    elif ".json" in scanfile:
+        for i in jsonfiles:
+            if i == scanfile:
+                request.session['scanfile'] = i
+                break
+
+        if scanfile == 'unset':
+            if 'scanfile' in request.session:
+                del (request.session['scanfile'])
+
+        r = zigbee(request)
+        return render(request, 'proteciotnet_dev/zigbee_device_overview.html', r)
 
 
 def port(request, port):
@@ -83,6 +102,7 @@ def details(request, address, sorting='standard'):
 
     if "about" in request.path:
         return render(request, 'proteciotnet_dev/about.html', r)
+
 
     oo = xmltodict.parse(open('/opt/xml/' + request.session['scanfile'], 'r').read())
     r['out2'] = json.dumps(oo['nmaprun'], indent=4)

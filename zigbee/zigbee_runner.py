@@ -141,9 +141,9 @@ def _sniff_traffic(channel, num_packages, dev_name="CC2531 USB Dongle"):
     return _FILENAME
 
 
-def _convert_pcap_to_pdml(in_filename):
-    out_filename = in_filename.split(".")[0] + ".pdml"
-    subprocess.run(["tshark", "-r", f"{_FOLDER_PATH}/{in_filename}", "-T", "pdml"],
+def _convert_pcap(in_filename, output_type):
+    out_filename = in_filename.split(".")[0] + f".{output_type}"
+    subprocess.run(["tshark", "-r", f"{_FOLDER_PATH}/{in_filename}", "-T", output_type],
                    stdout=open(f"{_FOLDER_PATH}/{out_filename}", "w"))
     return out_filename
 
@@ -164,6 +164,6 @@ if __name__ == "__main__":
     # dev = _read_file("/opt/proteciotnet_csv/zigbee_channel_scan_20230913_121020.csv")
     # most_likely_channel = _gen_device_channel_statistics(dev)
     # _sniff_traffic('20', '20')
-    filen = _convert_pcap_to_pdml("zigbee_sniffing_20230914_130123.pcap")
+    filen = _convert_pcap("zigbee_sniffing_20230914_130123.pcap", "json")
     print(filen)
     print(_convert_pdml_to_html(filen))

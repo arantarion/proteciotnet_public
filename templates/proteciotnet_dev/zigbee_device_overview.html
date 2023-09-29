@@ -1,7 +1,7 @@
 {% extends "proteciotnet_dev/main.html" %}
-
+{% load static %}
 {% block content %}
-    {% load static %}
+
 
 <div class="container" style="margin-top:30px;">
 
@@ -20,9 +20,8 @@
                     &nbsp;ZigBee Scan Information
                 </div>
                 <div class="col s12 m4 title-small red-text right">
-                    <a href="#!" onclick="delete_file('{{ stats.filename }}');" class="red-text">
-                        <span class="material-icons" style="font-size: 20px;">scan_delete</span>
-                        Delete File</a>
+                    <a href="#!" onclick="delete_file('{{ filename }}');" class="red-text">
+                        <span class="material-icons" style="font-size: 20px;">scan_delete</span>Delete File</a>
                 </div>
             </div>
 
@@ -31,37 +30,37 @@
                     <table class="custom-table">
                         <tr>
                             <td><b class="orange-text">Filename:</b></td>
-                            <td>{{ info.filename }}</td>
+                            <td>{{ filename }}</td>
 
                             <td><b class="orange-text">Trust Key:</b></td>
-                            <td>{{ info.trust_key }}</td>
+                            <td>{{ trust_key }}</td>
                         </tr>
                         <tr>
                             <td><b class="orange-text">Start Time:</b></td>
-                            <td>{{ info.start_time }}</td>
+                            <td>{{ start_time }}</td>
 
                             <td><b class="orange-text">Transport Key:</b></td>
-                            <td>{{ info.transport_key }}</td>
+                            <td>{{ transport_key }}</td>
                         </tr>
                         <tr>
                             <td><b class="orange-text">Programs Used:</b></td>
-                            <td>{{ info.programs }}</td>
+                            <td>{{ programs }}</td>
 
                             <td><b class="orange-text">Stat 3</b></td>
-                            <td>{{ info.nr_devices }}</td>
+                            <td>{{ nr_devices }}</td>
                         </tr>
                         <tr>
                             <td><b class="orange-text">Sniffer Interface ID:</b></td>
-                            <td>{{ info.sniffer }}</td>
+                            <td>{{ sn_device_id }}</td>
 
-                            <td><b class="orange-text">Channels:</b></td>
-                            <td>{{ info.channels }}</td>
+                            <td><b class="orange-text">Channel:</b></td>
+                            <td>{{ channel }}</td>
                         </tr>
                         <tr>
-                            <td><b class="orange-text">Stat 1:</b></td>
-                            <td>{{ info.info }}</td>
-                            <td><b class="orange-text">Stat 2:</b></td>
-                            <td>{{ info.info }}</td>
+                            <td><b class="orange-text">Sniffing Device:</b></td>
+                            <td>{{ sniffing_device }}</td>
+                            <td><b class="orange-text">End Time: </b></td>
+                            <td>{{ finish_time }}</td>
                         </tr>
                     </table>
                 </div>
@@ -73,14 +72,14 @@
             <div class="col s12 m4 title-small grey-text">Actions</div><br>
 
             <ul id="dropdown{{ v.pel }}" class="dropdown-content" style="min-width:300px; border-radius: 4px;">
-                <li><a href="#" onclick="createReport('{{ info.filename }}', 'pdf')" style="color:#111111">Create
+                <li><a href="#" onclick="createReport('{{ filename }}', 'pdf')" style="color:#111111">Create
                     PDF report</a></li>
                 <li class="divider" tabindex="-1"></li>
-                <li><a href="#!" onclick="createReport('{{ info.filename }}', 'md')" style="color:#111111">Create
+                <li><a href="#!" onclick="createReport('{{ filename }}', 'md')" style="color:#111111">Create
                     Markdown report</a></li>
-                <li><a href="#!" onclick="createReport('{{ info.filename }}', 'html')" style="color:#111111">Create
+                <li><a href="#!" onclick="createReport('{{ filename }}', 'html')" style="color:#111111">Create
                     HTML report</a></li>
-                <li><a href="#!" onclick="createReport('{{ info.filename }}', 'json')" style="color:#111111">Create
+                <li><a href="#!" onclick="createReport('{{ filename }}', 'json')" style="color:#111111">Create
                     JSON file</a></li>
             </ul>
             <a class="dropdown-trigger" href="#!" data-target="dropdown{{ v.pel }}" style="color: #ff9800;"><i
@@ -103,30 +102,42 @@
     <div class="row" style="">
         <div class="col s12 m3" style="padding:1px;">
             <div class="card wmcard" style="text-align:center;padding:6px;"><h4><i
-                    class="fas fa-heartbeat grey-text"></i> <span class="grey-text">{{ info.nr_devices }}</span></h4>
+                    class="fas fa-heartbeat grey-text"></i> <span class="grey-text">{{ nr_devices }}</span></h4>
                 <span class="small grey-text">DEVICES AVAILABLE</span></div>
         </div>
         <div class="col s12 m3" style="padding:1px;">
             <div class="card wmcard" style="text-align:center;padding:6px;"><h4><i
-                    class="fas fa-code-branch grey-text"></i> <span class="grey-text">{{ info.channel }}</span></h4>
+                    class="fas fa-code-branch grey-text"></i> <span class="grey-text">{{ channel }}</span></h4>
                 <span class="small grey-text">SELECTED CHANNEL</span></div>
         </div>
         <div class="col s12 m3" style="padding:1px;">
             <div class="card wmcard" style="text-align:center;padding:6px;"><h4><i
-                    class="fas fa-hashtag grey-text"></i> <span class="grey-text">{{ info.nr_packets }}</span></h4><span
+                    class="fas fa-hashtag grey-text"></i> <span class="grey-text">{{ nr_packets }}</span></h4><span
                     class="small grey-text">PACKETS CAPTURED</span></div>
         </div>
         <div class="col s12 m3" style="padding:1px;">
             <div class="card wmcard" style="text-align:center;padding:6px;"><h4><i
-                    class="fas fa-key grey-text"></i> <span class="grey-text">{{ info.transport_key }}</span></h4>
+                    class="fas fa-key grey-text"></i> <span class="grey-text">{{ nr_transport_key }}</span></h4>
                 <span class="small grey-text">TRANSPORT KEY</span></div>
         </div>
     </div>
 
 {#  The Services etc overview. Not quite sure what to do with it  #}
     <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">
+        <div class="card-title" style="padding: 16px 12px 1px 32px;">Channel Overview</div>
         <div class="card-content">
-            <img src="{% static 'foo.svg' %}" alt="Matplotlib Plot" style="width: 100%; display: block;">
+            {% with "zigbee_reports/"|add:channel_overview_path as static_path %}
+                <img src="{% static static_path %}" alt="Channel Overview with Wifi" style="width: 100%; display: block;">
+            {% endwith %}
+        </div>
+    </div>
+
+    <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">
+        <div class="card-title" style="padding: 16px 12px 1px 32px;">Network Overview</div>
+        <div class="card-content">
+            {% with "zigbee_reports/"|add:network_graph_render_path as static_path %}
+                <img src="{% static static_path %}" alt="Network Overview" style="width: 100%; display: block;">
+            {% endwith %}
         </div>
     </div>
 

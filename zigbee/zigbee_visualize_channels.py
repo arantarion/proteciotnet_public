@@ -2,11 +2,16 @@ import csv
 import datetime
 import os
 import time
+import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import patches
 from matplotlib.path import Path
+
+warnings.filterwarnings('ignore')
+
+_BASE_STATIC_ZIGBEE_DIR = "/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports/"
 
 
 def _read_csv(filename):
@@ -45,7 +50,7 @@ def _get_wifi_channels(wifi_interface):
     os.popen("sudo airmon-ng stop wlan0mon")
 
 
-def create_channel_view(zigbee_channel_capture_filename, wifi_channel_capture_filename, output_filename):
+def create_channel_view(zigbee_channel_capture_filename, wifi_channel_capture_filename, output_filename, selected_channel=None):
     wifi_channels = _count_wifi_channels(_read_csv(wifi_channel_capture_filename))
     zigbee_channels = _count_zigbee_channels(_read_csv(zigbee_channel_capture_filename))
     zigbee_channels = dict(sorted(zigbee_channels.items()))
@@ -86,6 +91,17 @@ def create_channel_view(zigbee_channel_capture_filename, wifi_channel_capture_fi
 
     # Creating Zigbee arcs
     for i in range(11, 27):
+        if selected_channel is not None and i == int(selected_channel):
+            # Add an arrow and text for the selected channel
+            ax.annotate("Your Channel",
+                        xy=(i, zigbee_channels[i]),
+                        xytext=(i, zigbee_channels[i] + 1),
+                        color="#9e9e9e",
+                        fontsize=13,
+                        arrowprops=dict(arrowstyle='->', color="#9e9e9e", linestyle=':', linewidth=2),
+                        zorder=3
+                        )
+
         create_arc(ax_element=ax,
                    start=i - 0.45,
                    end=i + 0.45,
@@ -132,10 +148,12 @@ def create_channel_view(zigbee_channel_capture_filename, wifi_channel_capture_fi
     ax.set_axisbelow(True)
     plt.grid(True, linestyle='--', alpha=0.7, axis='y')
 
-    plt.savefig(f'/home/henry/Downloads/{output_filename}.svg', format="svg", transparent=True)
+    plt.savefig(f'{_BASE_STATIC_ZIGBEE_DIR}{output_filename}_channel.svg', format="svg", transparent=True)
+
+    return f"{output_filename}_channel.svg"
 
 
-create_channel_view("/home/henry/Documents/Masterarbeit/scans_backup/ZigBee/zbstumbler_fake_output.csv",
-                    "/home/henry/Downloads/channel_graph_dev/myairodump-01.csv",
-                    "zigbee_scan_today"
-                    )
+# create_channel_view("/home/henry/Documents/Masterarbeit/scans_backup/ZigBee/zbstumbler_fake_output.csv",
+#                     "/home/henry/Downloads/channel_graph_dev/myairodump-01.csv",
+#                     "zigbee_scan_today"
+#                     )

@@ -1,7 +1,8 @@
 from collections import Counter
-from zigbee.zigbee_helper import _find_reciprocal_pairs, _generate_dot_file, _convert_timezone
+from .zigbee_helper import _find_reciprocal_pairs, _generate_dot_file, _convert_timezone
 
-# path_to_file = '/home/henry/Documents/Masterarbeit/scans_backup/ZigBee/json_files/all_dev.json'
+# import json
+# path_to_file = '/home/henry/Documents/Masterarbeit/scans_backup/ZigBee/json_files/all_devices_active_scan.json'
 #
 # with open(path_to_file, "r", encoding='utf-8') as f:
 #     json_input = json.load(f)
@@ -20,11 +21,11 @@ def item_generator(json_object, lookup_key):
 
 
 def find_trust_key(json_object):
-    return set([x for x in item_generator(json_object, "zbee.sec.key")]) - set(find_transport_keys(json_object))
+    return list(set([x for x in item_generator(json_object, "zbee.sec.key")]) - set(find_transport_keys(json_object)))
 
 
 def find_transport_keys(json_object):
-    return set([x for x in item_generator(json_object, "zbee_aps.cmd.key")])
+    return list(set([x for x in item_generator(json_object, "zbee_aps.cmd.key")]))
 
 
 def find_unique_devices(json_object):
@@ -47,13 +48,20 @@ def count_packages_in_file(json_object):
 
 
 def get_start_time(json_object):
-    time = next(item_generator(json_object[0], "frame.time"), None)
-    return _convert_timezone(time)
+    # Index 1 because 0 is the custom info about scan
+    time = next(item_generator(json_object[1], "frame.time"), None)
+    if time:
+        return _convert_timezone(time)
+    else:
+        return "01.01.1970 - 00:00:00"
 
 
 def get_finish_time(json_object):
     time = next(item_generator(json_object[-1], "frame.time"), None)
-    return _convert_timezone(time)
+    if time:
+        return _convert_timezone(time)
+    else:
+        return "01.01.1970 - 00:00:00"
 
 
 def create_network_graph(json_object, output_filename):

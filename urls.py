@@ -1,5 +1,6 @@
 from django.urls import path
-from . import views, api, pdf, functions_nmap, functions
+
+from . import views, api, pdf, functions_nmap, functions, view_zigbee
 
 
 urlpatterns = [
@@ -23,10 +24,11 @@ urlpatterns = [
     path('api/savenotes/', api.saveNotes, name='genPDF'),
     path('api/rmnotes/<hashstr>/', api.rmNotes, name='api_rmnotes'),
     path('api/<address>/<portid>/', api.port_details, name='api_port'),
-    path('view/login/', views.login, name='login'),
+    # path('view/login/', views.login, name='login'),
     # path('view/pdf/', pdf.report_pdf_view, name='reportPDFView'),
     path('api/v1/create_report', pdf.create_report, name='create_report'),
     path('api/v1/delete_file', api.delete_file, name="delete_file"),
     path('api/v1/bruteforce', api.bruteforce, name="bruteforce"),
     path('about/', views.about, name="about"),
+    path('zigbee/', view_zigbee.zigbee, name="zigbee"),
 ]

@@ -13,16 +13,16 @@
             </div>
             <div class="col s12 m3">
                 <div class="card darken-1">
-                    <div class="card-content white-text" style="background-color: #0a3d91;">
-                        <span class="card-title"><i class="material-icons">bluetooth</i> 0 Bluetooth Scans</span>
+                    <div class="card-content white-text" style="background-color: #ef3453;">
+                        <span class="card-title"><i class="material-icons">sensors</i> {{ stats.zigbee_files_count }} ZigBee Scans </span>
 
                     </div>
                 </div>
             </div>
             <div class="col s12 m3">
                 <div class="card darken-1">
-                    <div class="card-content white-text" style="background-color: #ef3453;">
-                        <span class="card-title"><i class="material-icons">sensors</i> 0 ZigBee Scans </span>
+                    <div class="card-content white-text" style="background-color: #0a3d91;">
+                        <span class="card-title"><i class="material-icons">bluetooth</i> 0 Bluetooth Scans</span>
 
                     </div>
                 </div>
@@ -38,6 +38,7 @@
         </div>
 
         <div class="card wmcard">
+            <div class="card-title" style="padding: 16px 12px 1px 32px;">Wi-Fi Files</div>
             <div class="card-content">
                 <table>
                     <thead>
@@ -74,7 +75,34 @@
                     </tbody>
                 </table>
             </div>
+        </div>
 
+        <br><hr><br>
+
+        <div class="card wmcard">
+            <div class="card-title" style="padding: 16px 12px 1px 32px;">ZigBee Files</div>
+            <div class="card-content">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th class="hide-on-small-only">Timestamp</th>
+                        <th class="hide-on-small-only">Host Count</th>
+                        <th>Channel</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for i,v in zigbee_files.items %}
+                        <tr>
+                            <td><b><a class="blue-text" href="{{ v.zb_href }}">{{ v.zb_filename|safe }}</a></b></td>
+                            <td class="hide-on-small-only">{{ v.zb_startstr }}</td>
+                            <td class="hide-on-small-only">{{ v.zb_hostnum }}</td>
+                            <td class="hide-on-small-only">{{ v.zb_channel }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
 

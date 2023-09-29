@@ -14,6 +14,7 @@ from proteciotnet_dev.view_zigbee import zigbee
 from proteciotnet_dev.api import label
 from proteciotnet_dev.CVSS_Vectors import Cvss3vector, Cvss2Vector
 from proteciotnet_dev.functions import *
+from proteciotnet_dev.zigbee.analyse_json_zigbee_sniff import find_unique_devices, get_start_time
 
 _MEDUSA_SUPPORTED_SERVICES = ['ssh', 'ftp', 'postgresql', 'telnet', 'mysql', 'ms-sql-s', 'rsh',
                               'vnc', 'imap', 'imaps', 'nntp', 'pcanywheredata', 'pop3', 'pop3s',
@@ -578,17 +579,54 @@ def index(request, filterservice="", filterportid=""):
                                      shell=True, text=True).strip()
     r['webmapver'] = gitcmd
 
-    if 'scanfile' in request.session:
+    if 'scanfile' in request.session and not "json" in request.session['scanfile']:
         oo = xmltodict.parse(open('/opt/xml/' + request.session['scanfile'], 'r').read())
         r['out2'] = json.dumps(oo['nmaprun'], indent=4)
         o = json.loads(r['out2'])
     else:
         # no file selected
         xmlfiles = os.listdir('/opt/xml')
+        jsonfiles = os.listdir('/opt/zigbee')
 
         r['tr'] = {}
+        r['zigbee_files'] = {}
         r['stats'] = {'po': 0, 'pc': 0, 'pf': 0}
 
+        zigbee_files_count = 0
+        for j in jsonfiles:
+            if re.search('\.json$', j) is None:
+                continue
+
+            zigbee_files_count += 1
+
+            try:
+                with open(f'/opt/zigbee/{j}', "r", encoding='utf-8') as f:
+                    json_input = json.load(f)
+            except:
+                r['zigbee_files'][j] = {'filename': html.escape(j), 'start': 0, 'startstr': 'Incomplete / Invalid', 'hostnum': 0,
+                              'zb_href': '#!', 'channel': 'None'}
+                continue
+
+            _, zigbee_host_number = find_unique_devices(json_input)
+
+            if zigbee_host_number != '0':
+                view_href = '/setscanfile/' + html.escape(j)
+            else:
+                view_href = '#!'
+
+            zigbee_channel = json_input[0]['sniffing_channel']
+
+            zigbee_ctime = get_start_time(json_input)
+
+            r['zigbee_files'][j] = {
+                'zb_filename': html.escape(j),
+                'zb_startstr': html.escape(zigbee_ctime),
+                'zb_hostnum': zigbee_host_number,
+                'zb_href': view_href,
+                'zb_channel': zigbee_channel
+            }
+
+        # XML FILE
         xmlfilescount = 0
         for i in xmlfiles:
             if re.search('\.xml$', i) is None:
@@ -616,9 +654,9 @@ def index(request, filterservice="", filterportid=""):
                 hostnum = '0'
 
             if hostnum != '0':
-                viewhref = '/setscanfile/' + html.escape(i)
+                view_href = '/setscanfile/' + html.escape(i)
             else:
-                viewhref = '#!'
+                view_href = '#!'
 
             filename = i
             if re.search('^webmapsched\_[0-9\.]+', i):
@@ -637,12 +675,14 @@ def index(request, filterservice="", filterportid=""):
                 'startstr': html.escape(datetime.fromtimestamp(int(o['@start'])).strftime('%A, %d. %B %Y - %H:%M:%S')),
                 # html.escape(o['@startstr']),
                 'hostnum': hostnum,
-                'href': viewhref,
+                'href': view_href,
                 'portstats': portstats
             }
 
         r['tr'] = OrderedDict(sorted(r['tr'].items(), reverse=True))
+        r['zigbee_files'] = OrderedDict(sorted(r['zigbee_files'].items(), reverse=True))
         r['stats']['xmlcount'] = xmlfilescount
+        r['stats']['zigbee_files_count'] = zigbee_files_count
 
         return render(request, 'proteciotnet_dev/nmap_file_overview.html', r)
 

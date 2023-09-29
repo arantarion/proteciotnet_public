@@ -50,7 +50,10 @@ def _get_wifi_channels(wifi_interface):
     os.popen("sudo airmon-ng stop wlan0mon")
 
 
-def create_channel_view(zigbee_channel_capture_filename, wifi_channel_capture_filename, output_filename, selected_channel=None):
+def create_channel_view(zigbee_channel_capture_filename,
+                        wifi_channel_capture_filename,
+                        output_filename,
+                        selected_channel=None):
     wifi_channels = _count_wifi_channels(_read_csv(wifi_channel_capture_filename))
     zigbee_channels = _count_zigbee_channels(_read_csv(zigbee_channel_capture_filename))
     zigbee_channels = dict(sorted(zigbee_channels.items()))

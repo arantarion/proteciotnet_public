@@ -391,6 +391,10 @@ function createReport(filename, filetype) {
     });
 }
 
+function createZigBeeReport(filename, filetype) {
+    console.log("NOT IMPLEMENTED")
+}
+
 function openReport(filename, filetype) {
     let new_filename = filename.split('.').slice(0, -1).join('.');
 

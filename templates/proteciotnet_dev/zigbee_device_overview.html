@@ -70,20 +70,29 @@
         {# Actions panel #}
         <div class="card-action">
             <div class="col s12 m4 title-small grey-text">Actions</div><br>
-
-            <ul id="dropdown{{ v.pel }}" class="dropdown-content" style="min-width:300px; border-radius: 4px;">
-                <li><a href="#" onclick="createReport('{{ filename }}', 'pdf')" style="color:#111111">Create
-                    PDF report</a></li>
-                <li class="divider" tabindex="-1"></li>
-                <li><a href="#!" onclick="createReport('{{ filename }}', 'md')" style="color:#111111">Create
-                    Markdown report</a></li>
-                <li><a href="#!" onclick="createReport('{{ filename }}', 'html')" style="color:#111111">Create
-                    HTML report</a></li>
-                <li><a href="#!" onclick="createReport('{{ filename }}', 'json')" style="color:#111111">Create
-                    JSON file</a></li>
-            </ul>
-            <a class="dropdown-trigger" href="#!" data-target="dropdown{{ v.pel }}" style="color: #ff9800;"><i
-                    class="material-icons">note_add</i> Create Report</a><br><br>
+    
+{#            THINK ABOUT PCAP DOWNLOAD #}
+             <ul id="dropdown_{{ filename }}" class="dropdown-content" style="min-width:300px; border-radius: 4px;">
+                        <li><a href="#" onclick="createZigBeeReport('{{ filename }}', 'html')" style="color:#111111">Create
+                            HTML file</a></li>
+                        <li class="divider" tabindex="-1"></li>
+                        <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'csv')" style="color:#111111">Create
+                            CSV file</a></li>
+                        <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'pcapng')" style="color:#111111">Create
+                            PCAPNG file</a></li>
+                        <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'json')" style="color:#111111">Create
+                            JSON file</a></li>
+                        <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'psml')" style="color:#111111">Create
+                            PSML (XML) file</a></li>
+                        <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'pdml')" style="color:#111111">Create
+                            PDML (XML) file</a></li>
+                        <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'plain')" style="color:#111111">Create
+                            plaintext file</a></li>
+                        <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'c_array')" style="color:#111111">Create
+                            C arrays</a></li>
+                    </ul>
+                    <a class="dropdown-trigger" href="#!" data-target="dropdown_{{ filename }}" style="color: #ff9800;"><i
+                            class="material-icons">note_add</i> Create Report</a><br><br>
 
             {{ file_dropdown | safe }}
 

@@ -597,7 +597,7 @@ def index(request, filterservice="", filterportid=""):
             if re.search('\.json$', j) is None:
                 continue
 
-            zigbee_files_count += 1
+
 
             try:
                 with open(f'/opt/zigbee/{j}', "r", encoding='utf-8') as f:
@@ -607,6 +607,10 @@ def index(request, filterservice="", filterportid=""):
                               'zb_href': '#!', 'channel': 'None'}
                 continue
 
+            if not "scan_info" in json_input[0]:
+                continue
+
+            zigbee_files_count += 1
             _, zigbee_host_number = find_unique_devices(json_input)
 
             if zigbee_host_number != '0':

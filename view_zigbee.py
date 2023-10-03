@@ -62,6 +62,8 @@ def zigbee(request):
     capture_network_graph_path = f"{capture_filename}.dot"
     capture_network_graph_render_path = _convert_dot_to_svg(capture_network_graph_path)
 
+    r['js'] = ''
+
     r['start_time'] = capture_creation_time
     r['filename'] = capture_filename
     r['finish_time'] = capture_finish_time
@@ -79,5 +81,12 @@ def zigbee(request):
     r['channel_overview_path'] = capture_channel_overview_path
     r['network_graph_path'] = capture_network_graph_path
     r['network_graph_render_path'] = capture_network_graph_render_path.split("/")[-1]
+    r['js'] += '<script>' + \
+               '	$(document).ready(function() {' + \
+               '		/* $("#scantitle").html("' + capture_filename + '"); */ ' + \
+               '		$(".dropdown-trigger").dropdown();' + \
+               '		$(".tooltipped").tooltip();' + \
+               '	});' + \
+               '</script>'
 
     return r  # ender(request, 'proteciotnet_dev/zigbee_device_overview.html', r)

@@ -519,7 +519,37 @@ function createReport(filename, filetype) {
 }
 
 function createZigBeeReport(filename, filetype) {
-    console.log("NOT IMPLEMENTED")
+    console.log(filename, filetype);
+    $('#modal1').modal('close');
+    csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
+    $.post('api/v1/create_zigbee_report', {
+        'csrfmiddlewaretoken': csrftoken,
+        'report_type': filetype,
+        'filename': filename
+    }).done(function (d) {
+        let new_filename;
+        if (typeof (d['error']) != 'undefined') {
+            swal("Error", "Something went wrong. The requests was not a POST", "error");
+        } else {
+            swal("Started", "Your report/file is being generated and should open automatically. (Reload the page to see the file selector)", "success");
+
+            new_filename = filename.split('.').slice(0, -1).join('.');
+
+            var checkFileInterval = setInterval(function () {
+                $.get('/static/zigbee_reports/' + new_filename + '.' + filetype)
+                    .done(function () {
+                        console.log("File created")
+                        clearInterval(checkFileInterval); // Stop polling
+                        window.open(`/static/zigbee_reports/${new_filename}.${filetype}`, '_blank');
+                    });
+            }, 3000);
+        }
+    });
+}
+
+function open_zigbee_report(filename, filetype) {
+    let new_filename = filename.split('.').slice(0, -1).join('.');
+    window.open(`/static/zigbee_reports/${new_filename}.${filetype}`, '_blank');
 }
 
 function openReport(filename, filetype) {

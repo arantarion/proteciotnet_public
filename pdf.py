@@ -167,3 +167,17 @@ def create_report(request):
     logger.info("Creation (and conversion) completed successfully")
 
     return HttpResponse(json.dumps(res, indent=4), content_type="application/json")
+
+
+def create_zigbee_report(request):
+    if request.method != "POST":
+        return HttpResponse(json.dumps({'error': 'invalid syntax'}, indent=4), content_type="application/json")
+
+    res = {'p': request.POST}
+
+    report_type = request.POST['report_type']
+    report_type_orig = report_type
+    name = request.POST['filename']
+    filename_without_ext = name.rsplit('.', 1)[0]
+
+    return HttpResponse(json.dumps(res, indent=4), content_type="application/json")

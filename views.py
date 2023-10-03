@@ -86,6 +86,7 @@ def setscanfile(request, scanfile):
                 del (request.session['scanfile'])
 
         r = zigbee(request)
+        # r['js'] = '<script> location.href="/"; </script>'
         return render(request, 'proteciotnet_dev/zigbee_device_overview.html', r)
 
 

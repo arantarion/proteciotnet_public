@@ -28,6 +28,7 @@ urlpatterns = [
     # path('view/login/', views.login, name='login'),
     # path('view/pdf/', pdf.report_pdf_view, name='reportPDFView'),
     path('api/v1/create_report', pdf.create_report, name='create_report'),
+    path('api/v1/create_zigbee_report', pdf.create_zigbee_report, name="zigbee_report"),
     path('api/v1/delete_file', api.delete_file, name="delete_file"),
     path('api/v1/bruteforce', api.bruteforce, name="bruteforce"),
     path('about/', views.about, name="about"),

@@ -1,3 +1,6 @@
+import os
+import tempfile
+import time
 from time import sleep
 
 from django.http import HttpResponse
@@ -5,14 +8,17 @@ import subprocess
 import datetime
 import json
 import logging
+import csv
 
 from django.shortcuts import render
 
 from proteciotnet_dev.functions import *
 
 _BASE_REPORTS_DIR = "/opt/proteciotnet/proteciotnet_dev/static/reports/"
+_BASE_ZIGBEE_REPORTS_DIR = "/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports/"
 _NMAP_FORMATTER_BASE_DIR = "/opt/nmap_formatter/nmap-formatter"
 _XML_BASE_DIR = "/opt/xml/"
+_JSON_BASE_DIR = "/opt/zigbee/"
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +129,8 @@ def create_report(request):
     if report_type == "svg":
         report_type = "dot"
 
-    base_cmd = f'{_NMAP_FORMATTER_BASE_DIR} {report_type} {_XML_BASE_DIR}{name} -f {_BASE_REPORTS_DIR}{filename_without_ext}'.replace("pdf", "md")
+    base_cmd = f'{_NMAP_FORMATTER_BASE_DIR} {report_type} {_XML_BASE_DIR}{name} -f {_BASE_REPORTS_DIR}{filename_without_ext}'.replace(
+        "pdf", "md")
 
     if report_type == "pdf":
         cmd = f'{base_cmd}.md &'
@@ -169,6 +176,42 @@ def create_report(request):
     return HttpResponse(json.dumps(res, indent=4), content_type="application/json")
 
 
+def _prepend_column_from_first_to_second(file1_path, file2_path, output_path):
+    """
+    Prepend the first column from the first CSV file to the rows of the second CSV file.
+
+    Parameters:
+    - file1_path: Path to the first CSV file.
+    - file2_path: Path to the second CSV file.
+    - output_path: Path to the output CSV file.
+    """
+
+    # Read the first column from the first CSV file
+    with open(file1_path, 'r') as f1:
+        reader1 = csv.reader(f1)
+        first_column = ["info"] + [row[0] for row in reader1]
+
+    # Read the second CSV file and prepend the values from the first column
+    with open(file2_path, 'r') as f2, open(output_path, 'w', newline='') as out_file:
+        reader2 = csv.reader(f2)
+        writer = csv.writer(out_file)
+
+        for i, row in enumerate(reader2):
+            if i < len(first_column):  # Ensure we don't go out of bounds
+                writer.writerow([first_column[i]] + row)
+            else:
+                writer.writerow(row)
+
+
+def _create_temp_folder(path):
+    try:
+        os.mkdir(path)
+    except:
+        logger.error(f"Could not create directory at {path}")
+        return HttpResponse(json.dumps({'error': 'Cannot create temporary folder'}, indent=4),
+                            content_type="application/json")
+
+
 def create_zigbee_report(request):
     if request.method != "POST":
         return HttpResponse(json.dumps({'error': 'invalid syntax'}, indent=4), content_type="application/json")
@@ -176,8 +219,51 @@ def create_zigbee_report(request):
     res = {'p': request.POST}
 
     report_type = request.POST['report_type']
-    report_type_orig = report_type
     name = request.POST['filename']
     filename_without_ext = name.rsplit('.', 1)[0]
+
+    convert_command2 = ""
+    tmp_path = f"/tmp/proteciotnet_temp_csv{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+    if report_type == "html":
+        _create_temp_folder(tmp_path)
+        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T pdml > {tmp_path}/tmp.pdml && xsltproc {_JSON_BASE_DIR}pdml2html.xsl {tmp_path}/tmp.pdml > {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.html"
+    elif report_type == "csv":
+        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T fields -E separator=, -E header=y -E quote=d -e frame -e wpan.src16 -e zbee_nwk.src -e wpan.dst16 -e zbee_nwk.dst -e wpan.seq_no -e zbee_nwk.seqno > {tmp_path}/fields.csv"
+        convert_command2 = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap > {tmp_path}/info.csv"
+    elif report_type == "pcapng":
+        _create_temp_folder(tmp_path)
+        convert_command = f"tcpdump -Z root -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -w {tmp_path}/{filename_without_ext}.pcapng && mv {tmp_path}/{filename_without_ext}.pcapng {_BASE_ZIGBEE_REPORTS_DIR}"
+    elif report_type == "pcap":
+        convert_command = f"cp {_JSON_BASE_DIR}{filename_without_ext}.pcap {_BASE_ZIGBEE_REPORTS_DIR}"
+    elif report_type == "psml":
+        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T psml > {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.psml"
+    elif report_type == "pdml":
+        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T pdml > {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.pdml"
+    elif report_type == "plain":
+        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T tabs > {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.txt"
+    elif report_type == "ek":
+        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T ek > {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.ekjson"
+    elif report_type == "json":
+        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T json > {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.json"
+    elif report_type == "ps":
+        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T ps > {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.ps && ps2pdf {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.ps {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.pdf"
+    else:
+        return HttpResponse(json.dumps({'error': 'not a valid filetype'}, indent=4), content_type="application/json")
+
+    if report_type in ["html", "pcapng", "psml", "pdml", "plain", "ek", "ps", "json", "pcap"] and convert_command:
+        logger.info(f"Creating report of type {report_type} with command {convert_command}")
+        os.popen(convert_command)
+    if report_type == "csv" and convert_command and convert_command2:
+        _create_temp_folder(path=tmp_path)
+        logger.info(f"Creating csv report with command {convert_command} and {convert_command2}")
+        os.popen(convert_command)
+        os.popen(convert_command2)
+
+        while not os.path.isfile(f"{tmp_path}/info.csv") and not os.path.isfile(f"{tmp_path}/fields.csv"):
+            time.sleep(1)
+        _prepend_column_from_first_to_second(file1_path=f"{tmp_path}/info.csv",
+                                             file2_path=f"{tmp_path}/fields.csv",
+                                             output_path=f"{_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.csv")
 
     return HttpResponse(json.dumps(res, indent=4), content_type="application/json")

@@ -522,7 +522,9 @@ function createZigBeeReport(filename, filetype) {
     console.log(filename, filetype);
     $('#modal1').modal('close');
     csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
-    $.post('api/v1/create_zigbee_report', {
+    let currentURL = window.location.href;
+    let baseURL = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
+    $.post(baseURL + '/api/v1/create_zigbee_report', {
         'csrfmiddlewaretoken': csrftoken,
         'report_type': filetype,
         'filename': filename
@@ -534,6 +536,12 @@ function createZigBeeReport(filename, filetype) {
             swal("Started", "Your report/file is being generated and should open automatically. (Reload the page to see the file selector)", "success");
 
             new_filename = filename.split('.').slice(0, -1).join('.');
+            if (filetype === "plain") {
+                filetype = "txt";
+            }
+            if (filetype === "ps") {
+                filetype = "pdf";
+            }
 
             var checkFileInterval = setInterval(function () {
                 $.get('/static/zigbee_reports/' + new_filename + '.' + filetype)

@@ -105,7 +105,6 @@ def details(request, address, sorting='standard'):
     if "about" in request.path:
         return render(request, 'proteciotnet_dev/about.html', r)
 
-
     oo = xmltodict.parse(open('/opt/xml/' + request.session['scanfile'], 'r').read())
     r['out2'] = json.dumps(oo['nmaprun'], indent=4)
     o = json.loads(r['out2'])
@@ -597,8 +596,6 @@ def index(request, filterservice="", filterportid=""):
         for j in jsonfiles:
             if re.search('\.json$', j) is None:
                 continue
-
-
 
             try:
                 with open(f'/opt/zigbee/{j}', "r", encoding='utf-8') as f:

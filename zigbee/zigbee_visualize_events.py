@@ -3,7 +3,11 @@ import warnings
 from datetime import datetime
 import matplotlib.dates as mdates
 from matplotlib import pyplot as plt
+import logging
 
+from proteciotnet_dev.zigbee.analyse_json_zigbee_sniff import _get_vendor_from_mac
+
+logging.getLogger('matplotlib.font_manager').disabled = True
 warnings.filterwarnings('ignore')
 
 _BASE_ZIGBEE_DIR = "/opt/zigbee/"
@@ -92,6 +96,9 @@ def find_events_in_sniff(pcap_sniff_filename):
     for label in ax.get_yticklabels():
         label.set_color('#9e9e9e')
 
+    for i in range(len(devices)):
+        devices[i] = f"{_get_vendor_from_mac(devices[i])} /\n {devices[i]}"
+
     ax.set_yticks(range(len(devices)))
     ax.set_yticklabels(devices)
     ax.set_xlabel('Time')
@@ -104,9 +111,6 @@ def find_events_in_sniff(pcap_sniff_filename):
     ax.set_axisbelow(True)
     plt.grid(True, linestyle='--', alpha=0.7, axis='y')
 
-    plt.savefig(f'/home/henry/Downloads/timeline.svg', format="svg", transparent=True)
+    plt.savefig(f'{_BASE_STATIC_ZIGBEE_DIR}{pcap_sniff_filename}_timeline.svg', format="svg", transparent=True)
 
-    #plt.show()
-
-
-find_events_in_sniff("all_devices.json")
+    return f"{pcap_sniff_filename}_timeline.svg"

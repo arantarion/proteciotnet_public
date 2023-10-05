@@ -21,7 +21,7 @@ _MEDUSA_SUPPORTED_SERVICES = ['ssh', 'ftp', 'postgresql', 'telnet', 'mysql', 'ms
                               'exec', 'login', 'microsoft-ds', 'smtp', 'smtps', 'submission',
                               'svn', 'iss-realsecure', 'snmptrap', 'snmp', 'http']
 
-logging_level = logging.DEBUG
+logging_level = logging.WARNING
 main_logger = logging.getLogger()
 main_logger.setLevel(logging_level)
 
@@ -32,7 +32,6 @@ stream_handler.setFormatter(
 
 # Add handler to logger
 main_logger.addHandler(stream_handler)
-
 
 # logger.debug("This is a debug message")
 # logger.info("This is an info message")

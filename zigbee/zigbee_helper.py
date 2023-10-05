@@ -28,8 +28,6 @@ def _generate_dot_file(mapped_set, reciprocal_pairs, file_name):
 
 
 def _convert_timezone(timestamp_str):
-    #dt = datetime.strptime(timestamp_str, '%b %d, %Y %H:%M:%S.%f000 %Z')
-    #formatted_timestamp = dt.strftime('%d.%m.%Y - %H:%M:%S')
     formatted_timestamp = timestamp_str.split(".")[0]
     return formatted_timestamp
 

@@ -8,7 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import patches
 from matplotlib.path import Path
+import logging
 
+logging.getLogger('matplotlib.font_manager').disabled = True
 warnings.filterwarnings('ignore')
 
 _BASE_STATIC_ZIGBEE_DIR = "/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports/"
@@ -154,9 +156,3 @@ def create_channel_view(zigbee_channel_capture_filename,
     plt.savefig(f'{_BASE_STATIC_ZIGBEE_DIR}{output_filename}_channel.svg', format="svg", transparent=True)
 
     return f"{output_filename}_channel.svg"
-
-
-# create_channel_view("/home/henry/Documents/Masterarbeit/scans_backup/ZigBee/zbstumbler_fake_output.csv",
-#                     "/home/henry/Downloads/channel_graph_dev/myairodump-01.csv",
-#                     "zigbee_scan_today"
-#                     )

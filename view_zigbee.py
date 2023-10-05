@@ -1,13 +1,19 @@
 import json
 import os.path
 
+from .zigbee.zigbee_visualize_events import find_events_in_sniff
 from .functions import create_file_dropdown_zigbee
 from .zigbee.analyse_json_zigbee_sniff import *
-from .zigbee.zigbee_helper import _convert_dot_to_svg
 from .zigbee.zigbee_visualize_channels import create_channel_view
 
 _BASE_ZIGBEE_DIR = "/opt/zigbee/"
 _BASE_STATIC_ZIGBEE_DIR = "/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports/"
+
+
+def _convert_dot_to_svg(filepath):
+    if not os.path.exists(f"{_BASE_STATIC_ZIGBEE_DIR}{filepath}.svg"):
+        os.popen(f"sudo dot -Tsvg {_BASE_STATIC_ZIGBEE_DIR}{filepath} -o {_BASE_STATIC_ZIGBEE_DIR}{filepath}.svg")
+    return f"{_BASE_STATIC_ZIGBEE_DIR}{filepath}.svg"
 
 
 def zigbee(request):
@@ -44,21 +50,33 @@ def zigbee(request):
     capture_devices = ""
     _, capture_nr_devices = find_unique_devices(json_input)
 
+    # Todo change to real values -> maybe scan once at startup or something?
+    # Check if channel overview graphic is already created
     if not os.path.isfile(f"{_BASE_STATIC_ZIGBEE_DIR}{capture_filename}_channel.svg"):
         capture_channel_overview_path = create_channel_view(
             "/home/henry/Documents/Masterarbeit/scans_backup/ZigBee/zbstumbler_fake_output.csv",
-            "/home/henry/Downloads/channel_graph_dev/myairodump-01.csv",
+            "/opt/zigbee/myairodump-01.csv",
             f"{capture_filename}", selected_channel=capture_channel
             )
     else:
         capture_channel_overview_path = f"{capture_filename}_channel.svg"
 
-    create_network_graph(json_object=json_input, output_filename=f"{_BASE_STATIC_ZIGBEE_DIR}{capture_filename}.dot")
-    capture_network_graph_path = f"{capture_filename}.dot"
-    capture_network_graph_render_path = _convert_dot_to_svg(capture_network_graph_path)
+    # Check if network overview graphic is already created
+    if not os.path.isfile(f"{_BASE_STATIC_ZIGBEE_DIR}{capture_filename}.dot.svg"):
+        create_network_graph(json_object=json_input, output_filename=f"{_BASE_STATIC_ZIGBEE_DIR}{capture_filename}.dot")
+        capture_network_graph_path = f"{capture_filename}.dot"
+        capture_network_graph_render_path = _convert_dot_to_svg(capture_network_graph_path)
+    else:
+        capture_network_graph_path = f"{capture_filename}.dot"
+        capture_network_graph_render_path = f"{_BASE_STATIC_ZIGBEE_DIR}{capture_filename}.dot.svg"
+
+    # Check if event timeline graphic is already created
+    if not os.path.isfile(f"{_BASE_STATIC_ZIGBEE_DIR}{capture_filename}_timeline.svg"):
+        event_timeline_path = find_events_in_sniff(pcap_sniff_filename=f'{capture_filename}')
+    else:
+        event_timeline_path = f"{capture_filename}_timeline.svg"
 
     r['js'] = ''
-
     r['start_time'] = capture_creation_time
     r['filename'] = capture_filename
     r['finish_time'] = capture_finish_time
@@ -76,7 +94,7 @@ def zigbee(request):
     r['channel_overview_path'] = capture_channel_overview_path
     r['network_graph_path'] = capture_network_graph_path
     r['network_graph_render_path'] = capture_network_graph_render_path.split("/")[-1]
-    r['timeline_path'] = f"timeline.svg"
+    r['timeline_path'] = event_timeline_path
     r['file_dropdown'] = create_file_dropdown_zigbee(capture_filename)
     r['js'] += '<script>' + \
                '	$(document).ready(function() {' + \

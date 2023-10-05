@@ -1,11 +1,42 @@
 from collections import Counter
-from .zigbee_helper import _find_reciprocal_pairs, _generate_dot_file, _convert_timezone
+import logging
+from proteciotnet_dev.static.py.vendor_macs_dict import vendor_mac_lookup_table
 
-# import json
-# path_to_file = '/home/henry/Documents/Masterarbeit/scans_backup/ZigBee/json_files/all_devices_active_scan.json'
-#
-# with open(path_to_file, "r", encoding='utf-8') as f:
-#     json_input = json.load(f)
+logging.getLogger('matplotlib.font_manager').disabled = True
+
+
+def _find_reciprocal_pairs(mapped_set):
+    reciprocal_pairs = set()
+    for pair in mapped_set:
+        if (pair[1], pair[0]) in mapped_set:
+            reciprocal_pairs.add(frozenset(pair))
+    return reciprocal_pairs
+
+
+def _generate_dot_file(mapped_set, reciprocal_pairs, file_name):
+    with open(file_name, 'w') as file:
+        file.write('digraph G {\n')
+        file.write('    bgcolor="transparent";\n')
+        file.write('    node [color="#9e9e9e", fontcolor="#9e9e9e"];\n')
+        file.write('    edge [color="#9e9e9e"];\n')
+        for pair in mapped_set:
+            if frozenset(pair) in reciprocal_pairs:
+                if pair[0] < pair[1]:  # Avoid duplicate bidirectional edges
+                    file.write(f'    "{pair[0]}" -> "{pair[1]}" [dir=both];\n')
+            else:
+                file.write(f'    "{pair[0]}" -> "{pair[1]}";\n')
+        file.write('}\n')
+
+
+def _convert_timezone(timestamp_str):
+    formatted_timestamp = timestamp_str.split(".")[0]
+    return formatted_timestamp
+
+
+def _get_vendor_from_mac(mac_address):
+    mac_prefix = mac_address[:8].upper()
+    vendor = vendor_mac_lookup_table.get(mac_prefix, "")
+    return vendor
 
 
 def item_generator(json_object, lookup_key):
@@ -83,14 +114,17 @@ def create_network_graph(json_object, output_filename):
 
         for i in item_generator(elem, "wpan.src16"):
             source = i
-            mapping_addr16_addr64.update({i: next(item_generator(elem, "wpan.src64"), None)})
+            source64 = next(item_generator(elem, "wpan.src64"), None)
+            mapping_addr16_addr64.update({i: source64})
 
         if source and destination:
             source_dest.add((source, destination))
 
-    mapped_set = {(mapping_addr16_addr64[a], mapping_addr16_addr64[b]) for a, b in source_dest}
+    for k, v in mapping_addr16_addr64.items():
+        source64_vendor = _get_vendor_from_mac(v)
+        if source64_vendor:
+            mapping_addr16_addr64[k] = f"{v} /\n {source64_vendor}"
 
+    mapped_set = {(mapping_addr16_addr64[a], mapping_addr16_addr64[b]) for a, b in source_dest}
     reciprocal_pairs = _find_reciprocal_pairs(mapped_set)
     _generate_dot_file(mapped_set, reciprocal_pairs, output_filename)
-
-    return mapped_set

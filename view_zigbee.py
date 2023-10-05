@@ -1,9 +1,7 @@
-import hashlib
 import json
 import os.path
 
-from django.shortcuts import render
-
+from .functions import create_file_dropdown_zigbee
 from .zigbee.analyse_json_zigbee_sniff import *
 from .zigbee.zigbee_helper import _convert_dot_to_svg
 from .zigbee.zigbee_visualize_channels import create_channel_view
@@ -18,10 +16,7 @@ def zigbee(request):
     with open(f"{_BASE_ZIGBEE_DIR}{request.session['scanfile']}", "r", encoding='utf-8') as f:
         json_input = json.load(f)
 
-    # r['out'] = json.dumps(json_input, indent=4)
-    # o = json.loads(r['out'])
-
-    scanmd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
+    # scanmd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
     # addressmd5 = hashlib.md5(str(address).encode('utf-8')).hexdigest()
 
     capture_filename = request.session['scanfile']
@@ -81,6 +76,8 @@ def zigbee(request):
     r['channel_overview_path'] = capture_channel_overview_path
     r['network_graph_path'] = capture_network_graph_path
     r['network_graph_render_path'] = capture_network_graph_render_path.split("/")[-1]
+    r['timeline_path'] = f"timeline.svg"
+    r['file_dropdown'] = create_file_dropdown_zigbee(capture_filename)
     r['js'] += '<script>' + \
                '	$(document).ready(function() {' + \
                '		/* $("#scantitle").html("' + capture_filename + '"); */ ' + \
@@ -89,4 +86,4 @@ def zigbee(request):
                '	});' + \
                '</script>'
 
-    return r  # ender(request, 'proteciotnet_dev/zigbee_device_overview.html', r)
+    return r

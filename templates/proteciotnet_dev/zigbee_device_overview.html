@@ -74,23 +74,32 @@
 
                 {#            THINK ABOUT PCAP DOWNLOAD #}
                 <ul id="dd_{{ filename }}" class="dropdown-content" style="min-width:300px; border-radius: 4px;">
+                    <li><a href="#" onclick="createZigBeeReport('{{ filename }}', 'pcap')" style="color:#111111">Make
+                        PCAP file available</a></li>
                     <li><a href="#" onclick="createZigBeeReport('{{ filename }}', 'html')" style="color:#111111">Create
                         HTML file</a></li>
+                    <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'ps')" style="color:#111111">Create
+                        PDF file</a></li>
+                    <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'json')" style="color:#111111">Create
+                        JSON file</a></li>
                     <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'csv')" style="color:#111111">Create
                         CSV file</a></li>
+                    <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'plain')" style="color:#111111">Create
+                        text file</a></li>
                     <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'pcapng')" style="color:#111111">Convert to
                         PCAPNG file</a></li>
                     <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'psml')" style="color:#111111">Create
                         PSML (XML) file</a></li>
                     <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'pdml')" style="color:#111111">Create
                         PDML (XML) file</a></li>
-                    <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'plain')" style="color:#111111">Create
-                        text file</a></li>
+                    <li><a href="#!" onclick="createZigBeeReport('{{ filename }}', 'ek')" style="color:#111111">Create
+                        JSON for Elasticsearch</a></li>
+
                 </ul>
                 <a class="dropdown-trigger" href="#!" data-target="dd_{{ filename }}" style="color: #ff9800;"><i
                         class="material-icons">note_add</i> Create Report</a><br><br>
 
-{#                {{ file_dropdown | safe }}#}
+                {{ file_dropdown | safe }}
 
                 <a href="#!" onclick=""
                    style="color: #ff9800; font-size: 10px; display: flex; align-items: center;">
@@ -143,10 +152,20 @@
             <div class="card-title" style="padding: 16px 12px 1px 32px;">Network Overview</div>
             <div class="card-content">
                 {% with "zigbee_reports/"|add:network_graph_render_path as static_path %}
-                    <img src="{% static static_path %}" alt="Network Overview" style="width: 100%; display: block;">
+                    <img src="{% static static_path %}" alt="Network Overview" style="width: 80%; display: block;">
                 {% endwith %}
             </div>
         </div>
+
+        <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">
+            <div class="card-title" style="padding: 16px 12px 1px 32px;">Event Timeline</div>
+            <div class="card-content" style="overflow: scroll;">
+                {% with "zigbee_reports/"|add:timeline_path as static_path %}
+                    <img src="{% static static_path %}" alt="Timeline" style="height: 100%; display: block;">
+                {% endwith %}
+            </div>
+        </div>
+
 
         {{ js | safe }}
 

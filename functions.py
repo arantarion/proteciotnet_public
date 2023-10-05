@@ -20,6 +20,8 @@ _CWE_PATTERN = r"CWE-\d{1,3}"
 _BASE_DIRECTORY = "/opt/proteciotnet/proteciotnet_dev/"
 _BASE_STATIC_DIRECTORY = f"{_BASE_DIRECTORY}static"
 _BASE_REPORTS_DIR = f"{_BASE_STATIC_DIRECTORY}/reports/"
+_BASE_ZIGBEE_REPORTS_DIR = f"/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports"
+_BASE_ZIGBEE_DIR = "/opt/zigbee"
 
 logger = logging.getLogger(__name__)
 
@@ -724,6 +726,50 @@ def parse_config_file(filename: str = 'proteciotnet.config') -> dict:
                 parsed_data[current_section][key.strip()] = value.strip()
 
     return parsed_data
+
+
+def create_file_dropdown_zigbee(filename):
+    contents_directory = os.listdir(_BASE_ZIGBEE_REPORTS_DIR)
+    filename_without_extension = filename.rsplit(".", 1)[0]
+
+    dropdown_html = ''
+    if any(filename_without_extension in local_file for local_file in contents_directory if not local_file.endswith(('.svg', '.dot'))):
+
+        dropdown_html += f'<ul id="dropdown_{filename}_files" class="dropdown-content" style="min-width:300px; border-radius: 4px;">'
+
+        if f"{filename_without_extension}.pcap" in contents_directory:
+            dropdown_html += f"""<li><a href="#" onclick="open_zigbee_report('{filename}', 'pcap')" style="color:#111111">Download PCAP File</a></li>"""
+
+        if f"{filename_without_extension}.json" in contents_directory:
+            dropdown_html += f"""<li><a href="#" onclick="open_zigbee_report('{filename}', 'json')" style="color:#111111">Download JSON File</a></li>"""
+
+        if f"{filename_without_extension}.pdf" in contents_directory:
+            dropdown_html += f"""<li><a href="#" onclick="open_zigbee_report('{filename}', 'pdf')" style="color:#111111">Open PDF File</a></li>"""
+
+        if f"{filename_without_extension}.html" in contents_directory:
+            dropdown_html += f"""<li><a href="#" onclick="open_zigbee_report('{filename}', 'html')" style="color:#111111">Open HTML File</a></li>"""
+
+        if f"{filename_without_extension}.csv" in contents_directory:
+            dropdown_html += f"""<li><a href="#" onclick="open_zigbee_report('{filename}', 'csv')" style="color:#111111">Download CSV File</a></li>"""
+
+        if f"{filename_without_extension}.txt" in contents_directory:
+            dropdown_html += f"""<li><a href="#" onclick="open_zigbee_report('{filename}', 'txt')" style="color:#111111">Open Text File</a></li>"""
+
+        if f"{filename_without_extension}.pcapng" in contents_directory:
+            dropdown_html += f"""<li><a href="#" onclick="open_zigbee_report('{filename}', 'pcapng')" style="color:#111111">Download PCAPNG File</a></li>"""
+
+        if f"{filename_without_extension}.psml" in contents_directory:
+            dropdown_html += f"""<li><a href="#" onclick="open_zigbee_report('{filename}', 'psml')" style="color:#111111">Download PSML File</a></li>"""
+
+        if f"{filename_without_extension}.pdml" in contents_directory:
+            dropdown_html += f"""<li><a href="#" onclick="open_zigbee_report('{filename}', 'pdml')" style="color:#111111">Download PDML file</a></li>"""
+
+        if f"{filename_without_extension}.ekjson" in contents_directory:
+            dropdown_html += f"""<li><a href="#" onclick="open_zigbee_report('{filename}', 'ekjson')" style="color:#111111">Download JSON File for Elasticsearch</a></li>"""
+
+        dropdown_html += f'</ul><a class="dropdown-trigger" href="#!" data-target="dropdown_{filename}_files" style="color: #ff9800;"><i class="material-icons">file_open</i> Files</a><br><br>'
+
+    return dropdown_html
 
 
 def create_file_dropdown(filename):

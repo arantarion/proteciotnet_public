@@ -1,8 +1,5 @@
 from collections import Counter
-import logging
 from proteciotnet_dev.static.py.vendor_macs_dict import vendor_mac_lookup_table
-
-logging.getLogger('matplotlib.font_manager').disabled = True
 
 
 def _find_reciprocal_pairs(mapped_set):

@@ -2,16 +2,12 @@ import csv
 import datetime
 import os
 import time
-import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import patches
 from matplotlib.path import Path
-import logging
 
-logging.getLogger('matplotlib.font_manager').disabled = True
-warnings.filterwarnings('ignore')
 
 _BASE_STATIC_ZIGBEE_DIR = "/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports/"
 
@@ -68,14 +64,12 @@ def create_channel_view(zigbee_channel_capture_filename,
               }
     plt.rcParams.update(params)
 
-    # Create figure and axis
     fig, ax = plt.subplots(figsize=(16, 10))
 
     # draw invisible bar chart to later lay over arcs
     ax.bar(zigbee_channels.keys(), zigbee_channels.values(), width=0.4, label='Zigbee', color='none', linewidth=2,
            capsize=2)
 
-    # Function to create the arcs
     def create_arc(ax_element, start, end, height, color, channel_desc, order, opacity=0.4):
         width = end - start
         center_x = (start + end) / 2
@@ -94,7 +88,6 @@ def create_channel_view(zigbee_channel_capture_filename,
                                 arrowprops=dict(arrowstyle='-', color="#9e9e9e", linestyle=':', linewidth=2),
                                 )
 
-    # Creating Zigbee arcs
     for i in range(11, 27):
         if selected_channel is not None and i == int(selected_channel):
             # Add an arrow and text for the selected channel
@@ -116,7 +109,6 @@ def create_channel_view(zigbee_channel_capture_filename,
                    order=2,
                    opacity=0.6)
 
-    # Creating Wi-Fi arcs
     create_arc(ax_element=ax,
                start=11 - 0.45,
                end=14 + 0.45,
@@ -139,7 +131,6 @@ def create_channel_view(zigbee_channel_capture_filename,
                channel_desc='WiFi Channel 11 (2462MHz)',
                order=1)
 
-    # Set label etc
     ax.set_xlabel('Channel (MHz)', fontsize=14)
     ax.set_ylabel('Number of Devices', fontsize=14)
     ax.set_xticks(list(zigbee_channels.keys()))

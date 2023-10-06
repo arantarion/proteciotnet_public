@@ -1,29 +1,25 @@
 import json
-import warnings
 from datetime import datetime
 import matplotlib.dates as mdates
 from matplotlib import pyplot as plt
-import logging
 
 from proteciotnet_dev.zigbee.analyse_json_zigbee_sniff import _get_vendor_from_mac
 
-logging.getLogger('matplotlib.font_manager').disabled = True
-warnings.filterwarnings('ignore')
 
 _BASE_ZIGBEE_DIR = "/opt/zigbee/"
 _BASE_STATIC_ZIGBEE_DIR = "/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports/"
 
 
-def item_generator(json_object, lookup_key):
+def find_value_from_key_in_json(json_object, lookup_key):
     if isinstance(json_object, dict):
         for key, value in json_object.items():
             if key == lookup_key:
                 yield value
             else:
-                yield from item_generator(value, lookup_key)
+                yield from find_value_from_key_in_json(value, lookup_key)
     elif isinstance(json_object, list):
         for item in json_object:
-            yield from item_generator(item, lookup_key)
+            yield from find_value_from_key_in_json(item, lookup_key)
 
 
 def parse_datetime(date_string):
@@ -39,15 +35,12 @@ def find_events_in_sniff(pcap_sniff_filename):
     with open(f"{_BASE_ZIGBEE_DIR}{pcap_sniff_filename}", "r", encoding='utf-8') as f:
         json_input = json.load(f)
 
-    # DATA = zbee_nwk.frame_type ==  "0x0000"
-    # COMMAND = zbee_nwk.frame_type ==  "0x0001"
-
     timeline = {}
-    for device in item_generator(json_input, "layers"):
-        zbee_nwk_frame_type = next(item_generator(device, "zbee_nwk.frame_type"), "")
+    for device in find_value_from_key_in_json(json_input, "layers"):
+        zbee_nwk_frame_type = next(find_value_from_key_in_json(device, "zbee_nwk.frame_type"), "")
         if zbee_nwk_frame_type == "0x0000":
-            frame_time = next(item_generator(device, "frame.time"), "")
-            zbee_nwk_src64 = next(item_generator(device, "zbee_nwk.src64"), "")
+            frame_time = next(find_value_from_key_in_json(device, "frame.time"), "")
+            zbee_nwk_src64 = next(find_value_from_key_in_json(device, "zbee_nwk.src64"), "")
 
             if zbee_nwk_src64 in timeline:
                 timeline[zbee_nwk_src64].append(frame_time)

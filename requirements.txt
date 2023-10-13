@@ -9,3 +9,4 @@ pexpect
 tqdm
 matplotlib
 numpy
+bluepy

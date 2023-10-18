@@ -7,7 +7,7 @@ from time import sleep
 from bluepy import btle
 from bluepy.btle import Peripheral, UUID, Scanner, DefaultDelegate, BTLEDisconnectError
 
-from ble_appearance_dict import BLE_APPEARANCE
+from proteciotnet_dev.bluetooth_le.ble_appearance_dict import BLE_APPEARANCE
 
 BT_INTERFACE_INDEX = 0
 BT_SCAN_TIME = 2
@@ -23,6 +23,7 @@ class BLEDescriptor:
     """
     Represents a Bluetooth Low Energy (BLE) Descriptor.
     """
+
     def __init__(self, uuid: str, handle: int) -> None:
         """
         Initialize a BLEDescriptor object.
@@ -77,6 +78,7 @@ class BLECharacteristic:
     """
     Represents a Bluetooth Low Energy (BLE) Characteristic.
     """
+
     def __init__(self, uuid: str, handle: int, permissions: str, value: bytearray = None,
                  special_service: bool = False) -> None:
         """
@@ -193,6 +195,7 @@ class BLEService:
     """
     Represents a Bluetooth Low Energy (BLE) Service.
     """
+
     def __init__(self, uuid: str) -> None:
         """
         Initialize a BLEService object.
@@ -250,6 +253,7 @@ class BLEDevice:
     """
     Represents a Bluetooth Low Energy (BLE) Device.
     """
+
     def __init__(self, address: str, addr_type: str, rssi: str) -> None:
         """
         Initialize a BLEDevice object.
@@ -315,6 +319,7 @@ class ScanDelegate(DefaultDelegate):
     """
     Delegate class for handling BLE device discovery during scanning. Specified in the BluePy documentation.
     """
+
     def __init__(self):
         DefaultDelegate.__init__(self)
 
@@ -345,6 +350,7 @@ class NotificationDelegate(DefaultDelegate):
     """
     Delegate class for handling BLE notifications. Specified in the BluePy documentation.
     """
+
     def __init__(self, params):
         DefaultDelegate.__init__(self)
 
@@ -522,6 +528,21 @@ class BLEScanner:
         logger.info(f"[*] File created successfully")
 
 
+def scan_continuous(filename):
+    logger.info("[*] Starting Script continuously. Initializing Scanner Object")
+    scanner = BLEScanner()
+    try:
+        scanner.scan()
+    except KeyboardInterrupt:
+        logger.info("[*] ")
+    except Exception:
+        logger.error(f"[-] An error occurred while scanning devices")
+        pass
+
+    if scanner.successful_scans > 0:
+        scanner.save_to_json(filename=filename)
+
+
 # ---------------------------------------------------------------------------------------------------------------------#
 
 def scan_all_devices_and_read_all_fields(filename: str, with_descriptors: bool = False) -> None:
@@ -552,11 +573,15 @@ def scan_all_devices_and_read_all_fields(filename: str, with_descriptors: bool =
         except Exception:
             logger.error(f"[-] An error occurred while scanning devices")
             pass
+    except KeyboardInterrupt:
+        pass
 
     # ---------------- READING ALL ATTRIBUTES ---------------- #
 
     for address, device in scanner1.scanned_devices.items():
+        print(address, device)
         if device.connectable:
+            print("done")
             try:
                 logger.info(f"[*] Connecting to {device.address} ({device.name})...")
                 scanner1.connect_and_read_all(addr=address,

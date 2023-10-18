@@ -126,8 +126,6 @@ def getCVE(request):
 
     if request.method == "POST":
         scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
-        print(scanfilemd5)
-
         logger.info("Trying to retrieve CVE entries")
 
         if "offline_mode.lock" in os.listdir(_BASE_STATIC_DIRECTORY):

@@ -5,7 +5,6 @@ var navbarvisible = false;
 
 $(document).ready(function () {
     // doc ready
-
     $(document).scroll(function () {
         // console.log($(this).scrollTop());
         if ($(this).scrollTop() > 10) {
@@ -91,6 +90,7 @@ $(document).ready(function () {
 
 });
 
+
 function checkActiveScan() {
     $.get('/api/v1/nmap/scan/active').done(function (d) {
         // console.log(d);
@@ -166,24 +166,334 @@ function checkActiveScan() {
 
 function new_bl_scan() {
     $('#modaltitle').html('<i class="material-icons">bluetooth</i> New Bluetooth Scan');
-    $('#modalbody').html('' +
-        '<div class="input-field">' +
-        '	<div class="small">' +
-        '		<div style="padding:20px;">' +
-        '<p style="font-size: medium;">' +
-        'Bluetooth is a widely adopted wireless communication standard designed for short-range data exchange ' +
-        'between devices. Initially developed for replacing wired connections, it supports a broad range of ' +
-        'applications, from audio streaming to file transfers. Bluetooth Low Energy (BLE), introduced as part ' +
-        'of the Bluetooth 4.0 specification, is a power-optimized variant that is particularly suitable for ' +
-        'applications requiring minimal energy consumption and periodic short bursts of data transmission.' +
-        'The usage of BLE include fitness trackers measuring your heart rate, smart home sensors, and ' +
-        'location-based beacon systems, all operating with extended battery life.' +
-        '</p>' +
-        '<br>'
-    );
-    $('#modalfooter').html('<button onclick="" class="btn green">Start</button>');
+    $('#modalbody').html(`
+    <div class="input-field">
+        <div class="small">
+            <p style="font-size: medium;">
+                Bluetooth is a widely adopted wireless communication standard designed for short-range data exchange 
+                between devices. Initially developed for replacing wired connections, it supports a broad range of 
+                applications, from audio streaming to file transfers. Bluetooth Low Energy (BLE), introduced as part 
+                of the Bluetooth 4.0 specification, is a power-optimized variant that is particularly suitable for 
+                applications requiring minimal energy consumption and periodic short bursts of data transmission. 
+                The usage of BLE includes fitness trackers measuring your heart rate, smart home sensors, and 
+                location-based beacon systems, all operating with extended battery life.
+            </p>
+            <br>
+            <hr>
+            <h5>Scan Options</h5>
+            <table style="border-collapse: collapse; width: 75%; max-width: 850px;">
+                <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_filename">Output Filename:<sup>*</sup></label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <input placeholder="e.g. my_ble_scan (without file extension)" 
+                                id="ble_filename" 
+                                type="text" 
+                                class="validate" 
+                                required 
+                                title="Please provide a fitting filename without a file extension">
+                    </td>
+                </tr>
+                <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_scan_time">Time (in seconds) or continuous<sup>*</sup></label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <input placeholder="e.g. 60 / 99999 (for long)" 
+                                id="ble_scan_time" 
+                                type="number" 
+                                class="validate" 
+                                min="1" 
+                                title="Please provide the length of time you want to scan for devices (min. 1)">
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <div class="switch">
+                            <label>Off<input id="ble_continuous_switch" name="ble_continuous_mode" type="checkbox"><span class="lever"></span>On</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_list_only_text">Only list devices:</label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <div class="switch">
+                            <label>Off<input id="ble_list_only_switch" name="ble_listmode" type="checkbox"><span class="lever"></span>On</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_connectable_only_text">Connectable only:</label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <div class="switch">
+                            <label>Off<input id="ble_connectable_only_switch" name="ble_connectable_mode" type="checkbox"><span class="lever"></span>On</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_beacons_only_text">Beacons (e.g. AirTags) only:</label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <div class="switch">
+                            <label>Off<input id="ble_beacons_only_switch" name="ble_beacons_mode" type="checkbox"><span class="lever"></span>On</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_bonding_test_text">Test Bonding Modes:</label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <div class="switch">
+                            <label>Off<input id="ble_bonding_test_switch" name="ble_bonding_test_mode" type="checkbox"><span class="lever"></span>On</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_schedule">Schedule:</label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <div class="switch">
+                            <label>Off<input id="ble_schedule" name="ble_schedule" type="checkbox"><span class="lever"></span>On</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_scan_frequency">Frequency:</label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <select id="ble_scan_frequency" name="ble_frequency">
+                            <option value="10min">10 Minutes</option>
+                            <option value="1h">Hourly</option>
+                            <option value="1d">Daily</option>
+                            <option value="1w">Weekly</option>
+                            <option value="1m">Monthly</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <h6>Advanced Options</h6>
+            <table style="border-collapse: collapse; width: 72%; max-width: 820px;">
+                <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_interface_nr">(opt.) Interface Nr.</label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <input placeholder="e.g. 0 (for hci0) / 1 (hci1)" id="ble_interface_nr" type="number" class="validate" min="0" title="Enter an ID for an HCI interface. 0 for HCI0, 1 for HCI1 etc.">
+                    </td>
+                </tr>
+                <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_specific_device">(opt.) Device Address</label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <input placeholder="e.g. 7E:B5:C1:97:E4:C9" id="ble_specific_device" type="text" class="validate" title="Please enter a valid MAC address (e.g., 7E:B5:C1:97:E4:C9)">
+                    </td>
+                </tr>
+            </table>
+            <br><br>
+            <hr>
+            <h5>Sniffing Options</h5>
+            <table style="border-collapse: collapse; width: 70%; max-width: 800px;">
+                <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_sniff_filename">Output Filename:<sup>*</sup></label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <input placeholder="e.g. my_ble_sniff (please omit the file extension)" id="ble_sniff_filename" type="text" class="validate" required title="Please provide a fitting filename without a file exptension">
+                    </td>
+                </tr>
+                <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_ltk">(opt.) LTK:</label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <input placeholder="e.g. 0164310ef9525180aaff9fc1460636a7" id="ble_ltk" type="text" class="validate" minlength="32" maxlength="32" title="Please enter a valid LTK for the decryption. They can be obtained via the tool Crackle">
+                    </td>
+                </tr>
+                <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_decrypt_packages">Decrypt traffic:</label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <div class="switch">
+                            <label>Off<input id="ble_decrypt_packages_switch" name="ble_decrypt_packages_mode" type="checkbox"><span class="lever"></span>On</label>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <br><br>
+            <hr>
+            <h5>Send Command / Subscribe to Characteristic</h5>
+            <table style="border-collapse: collapse; width: 70%; max-width: 800px;">
+                <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_send_dev_addr">Device Address:<sup>*</sup></label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <input placeholder="e.g. 7E:B5:C1:97:E4:C9" id="ble_send_dev_addr" type="text" class="validate" required title="Please enter a valid device address (e.g., 7E:B5:C1:97:E4:C9)">
+                    </td>
+                </tr>
+                <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_chara">Characteristic:</label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <input placeholder="e.g. 0000fff3-0000-1000-8000-00805f9b34fb (or fff3)" id="ble_chara" type="text" class="validate" minlength="4" title="Please provide either the short or long address for the characteristic">
+                    </td>
+                </tr>
+               <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_value">Value:</label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <input placeholder="e.g. use-case specific" id="ble_value" type="text" class="validate" title="Please provide the value that you want to send to the characteristic">
+                    </td>
+                </tr>
+               <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_subscribe_chara">Subscribe:</label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <div class="switch">
+                            <label>Off<input id="ble_subscribe_chara_switch" name="ble_subscribe_chara_mode" type="checkbox"><span class="lever"></span>On</label>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    `);
+    $('#ble_beacons_only_switch').change(function () {
+        if ($(this).is(':checked')) {
+            $('#ble_list_only_switch').prop('checked', true);
+            $('#ble_bonding_test_switch').prop('checked', false);
+            $('#ble_connectable_only_switch').prop('checked', false);
+        }
+    });
+
+    $('#ble_connectable_only_switch').change(function () {
+        if ($(this).is(':checked')) {
+            $('#ble_beacons_only_switch').prop('checked', false);
+        }
+    });
+
+    $('#ble_continuous_switch').change(function () {
+        if ($(this).is(':checked')) {
+            $('#ble_scan_time').prop('disabled', true);
+        } else {
+            $('#ble_scan_time').prop('disabled', false);
+        }
+    });
+
+    $('#ble_bonding_test_switch').change(function () {
+        if ($(this).is(':checked')) {
+            $('#ble_beacons_only_switch').prop('checked', false);
+        }
+    });
+
+    $('#modalfooter').html('<button id="ble_start_button" onclick="start_ble_scan()" class="btn green">Start</button>');
     $('#modal1').modal('open');
     $('select').formSelect();
+}
+
+
+
+
+function start_ble_scan() {
+    $('#modal1').modal('close');
+    const csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
+
+    // Extract Scan Options
+    const bleFilename = $('#ble_filename').val();
+    const bleScanTime = $('#ble_scan_time').val();
+    const bleContScan = $('#ble_continuous_switch').is(':checked');
+    const bleListOnly = $('#ble_list_only_switch').is(':checked');
+    const bleConnectableOnly = $('#ble_connectable_only_switch').is(':checked');
+    const bleBeaconsOnly = $('#ble_beacons_only_switch').is(':checked');
+    const bleBondingTest = $('#ble_bonding_test_switch').is(':checked');
+    const bleSchedule = $('#ble_schedule').is(':checked');
+    const frequency = $('#ble_scan_frequency').val();
+
+    // Extract advanced options
+    const bleInterfaceNr = $('#ble_interface_nr').val();
+    const bleSpecificDevice = $('#ble_specific_device').val();
+
+    // Extract Sniffing Options
+    const bleSniffFilename = $('#ble_sniff_filename').val();
+    const bleLTK = $('#ble_ltk').val();
+    const bleDecryptPackages = $('#ble_decrypt_packages_switch').is(':checked');
+
+    // Extract Send Command / Subscribe to Characteristics Parameters
+    const bleSendDevAddr = $('#ble_send_dev_addr').val();
+    const bleChara = $('#ble_chara').val();
+    const bleValue = $('#ble_value').val();
+    const bleSubscribeChara = $('#ble_subscribe_chara_switch').is(':checked');
+
+    const postData = {
+        'csrfmiddlewaretoken': csrftoken,
+        'ble_filename': bleFilename,
+        'ble_scan_time': bleScanTime,
+        'ble_cont_scan': bleContScan,
+        'ble_list_only': bleListOnly,
+        'ble_connectable_only': bleConnectableOnly,
+        'ble_beaconsOnly': bleBeaconsOnly,
+        'ble_bondingTest': bleBondingTest,
+        'ble_schedule': bleSchedule,
+        'ble_frequency': frequency,
+        'ble_interface_nr': bleInterfaceNr,
+        'ble_specific_device': bleSpecificDevice,
+        'ble_sniff_filename': bleSniffFilename,
+        'ble_ltk': bleLTK,
+        'ble_decrypt_packages': bleDecryptPackages,
+        'ble_send_dev_addr': bleSendDevAddr,
+        'ble_chara': bleChara,
+        'ble_value': bleValue,
+        'ble_subscribe_chara': bleSubscribeChara,
+    };
+
+    console.log('csrftoken:', csrftoken);
+    console.log('bleFilename:', bleFilename);
+    console.log('bleScanTime:', bleScanTime);
+    console.log('bleContScan:', bleContScan);
+    console.log('bleListOnly:', bleListOnly);
+    console.log('bleConnectableOnly:', bleConnectableOnly);
+    console.log('bleBeaconsOnly:', bleBeaconsOnly);
+    console.log('bleBondingTest:', bleBondingTest);
+    console.log('bleSchedule:', bleSchedule);
+    console.log('frequency:', frequency);
+    console.log('bleInterfaceNr:', bleInterfaceNr);
+    console.log('bleSpecificDevice:', bleSpecificDevice);
+    console.log('bleSniffFilename:', bleSniffFilename);
+    console.log('bleLTK:', bleLTK);
+    console.log('bleDecryptPackages:', bleDecryptPackages);
+    console.log('bleSendDevAddr:', bleSendDevAddr);
+    console.log('bleChara:', bleChara);
+    console.log('bleValue:', bleValue);
+    console.log('bleSubscribeChara:', bleSubscribeChara);
+
+    if (!bleFilename || !bleSniffFilename) {
+        swal("Error", "Please supply a filename at least...", "error");
+    }
+    else if (!bleFilename && !bleSniffFilename && !bleSendDevAddr) {
+        swal("Error", "Please supply a device address at least...", "error");
+    }
+
+    $.post('/api/v1/ble/scan/new', postData).done(function (d) {
+        if ((typeof (d['error']) != 'undefined') && (d['error'] === "incomplete parameters")) {
+            swal("Error", "Please provide a valid filename.", "error");
+        } else if (typeof (d['error']) != 'undefined') {
+            swal("Error", "Invalid syntax or something else went wrong!", "error");
+        } else {
+            swal("Started", "Your Bluetooth Low Energy scan is running. This can take some time.", "success");
+        }
+    });
 }
 
 

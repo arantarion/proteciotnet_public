@@ -26,8 +26,8 @@ NAME_MAP = {
     "snmptrap": "snmp"
 }
 
-_USERLIST_BASE_LOCATION = "/home/henry/Downloads/wordlist/"
-_PASSWORDLIST_BASE_LOCATION = "/home/henry/Downloads/wordlist/"
+_USERLIST_BASE_LOCATION = "/opt/proteciotnet/proteciotnet_dev/bruteforce_attacks/wordlist/"
+_PASSWORDLIST_BASE_LOCATION = "/opt/proteciotnet/proteciotnet_dev/bruteforce_attacks/wordlist/"
 _OUTPUT_DIRECTORY = "/home/henry/Downloads/protec_medusa_logs/"
 _XML_STANDARD_DIR = "/opt/xml/"
 
@@ -101,8 +101,8 @@ Syntax: Medusa [-h host|-H file] [-u username|-U file] [-p password|-P file] [-C
 """
 
 def _brute(service, port, filename, output, single_host=""):
-    userlist = f'{_USERLIST_BASE_LOCATION}{service}/user2'
-    passlist = f'{_PASSWORDLIST_BASE_LOCATION}{service}/password2'
+    userlist = f'{_USERLIST_BASE_LOCATION}{service}/user'
+    passlist = f'{_PASSWORDLIST_BASE_LOCATION}{service}/password'
     output_file = f'{output}/{port}-{service}-success.txt'
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     logfile_name = f'{_OUTPUT_DIRECTORY}{timestamp}_proteciotnet_medusa.log'

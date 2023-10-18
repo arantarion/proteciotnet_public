@@ -1,7 +1,6 @@
 from collections import Counter
 from proteciotnet_dev.static.py.vendor_macs_dict import vendor_mac_lookup_table
 
-
 def _find_reciprocal_pairs(mapped_set):
     reciprocal_pairs = set()
     for pair in mapped_set:
@@ -31,9 +30,12 @@ def _convert_timezone(timestamp_str):
 
 
 def _get_vendor_from_mac(mac_address):
-    mac_prefix = mac_address[:8].upper()
-    vendor = vendor_mac_lookup_table.get(mac_prefix, "")
-    return vendor
+    try:
+        mac_prefix = mac_address[:8].upper()
+        vendor = vendor_mac_lookup_table.get(mac_prefix, "")
+        return vendor
+    except Exception:
+        return ""
 
 
 def item_generator(json_object, lookup_key):
@@ -111,7 +113,7 @@ def create_network_graph(json_object, output_filename):
 
         for i in item_generator(elem, "wpan.src16"):
             source = i
-            source64 = next(item_generator(elem, "wpan.src64"), None)
+            source64 = next(item_generator(elem, "wpan.src64"), "")
             mapping_addr16_addr64.update({i: source64})
 
         if source and destination:
@@ -121,6 +123,16 @@ def create_network_graph(json_object, output_filename):
         source64_vendor = _get_vendor_from_mac(v)
         if source64_vendor:
             mapping_addr16_addr64[k] = f"{v} /\n {source64_vendor}"
+
+    addr16_list = []
+    for tpl in source_dest:
+        addr16_list.extend(tpl)
+    addr16_list = list(set(addr16_list))
+
+    mapping_addr16_addr64_keys = mapping_addr16_addr64.keys()
+    for key in addr16_list:
+        if key not in mapping_addr16_addr64_keys:
+            mapping_addr16_addr64.update({key: ""})
 
     mapped_set = {(mapping_addr16_addr64[a], mapping_addr16_addr64[b]) for a, b in source_dest}
     reciprocal_pairs = _find_reciprocal_pairs(mapped_set)

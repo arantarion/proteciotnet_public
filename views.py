@@ -2,6 +2,7 @@ import base64
 import subprocess
 import logging
 import colorlog
+import ijson
 import urllib.parse
 from collections import OrderedDict
 from datetime import datetime
@@ -33,6 +34,7 @@ stream_handler.setFormatter(
 # Add handler to logger
 main_logger.addHandler(stream_handler)
 
+
 # logger.debug("This is a debug message")
 # logger.info("This is an info message")
 # logger.warning("This is a warning message")
@@ -62,7 +64,7 @@ def setscanfile(request, scanfile):
         if 'scanfile' in request.session:
             del (request.session['scanfile'])
 
-        return render(request, 'proteciotnet_dev/nmap_device_overview.html',
+        return render(request, 'proteciotnet_dev/ip_device_overview.html',
                       {'js': '<script> location.href="/"; </script>'})
 
     if ".xml" in scanfile:
@@ -71,7 +73,7 @@ def setscanfile(request, scanfile):
                 request.session['scanfile'] = i
                 break
 
-        return render(request, 'proteciotnet_dev/nmap_device_overview.html',
+        return render(request, 'proteciotnet_dev/ip_device_overview.html',
                       {'js': '<script> location.href="/"; </script>'})
 
     elif ".json" in scanfile:
@@ -567,7 +569,7 @@ def details(request, address, sorting='standard'):
               '}); ' + \
               '</script>'
 
-    return render(request, 'proteciotnet_dev/nmap_device_details.html', r)
+    return render(request, 'proteciotnet_dev/ip_device_details.html', r)
 
 
 def index(request, filterservice="", filterportid=""):
@@ -599,12 +601,14 @@ def index(request, filterservice="", filterportid=""):
             try:
                 with open(f'/opt/zigbee/{j}', "r", encoding='utf-8') as f:
                     json_input = json.load(f)
-            except:
-                r['zigbee_files'][j] = {'filename': html.escape(j), 'start': 0, 'startstr': 'Incomplete / Invalid', 'hostnum': 0,
-                              'zb_href': '#!', 'channel': 'None'}
+
+            except Exception:
+                r['zigbee_files'][j] = {'filename': html.escape(j), 'start': 0, 'startstr': 'Incomplete / Invalid',
+                                        'hostnum': 0,
+                                        'zb_href': '#!', 'channel': 'None'}
                 continue
 
-            if not "scan_info" in json_input[0]:
+            if "scan_info" not in json_input[0]:
                 continue
 
             zigbee_files_count += 1
@@ -685,7 +689,7 @@ def index(request, filterservice="", filterportid=""):
         r['stats']['xmlcount'] = xmlfilescount
         r['stats']['zigbee_files_count'] = zigbee_files_count
 
-        return render(request, 'proteciotnet_dev/nmap_file_overview.html', r)
+        return render(request, 'proteciotnet_dev/file_overview.html', r)
 
     scanmd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
     r['scanfile'] = html.escape(str(request.session['scanfile']))
@@ -1155,4 +1159,4 @@ def index(request, filterservice="", filterportid=""):
                 </a><br><br>
             """
 
-    return render(request, 'proteciotnet_dev/nmap_device_overview.html', r)
+    return render(request, 'proteciotnet_dev/ip_device_overview.html', r)

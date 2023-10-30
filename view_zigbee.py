@@ -22,8 +22,6 @@ def zigbee(request):
     with open(f"{_BASE_ZIGBEE_DIR}{request.session['scanfile']}", "r", encoding='utf-8') as f:
         json_input = json.load(f)
 
-    # scanmd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
-    # addressmd5 = hashlib.md5(str(address).encode('utf-8')).hexdigest()
 
     capture_filename = request.session['scanfile']
     capture_creation_time = get_start_time(json_input)

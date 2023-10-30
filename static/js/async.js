@@ -269,6 +269,7 @@ function new_bl_scan() {
                     </td>
                     <td style="padding: 10px; vertical-align: middle; border: none;">
                         <select id="ble_scan_frequency" name="ble_frequency">
+                            <option value="none">-</option>
                             <option value="10min">10 Minutes</option>
                             <option value="1h">Hourly</option>
                             <option value="1d">Daily</option>
@@ -307,6 +308,14 @@ function new_bl_scan() {
                     </td>
                     <td style="padding: 10px; vertical-align: middle; border: none;">
                         <input placeholder="e.g. my_ble_sniff (please omit the file extension)" id="ble_sniff_filename" type="text" class="validate" required title="Please provide a fitting filename without a file exptension">
+                    </td>
+                </tr>
+                <tr style="border: none;">
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <label class="params_label" for="ble_sniff_timeout">Sniffing Timeout:<sup>*</sup></label>
+                    </td>
+                    <td style="padding: 10px; vertical-align: middle; border: none;">
+                        <input placeholder="timeout for sniffing" id="ble_sniff_timeout" type="text" class="validate" required title="Please provide a timeout for the sniffing operation">
                     </td>
                 </tr>
                 <tr style="border: none;">
@@ -370,6 +379,7 @@ function new_bl_scan() {
         </div>
     </div>
     `);
+
     $('#ble_beacons_only_switch').change(function () {
         if ($(this).is(':checked')) {
             $('#ble_list_only_switch').prop('checked', true);
@@ -397,6 +407,37 @@ function new_bl_scan() {
             $('#ble_beacons_only_switch').prop('checked', false);
         }
     });
+
+    $('#ble_filename').on('input', function() {
+        if ($(this).val().trim() !== "") {
+            $('#ble_sniff_filename, #ble_sniff_timeout, #ble_ltk, #ble_decrypt_packages_switch, #ble_send_dev_addr, #ble_chara, #ble_value, #ble_subscribe_chara_switch').prop('disabled', true);
+            $('#ble_sniff_filename, #ble_sniff_timeout, #ble_ltk, #ble_send_dev_addr, #ble_chara, #ble_value').val("")
+            $('#ble_decrypt_packages_switch, #ble_subscribe_chara_switch').prop("checked", false)
+        } else {
+            $('#ble_sniff_filename, #ble_sniff_timeout, #ble_ltk, #ble_decrypt_packages_switch, #ble_send_dev_addr, #ble_chara, #ble_value, #ble_subscribe_chara_switch').prop('disabled', false);
+        }
+    });
+
+    $('#ble_sniff_filename').on('input', function() {
+        if ($(this).val().trim() !== "") {
+            $('#ble_filename, #ble_scan_time, #ble_continuous_switch, #ble_list_only_switch, #ble_connectable_only_switch, #ble_beacons_only_switch, #ble_bonding_test_switch, #ble_schedule, #ble_scan_frequency, #ble_interface_nr, #ble_specific_device, #ble_send_dev_addr, #ble_chara, #ble_value, #ble_subscribe_chara_switch').prop('disabled', true);
+            $('#ble_filename, #ble_scan_time, #ble_interface_nr, #ble_specific_device, #ble_send_dev_addr, #ble_chara, #ble_value').val('');
+            $('#ble_continuous_switch, #ble_list_only_switch, #ble_connectable_only_switch, #ble_beacons_only_switch, #ble_bonding_test_switch, #ble_schedule, #ble_subscribe_chara_switch').prop("checked", false)
+        } else {
+            $('#ble_filename, #ble_scan_time, #ble_continuous_switch, #ble_list_only_switch, #ble_connectable_only_switch, #ble_beacons_only_switch, #ble_bonding_test_switch, #ble_schedule, #ble_scan_frequency, #ble_interface_nr, #ble_specific_device, #ble_send_dev_addr, #ble_chara, #ble_value, #ble_subscribe_chara_switch').prop('disabled', false);
+        }
+    });
+
+    $('#ble_send_dev_addr').on('input', function() {
+        if ($(this).val().trim() !== "") {
+            $('#ble_filename, #ble_scan_time, #ble_continuous_switch, #ble_list_only_switch, #ble_connectable_only_switch, #ble_beacons_only_switch, #ble_bonding_test_switch, #ble_schedule, #ble_scan_frequency, #ble_interface_nr, #ble_specific_device, #ble_sniff_filename, #ble_sniff_timeout, #ble_ltk, #ble_decrypt_packages_switch').prop('disabled', true);
+            $('#ble_filename, #ble_scan_time, #ble_interface_nr, #ble_specific_device, #ble_sniff_filename, #ble_sniff_timeout, #ble_ltk').val('');
+            $('#ble_continuous_switch, #ble_list_only_switch, #ble_connectable_only_switch, #ble_beacons_only_switch, #ble_bonding_test_switch, #ble_schedule').prop("checked", false)
+        } else {
+            $('#ble_filename, #ble_scan_time, #ble_continuous_switch, #ble_list_only_switch, #ble_connectable_only_switch, #ble_beacons_only_switch, #ble_bonding_test_switch, #ble_schedule, #ble_scan_frequency, #ble_interface_nr, #ble_specific_device, #ble_sniff_filename, #ble_sniff_timeout, #ble_ltk, #ble_decrypt_packages_switch').prop('disabled', false);
+        }
+    });
+
 
     $('#modalfooter').html('<button id="ble_start_button" onclick="start_ble_scan()" class="btn green">Start</button>');
     $('#modal1').modal('open');
@@ -427,6 +468,7 @@ function start_ble_scan() {
 
     // Extract Sniffing Options
     const bleSniffFilename = $('#ble_sniff_filename').val();
+    const bleSniffTimeout = $('#ble_sniff_timeout').val();
     const bleLTK = $('#ble_ltk').val();
     const bleDecryptPackages = $('#ble_decrypt_packages_switch').is(':checked');
 
@@ -450,6 +492,7 @@ function start_ble_scan() {
         'ble_interface_nr': bleInterfaceNr,
         'ble_specific_device': bleSpecificDevice,
         'ble_sniff_filename': bleSniffFilename,
+        'ble_sniff_timeout': bleSniffTimeout,
         'ble_ltk': bleLTK,
         'ble_decrypt_packages': bleDecryptPackages,
         'ble_send_dev_addr': bleSendDevAddr,
@@ -458,31 +501,9 @@ function start_ble_scan() {
         'ble_subscribe_chara': bleSubscribeChara,
     };
 
-    console.log('csrftoken:', csrftoken);
-    console.log('bleFilename:', bleFilename);
-    console.log('bleScanTime:', bleScanTime);
-    console.log('bleContScan:', bleContScan);
-    console.log('bleListOnly:', bleListOnly);
-    console.log('bleConnectableOnly:', bleConnectableOnly);
-    console.log('bleBeaconsOnly:', bleBeaconsOnly);
-    console.log('bleBondingTest:', bleBondingTest);
-    console.log('bleSchedule:', bleSchedule);
-    console.log('frequency:', frequency);
-    console.log('bleInterfaceNr:', bleInterfaceNr);
-    console.log('bleSpecificDevice:', bleSpecificDevice);
-    console.log('bleSniffFilename:', bleSniffFilename);
-    console.log('bleLTK:', bleLTK);
-    console.log('bleDecryptPackages:', bleDecryptPackages);
-    console.log('bleSendDevAddr:', bleSendDevAddr);
-    console.log('bleChara:', bleChara);
-    console.log('bleValue:', bleValue);
-    console.log('bleSubscribeChara:', bleSubscribeChara);
-
-    if (!bleFilename || !bleSniffFilename) {
+    if (!bleFilename && !bleSniffFilename && !bleSendDevAddr) {
         swal("Error", "Please supply a filename at least...", "error");
-    }
-    else if (!bleFilename && !bleSniffFilename && !bleSendDevAddr) {
-        swal("Error", "Please supply a device address at least...", "error");
+        $('#modal1').modal('open');
     }
 
     $.post('/api/v1/ble/scan/new', postData).done(function (d) {

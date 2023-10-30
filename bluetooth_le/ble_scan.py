@@ -1,6 +1,8 @@
-import argparse
+import csv
 import json
 import logging
+import multiprocessing
+import os.path
 from threading import Thread
 from time import sleep
 
@@ -8,6 +10,11 @@ from bluepy import btle
 from bluepy.btle import Peripheral, UUID, Scanner, DefaultDelegate, BTLEDisconnectError
 
 from proteciotnet_dev.bluetooth_le.ble_appearance_dict import BLE_APPEARANCE
+from proteciotnet_dev.bluetooth_le.ble_company_lookup import COMPANY_IDENTIFIERS
+from proteciotnet_dev.static.py.vendor_macs_dict import vendor_mac_lookup_table
+# from ble_company_lookup import COMPANY_IDENTIFIERS
+# from ble_appearance_dict import BLE_APPEARANCE
+# from vendor_macs_dict import vendor_mac_lookup_table
 
 BT_INTERFACE_INDEX = 0
 BT_SCAN_TIME = 2
@@ -15,6 +22,31 @@ CONNECTION_TIMOUT = 5
 BLE_PERMISSIONS = ["WRITE NO RESPONSE", "SIGNED WRITE COMMAND", "QUEUED WRITE", "BROADCAST", "READ", "WRITE", "NOTIFY",
                    "INDICATE", "WRITABLE AUXILIARIES"]
 connection_error = False
+is_scanning = False
+BLE_STATIC_PATH = "/opt/proteciotnet/proteciotnet_dev/static/ble_reports/"
+
+ms_device_type = {
+    1: "Xbox One",
+    6: "Apple iPhone",
+    7: "Apple iPad",
+    8: "Android device",
+    9: "Windows 10 Desktop",
+    11: "Windows 10 Phone",
+    12: "Linux device",
+    13: "Windows IoT",
+    14: "Surface Hub",
+    15: "Windows laptop",
+    16: "Windows tablet"
+}
+
+ms_flags_and_device_status = {
+    "00": "None",
+    "01": "Remote Session Hosted",
+    "02": "Remote Session Not Hosted",
+    "04": "Near Share Auth Policy Same User",
+    "08": "Near Share Auth Policy Permissive"
+}
+
 
 logger = logging.getLogger(__name__)
 
@@ -254,7 +286,7 @@ class BLEDevice:
     Represents a Bluetooth Low Energy (BLE) Device.
     """
 
-    def __init__(self, address: str, addr_type: str, rssi: str) -> None:
+    def __init__(self, address: str, addr_type: str, rssi: str, name: str = "", connectable: bool = False) -> None:
         """
         Initialize a BLEDevice object.
 
@@ -265,10 +297,10 @@ class BLEDevice:
         """
         self.address = address
         self.services = []
-        self.connectable = False
+        self.connectable = connectable
         self.addr_type = addr_type
         self.rssi = rssi
-        self.name = ""
+        self.name = name
 
     def __str__(self) -> str:
         """
@@ -315,13 +347,70 @@ class BLEDevice:
         self.services.append(service)
 
 
+def _read_existing_data(filename):
+    existing_data = []
+    with open(filename, 'r', newline='') as csvfile:
+        csvreader = csv.reader(csvfile)
+        next(csvreader)
+        for row in csvreader:
+            if row:
+                existing_data.append(tuple(row[:3]))  # Store only the address, device_name, and address_type
+    return existing_data
+
+
+def _create_ms_device(r):
+    output = {
+        "length": r[:2],
+        "fixed": r[2:4],
+        "company_id": 'Microsoft' if r[4:8] == '0600' else r[4:8],
+        "scenario_type": 'Bluetooth' if r[8:10] == '01' else 'Not Bluetooth',
+        "version_and_device_type": ms_device_type.get(int(r[10:12]), ""),
+        "version_and_flags": 'Nearby Share for device only' if bin(int(r[12:14], 16))[2:].zfill(8)[3:] == "00000" else 'Nearby Share for everyone',
+        "flags_and_device_status": ms_flags_and_device_status.get(str(r[14:16]), ""),
+        "salt": r[16:24],
+        "device_hash": r[24:]
+    }
+    return output
+
+
+def _create_find_my_device(r, addr):
+    output = {
+        "length": r[:2],
+        "fixed": r[2:4],
+        "company_id": 'Apple Inc.' if r[4:8].upper() == '4C00' else r[4:8],
+        "apple_payload_type": 'Find My' if r[8:10] == '12' else r[8:10],
+        "payload_length": r[10:12]
+    }
+
+    if output['payload_length'] == "02" or output['payload_length'] == "19":
+        battery = bin(int(r[12:14], 16))[2:].zfill(8)[6:]
+        battery_states = {
+            "00": "Full",
+            "01": "Medium",
+            "10": "Low",
+            "11": "Critically low"
+        }
+        output.update({
+            "battery_state": battery_states.get(battery, "Unknown"),
+        })
+
+    if output['payload_length'] == "02":
+        output.update({"public_key": f"{bin(int(r[14:16], 16))[2:].zfill(8)[:1]}{addr[1:]}"})
+
+    elif output['payload_length'] == "19":
+        output.update({"public_key": r[16:]})
+
+    return output
+
+
 class ScanDelegate(DefaultDelegate):
     """
     Delegate class for handling BLE device discovery during scanning. Specified in the BluePy documentation.
     """
 
-    def __init__(self):
+    def __init__(self, filename):
         DefaultDelegate.__init__(self)
+        self.filename = filename
 
     def handleDiscovery(self, dev, isNewDev, isNewData):
         """
@@ -339,11 +428,78 @@ class ScanDelegate(DefaultDelegate):
                 device_name = dev.getValueText(btle.ScanEntry.SHORT_LOCAL_NAME)
             address = dev.addr if dev.addr else ""
             address_type = dev.addrType if dev.addrType else ""
-            conn = str(dev.connectable) if str(dev.connectable) else ""
+            conn = dev.connectable
             rssi = dev.rssi if dev.rssi else ""
             device_name = device_name if device_name else ""
+            extra_data = {}
 
-            print(f"{address:<20} {device_name:<30} {address_type:<15} {conn:<15} {rssi:<10}")
+            try:
+                m = dev.getValueText(255)
+                key = m[:4].upper()
+                pairs = [key[i:i + 2] for i in range(0, len(key), 2)]
+                pairs.reverse()
+                key = "0x" + ''.join(pairs)
+
+                if key == "0x0006":
+                    extra_data = _create_ms_device(dev.rawData.hex())
+
+                if key == "0x004C":
+                    extra_data = _create_find_my_device(dev.rawData.hex(), address)
+                vendor = COMPANY_IDENTIFIERS.get(key, "unknown")
+
+            except Exception as e:
+                vendor = "unknown"
+
+            if vendor == "unknown":
+                vendor = vendor_mac_lookup_table.get(address[:8].upper(), "")
+                if not vendor:
+                    vendor = vendor_mac_lookup_table.get(address[:10].upper(), "")
+                    if not vendor:
+                        vendor = vendor_mac_lookup_table.get(address[:13].upper(), "unknown")
+
+            if not extra_data:
+                extra_data = dev.rawData.hex()
+
+            #print(f"[*] Found new device: {address} {device_name} {vendor} {address_type} {conn} {rssi}, {extra_data}")
+
+            headers = ["address", "device_name", "vendor", "address_type", "conn", "rssi", 'extra_data']
+            if not os.path.isfile(f"{self.filename}.csv"):
+                with open(f"{self.filename}.csv", 'w', newline='') as csvfile:
+                    csv.writer(csvfile, escapechar='\\', delimiter=";").writerow(headers)
+                logger.info("created csv file")
+                existing_data = []
+            else:
+                existing_data = _read_existing_data(f"{self.filename}.csv")
+                logger.info(f"File '{self.filename}' already exists. Does not have to be created.")
+
+            data = [address, device_name, vendor, address_type, conn, rssi, extra_data]
+
+            if tuple(data[:3]) not in existing_data:
+                with open(f"{self.filename}.csv", 'a', newline='') as csvfile:
+                    csv.writer(csvfile, escapechar='\\', delimiter=";").writerow(data)
+                    existing_data.append(tuple(data[:3]))
+                logger.info(f"wrote {data} to file.")
+            else:
+                updated = False
+                new_data = []
+                with open(f"{self.filename}.csv", 'r', newline='') as csvfile:
+                    csvreader = csv.reader(csvfile)
+                    headers = next(csvreader)
+
+                    for row in csvreader:
+                        if (address, device_name, vendor) == tuple(row[:3]):
+                            row[5] += f">{rssi}"
+                            updated = True
+                        new_data.append(row)
+
+                if updated:
+                    with open(f"{self.filename}.csv", 'w', newline='') as csvfile:
+                        csvwriter = csv.writer(csvfile, escapechar='\\', delimiter=";")
+                        csvwriter.writerow(headers)
+                        csvwriter.writerows(new_data)
+                        logger.info("Updated RSSI value.")
+                else:
+                    logger.warning("No matching device found for RSSI update.")
 
 
 class NotificationDelegate(DefaultDelegate):
@@ -372,13 +528,16 @@ class BLEScanner:
     Class for scanning BLE devices.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, filename, beacons_only: bool = False, connectable_only: bool = False) -> None:
         """
         Initialize the BLEScanner object.
         """
         self.scanned_devices = {}
-        self.scanner = Scanner(BT_INTERFACE_INDEX).withDelegate(ScanDelegate())
+        self.filename = filename
         self.successful_scans = 0
+        self.beacons_only = beacons_only
+        self.connectable_only = connectable_only
+        self.scanner = Scanner(BT_INTERFACE_INDEX).withDelegate(ScanDelegate(self.filename))
 
     def __repr__(self) -> str:
         """
@@ -427,24 +586,45 @@ class BLEScanner:
         :type duration: int
         """
         logger.info(f"[*] scanning for {duration} seconds")
-        print("")
-        print(f"{'Device':<20} {'Name':<30} {'Address Type':<15} {'Connectable':<15} {'RSSI (dB)':<10}")
-        print('-' * 100)
-        devices = self.scanner.scan(timeout=duration)
-        print("")
-        logger.info(f"[*] found {len(devices)} BLE devices - "
-                    f"{len([dev for dev in devices if dev.connectable])} connectable")
+        print(BT_INTERFACE_INDEX)
+        devices = self.scanner.scan(timeout=duration, passive=True)
+
+        # logger.info(f"[*] found {len(devices)} BLE devices - "
+        #            f"{len([dev for dev in devices if dev.connectable])} connectable")
         for device in devices:
+            if self.connectable_only and not device.connectable:
+                continue
+            device_name = device.getValueText(btle.ScanEntry.COMPLETE_LOCAL_NAME)
+            if device_name is None:
+                device_name = device.getValueText(btle.ScanEntry.SHORT_LOCAL_NAME)
+
             scanned_device = BLEDevice(address=device.addr,
                                        addr_type=device.addrType,
                                        rssi=device.rssi)
             scanned_device.connectable = device.connectable
-            device_name = device.getValueText(btle.ScanEntry.COMPLETE_LOCAL_NAME)
-            if device_name is None:
-                device_name = device.getValueText(btle.ScanEntry.SHORT_LOCAL_NAME)
+
             if device_name:
                 scanned_device.name = device_name
-            self.scanned_devices[device.addr] = scanned_device
+
+            self.scanned_devices[device.addr] = device
+
+    def scan_for_apple_airtags(self, duration: int = 10):
+        logger.info(f"[*] scanning for {duration} seconds")
+        try:
+            devices = self.scanner.scan(timeout=duration)
+
+            for device in devices:
+                manufacturer_data = device.getValueText(255)
+                if manufacturer_data and manufacturer_data.startswith("4c000215"):
+                    scanned_device = BLEDevice(address=device.addr,
+                                               addr_type=device.addrType,
+                                               rssi=device.rssi)
+                    scanned_device.connectable = device.connectable
+
+                    self.scanned_devices[device.addr] = device
+
+        except Exception as e:
+            logger.error(f"[-] scan_for_apple_airtags: Error {e}")
 
     def connect_and_read_all(self, addr: str, addr_type: str, with_descriptors: bool = False) -> None:
         """
@@ -530,22 +710,24 @@ class BLEScanner:
 
 def scan_continuous(filename):
     logger.info("[*] Starting Script continuously. Initializing Scanner Object")
-    scanner = BLEScanner()
-    try:
-        scanner.scan()
-    except KeyboardInterrupt:
-        logger.info("[*] ")
-    except Exception:
-        logger.error(f"[-] An error occurred while scanning devices")
-        pass
+    scanner = BLEScanner(filename)
 
-    if scanner.successful_scans > 0:
-        scanner.save_to_json(filename=filename)
+    try:
+        while os.path.exists("/opt/proteciotnet/proteciotnet_dev/static/ble_scan.lock"):
+            scanner.scan()
+
+    except KeyboardInterrupt:
+        logger.info("[*] Stopped by user")
+
+    #if scanner.successful_scans > 0:
+    #    scanner.save_to_json(filename=filename)
 
 
 # ---------------------------------------------------------------------------------------------------------------------#
 
-def scan_all_devices_and_read_all_fields(filename: str, with_descriptors: bool = False) -> None:
+def scan_all_devices_and_read_all_fields(filename: str,
+                                         with_descriptors: bool = False,
+                                         connectable_only: bool = False) -> None:
     """
     Scan for all BLE devices in the vicinity and read all their fields.
 
@@ -558,11 +740,13 @@ def scan_all_devices_and_read_all_fields(filename: str, with_descriptors: bool =
     :type filename: str
     :param with_descriptors: Flag indicating if descriptors should be read. Default is False.
     :type with_descriptors: bool
+    :param connectable_only: Flag indicating to only scan connectable devices
+    :type connectable_only: bool
     """
     # ----------------- SCANNING ALL DEVICES ----------------- #
 
     logger.info("[*] Starting Script. Initializing Scanner Object")
-    scanner1 = BLEScanner()
+    scanner1 = BLEScanner(filename=filename, connectable_only=connectable_only)
     try:
         scanner1.scan(duration=BT_SCAN_TIME)
     except BTLEDisconnectError:
@@ -594,49 +778,103 @@ def scan_all_devices_and_read_all_fields(filename: str, with_descriptors: bool =
         scanner1.save_to_json(filename=filename)
 
 
-def runner(filename, interface, scan_time, connection_timeout, with_descriptors=False):
+def scan_list_only(filename, beacons_only, connectable_only):
+    scanner_list_mode = BLEScanner(filename=filename, beacons_only=beacons_only, connectable_only=connectable_only)
+    try:
+        scanner_list_mode.scan()
+
+    except KeyboardInterrupt:
+        logger.info("[*] Stopped by user")
+    except Exception:
+        logger.error(f"[-] An error occurred while scanning devices")
+        pass
+
+    if scanner_list_mode.successful_scans > 0:
+        scanner_list_mode.save_to_json(filename=filename)
+
+
+def scan_single_device(filename, device_address):
+    scanner_connect_single_device = BLEScanner(filename=filename)
+    try:
+        scanner_connect_single_device.scan()
+    except Exception:
+        logger.error(f"[-] An error occurred while scanning devices")
+        return None
+
+    device = scanner_connect_single_device.scanned_devices.get(device_address, "")
+    device_addr_type = device.addr_type if device else ""
+    if device:
+        scanner_connect_single_device.connect_and_read_all(addr=device, addr_type=device_addr_type)
+        scanner_connect_single_device.save_to_json(filename=filename)
+
+    else:
+        logger.error("[-] Device not found. Is it advertising?")
+        return None
+
+
+def scan_beacons_only(filename):
+    scanner_beacons_only = BLEScanner(filename)
+    try:
+        scanner_beacons_only.scan_for_apple_airtags()
+    except Exception:
+        logger.error(f"[-] An error occurred while scanning for AirTag beacons")
+        return None
+
+    scanner_beacons_only.save_to_json(filename=filename)
+
+
+def runner(filename,
+           scan_time,
+           interface=BT_INTERFACE_INDEX,
+           connection_timeout=CONNECTION_TIMOUT,
+           with_descriptors=False,
+           list_mode=False,
+           connectable_only=False,
+           beacons_only=False,
+           bonding_test=False,
+           schedule=False,
+           schedule_frequency=False,
+           specific_device_addr=""):
     global BT_INTERFACE_INDEX, BT_SCAN_TIME, CONNECTION_TIMOUT
     BT_INTERFACE_INDEX = interface
     BT_SCAN_TIME = scan_time
     CONNECTION_TIMOUT = connection_timeout
 
-    scan_all_devices_and_read_all_fields(filename=filename,
-                                         with_descriptors=with_descriptors)
+    if specific_device_addr:
+        scan_device_process = multiprocessing.Process(
+            scan_single_device(filename=filename, device_address=specific_device_addr)
+        )
+        scan_device_process.start()
+        return
+
+    if list_mode:
+        scanning_process_list_mode = multiprocessing.Process(
+            scan_list_only(filename=filename,
+                           beacons_only=beacons_only,
+                           connectable_only=connectable_only)
+        )
+        scanning_process_list_mode.start()
+        return
+    elif not beacons_only:
+        scanning_process = multiprocessing.Process(
+            scan_all_devices_and_read_all_fields(filename=filename,
+                                                 connectable_only=connectable_only,
+                                                 with_descriptors=with_descriptors)
+        )
+        scanning_process.start()
+        return
+
+    if beacons_only:
+        beacons_process = multiprocessing.Process(
+            scan_beacons_only(filename=filename)
+        )
+        beacons_process.start()
+        return
 
 
-def main() -> None:
-    """
-    Main function to provide CLI for the BLE scanner script.
-    """
-    parser = argparse.ArgumentParser(description="BLE Scanner: Scan and read all fields from nearby BLE devices.")
-
-    parser.add_argument("-f", "--filename", type=str, default="output.json",
-                        help="Name of the file to save the scanned data to. Default is 'output.json'.")
-
-    parser.add_argument("-d", "--descriptors", action="store_true",
-                        help="Flag to indicate if descriptors should be read. Default is False.")
-
-    parser.add_argument("-i", "--interface", type=int, default=0,
-                        help="Bluetooth interface index to use. Default is 0.")
-
-    parser.add_argument("-t", "--scan-time", type=int, default=5,
-                        help="Duration in seconds for the BLE scan. Default is 2 seconds.")
-
-    parser.add_argument("-c", "--connection-timeout", type=int, default=5,
-                        help="Timeout in seconds for the BLE connection. Default is 5 seconds.")
-
-    args = parser.parse_args()
-
-    global BT_INTERFACE_INDEX, BT_SCAN_TIME, CONNECTION_TIMOUT
-    BT_INTERFACE_INDEX = args.interface
-    BT_SCAN_TIME = args.scan_time
-    CONNECTION_TIMOUT = args.connection_timeout
-
-    args = parser.parse_args()
-
-    scan_all_devices_and_read_all_fields(filename=args.filename,
-                                         with_descriptors=args.descriptors)
+def main2():
+    scan_continuous("/home/henry/Downloads/ma_test_scanner")
 
 
 if __name__ == "__main__":
-    main()
+    main2()

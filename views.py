@@ -2,7 +2,6 @@ import base64
 import subprocess
 import logging
 import colorlog
-import ijson
 import urllib.parse
 from collections import OrderedDict
 from datetime import datetime
@@ -22,7 +21,7 @@ _MEDUSA_SUPPORTED_SERVICES = ['ssh', 'ftp', 'postgresql', 'telnet', 'mysql', 'ms
                               'exec', 'login', 'microsoft-ds', 'smtp', 'smtps', 'submission',
                               'svn', 'iss-realsecure', 'snmptrap', 'snmp', 'http']
 
-logging_level = logging.WARNING
+logging_level = logging.DEBUG
 main_logger = logging.getLogger()
 main_logger.setLevel(logging_level)
 
@@ -33,7 +32,6 @@ stream_handler.setFormatter(
 
 # Add handler to logger
 main_logger.addHandler(stream_handler)
-
 
 # logger.debug("This is a debug message")
 # logger.info("This is an info message")

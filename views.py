@@ -1,4 +1,5 @@
 import base64
+import os.path
 import subprocess
 import logging
 import colorlog
@@ -11,6 +12,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 
 from proteciotnet_dev.view_zigbee import zigbee
+from proteciotnet_dev.view_ble import bluetooth_low_energy
 from proteciotnet_dev.api import label
 from proteciotnet_dev.CVSS_Vectors import Cvss3vector, Cvss2Vector
 from proteciotnet_dev.functions import *
@@ -28,10 +30,13 @@ main_logger.setLevel(logging_level)
 # Set up a stream handler to log to the console
 stream_handler = colorlog.StreamHandler()
 stream_handler.setFormatter(
-    colorlog.ColoredFormatter("%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+    # colorlog.ColoredFormatter("%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+    colorlog.ColoredFormatter(
+        "%(log_color)s%(name)s: %(asctime)s |\t%(levelname)s\t| %(filename)s:%(lineno)s | %(process)d >>> %(message)s"))
 
 # Add handler to logger
 main_logger.addHandler(stream_handler)
+
 
 # logger.debug("This is a debug message")
 # logger.info("This is an info message")
@@ -57,6 +62,7 @@ def about(request):
 def setscanfile(request, scanfile):
     xmlfiles = os.listdir('/opt/xml')
     jsonfiles = os.listdir('/opt/zigbee')
+    csvfiles = os.listdir('/opt/ble')
 
     if scanfile == 'unset':
         if 'scanfile' in request.session:
@@ -87,6 +93,20 @@ def setscanfile(request, scanfile):
         r = zigbee(request)
         # r['js'] = '<script> location.href="/"; </script>'
         return render(request, 'proteciotnet_dev/zigbee_device_overview.html', r)
+
+    elif ".csv" in scanfile:
+        for i in csvfiles:
+            if i == scanfile:
+                request.session['scanfile'] = i
+                break
+
+        if scanfile == 'unset':
+            if 'scanfile' in request.session:
+                del (request.session['scanfile'])
+
+        r = bluetooth_low_energy(request)
+        # r['js'] = '<script> location.href="/"; </script>'
+        return render(request, 'proteciotnet_dev/ble_device_overview.html', r)
 
 
 def port(request, port):
@@ -586,10 +606,60 @@ def index(request, filterservice="", filterportid=""):
         # no file selected
         xmlfiles = os.listdir('/opt/xml')
         jsonfiles = os.listdir('/opt/zigbee')
+        csvfiles = os.listdir('/opt/ble')
 
         r['tr'] = {}
         r['zigbee_files'] = {}
+        r['ble_files'] = {}
         r['stats'] = {'po': 0, 'pc': 0, 'pf': 0}
+
+        ble_files_count = 0
+        for c in csvfiles:
+            if re.search('\.csv$', c) is None:
+                continue
+
+            json_filepath = f'/opt/proteciotnet/proteciotnet_dev/static/ble_reports/{c.replace(".csv", ".json")}'
+            if os.path.isfile(json_filepath):
+
+                logger.debug(f"Found CSV file {c}. Json path is {json_filepath}")
+
+                try:
+                    with open(f'{json_filepath}', "r", encoding='utf-8') as f:
+                        json_input = json.load(f)
+
+                    logger.debug(f"Successfully read json file {c}")
+
+                except Exception:
+                    r['ble_files'][c] = r['ble_files'][c] = {
+                        'bl_filename': html.escape(c),
+                        'bl_startstr': 0,
+                        'bl_nr_devices': 0,
+                        'bl_nr_conn_devices': 0,
+                        'bl_href': '#!',
+                        'bl_interface': 'invalid'
+                    }
+                    logger.debug(f"Could not read json file for {c}")
+                    continue
+
+                ble_files_count += 1
+                ble_info_header = json_input[0]
+
+                logger.debug(f"Increased file count and extracted info header from {c}")
+
+                if ble_info_header['ble_nr_devices'] != 0:
+                    view_href = '/setscanfile/' + html.escape(c)
+                    logger.debug(f"Found at least one device in {c}")
+                else:
+                    view_href = '#!'
+                    logger.debug(f"Found no device in {c}")
+
+                r['ble_files'][c] = {
+                    'bl_filename': html.escape(c),
+                    'bl_startstr': html.escape(ble_info_header['ble_scan_start_time']),
+                    'bl_nr_devices': ble_info_header['ble_nr_devices'],
+                    'bl_nr_conn_devices': ble_info_header['ble_connectable_devices'],
+                    'bl_href': view_href,
+                }
 
         zigbee_files_count = 0
         for j in jsonfiles:
@@ -684,8 +754,10 @@ def index(request, filterservice="", filterportid=""):
 
         r['tr'] = OrderedDict(sorted(r['tr'].items(), reverse=True))
         r['zigbee_files'] = OrderedDict(sorted(r['zigbee_files'].items(), reverse=True))
+        r['ble_files'] = OrderedDict(sorted(r['ble_files'].items(), reverse=True))
         r['stats']['xmlcount'] = xmlfilescount
         r['stats']['zigbee_files_count'] = zigbee_files_count
+        r['stats']['ble_files_count'] = ble_files_count
 
         return render(request, 'proteciotnet_dev/file_overview.html', r)
 

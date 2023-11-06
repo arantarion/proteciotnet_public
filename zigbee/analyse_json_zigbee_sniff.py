@@ -1,4 +1,6 @@
 from collections import Counter
+from datetime import datetime
+
 from proteciotnet_dev.static.py.vendor_macs_dict import vendor_mac_lookup_table
 
 def _find_reciprocal_pairs(mapped_set):
@@ -26,7 +28,9 @@ def _generate_dot_file(mapped_set, reciprocal_pairs, file_name):
 
 def _convert_timezone(timestamp_str):
     formatted_timestamp = timestamp_str.split(".")[0]
-    return formatted_timestamp
+    dt_object = datetime.strptime(formatted_timestamp, '%b %d, %Y %H:%M:%S')
+    output_formatted_timestamp = dt_object.strftime("%A, %d. %B %Y - %H:%M:%S")
+    return output_formatted_timestamp
 
 
 def _get_vendor_from_mac(mac_address):

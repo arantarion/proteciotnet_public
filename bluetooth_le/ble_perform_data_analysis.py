@@ -80,7 +80,8 @@ def create_rssi_graph(csv_file_path):
     for entry in ble_scan_results:
         address = entry.get("address", "")
         device_name = entry.get("device_name", "")
-        key = f"{address} ({device_name})" if device_name else address
+        company = entry.get('vendor', "")
+        key = f"{address} ({device_name})" if device_name else f"{address} ({company})"
         rssi_dict[key] = entry["rssi"]
 
     fig, ax = plt.subplots(figsize=(12, 12))
@@ -123,7 +124,8 @@ def create_rssi_graph(csv_file_path):
             ax.annotate(avg_rssi,
                         xy=(device_x_positions[idx], y_coord),
                         fontsize=10,
-                        ha="center")
+                        ha="center",
+                        color="white")
             ax.add_patch(circle)
 
         else:
@@ -138,7 +140,8 @@ def create_rssi_graph(csv_file_path):
             ax.annotate(avg_rssi,
                         xy=(device_x_positions[idx], y_coord),
                         fontsize=10,
-                        ha="center")
+                        ha="center",
+                        color="white")
 
     # Place the user circle at the bottom of the graph
     ax.plot(0.5, 0.0,
@@ -163,18 +166,26 @@ def create_rssi_graph(csv_file_path):
     ax.set_xticklabels("")
     ax.legend(handles=markers,
               loc='upper left',
-              bbox_to_anchor=(0.5, 1.05),
-              ncol=3,
+              bbox_to_anchor=(0.25, 1.05),
+              ncol=2,
               fancybox=True,
               shadow=True,
               title="Device names")
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    plt.ylabel("Distance to user")
+    plt.ylabel("Distance to user", color='white')
+
+    ax.tick_params(axis='x', colors='white')
+    ax.tick_params(axis='y', colors='white')
+
+    # Changing the spine colors
+    for spine in ax.spines.values():
+        spine.set_color('white')
+
     # plt.show()
     plt.savefig("/home/henry/Downloads/my_test_graph.svg",
                 format="svg",
-                #transparent=True,
+                transparent=True,
                 bbox_inches="tight")
 
 

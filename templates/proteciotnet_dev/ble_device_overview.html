@@ -55,12 +55,6 @@
                                 <td><b class="orange-text">Stat:</b></td>
                                 <td>Info</td>
                             </tr>
-{#                            <tr>#}
-{#                                <td><b class="orange-text">Sniffing Device:</b></td>#}
-{#                                <td>{{ sniffing_device }}</td>#}
-{#                                <td><b class="orange-text">End Time: </b></td>#}
-{#                                <td>{{ finish_time }}</td>#}
-{#                            </tr>#}
                         </table>
                     </div>
                 </div>
@@ -72,7 +66,7 @@
                 <br>
 
                 {#            THINK ABOUT PCAP DOWNLOAD #}
-                <ul id="dd_{{ filename }}" class="dropdown-content" style="min-width:300px; border-radius: 4px;">
+                <ul id="dd_{{ bl_filename }}" class="dropdown-content" style="min-width:300px; border-radius: 4px;">
                     <li><a href="#" onclick="createZigBeeReport('{{ bl_filename }}', 'pcap')" style="color:#111111">Make
                         PCAP file available</a></li>
                     <li><a href="#" onclick="createZigBeeReport('{{ bl_filename }}', 'html')" style="color:#111111">Create
@@ -85,7 +79,8 @@
                         CSV file</a></li>
                     <li><a href="#!" onclick="createZigBeeReport('{{ bl_filename }}', 'plain')" style="color:#111111">Create
                         text file</a></li>
-                    <li><a href="#!" onclick="createZigBeeReport('{{ bl_filename }}', 'pcapng')" style="color:#111111">Convert to
+                    <li><a href="#!" onclick="createZigBeeReport('{{ bl_filename }}', 'pcapng')" style="color:#111111">Convert
+                        to
                         PCAPNG file</a></li>
                     <li><a href="#!" onclick="createZigBeeReport('{{ bl_filename }}', 'psml')" style="color:#111111">Create
                         PSML (XML) file</a></li>
@@ -116,139 +111,165 @@
         <div class="row" style="">
             <div class="col s12 m3" style="padding:1px;">
                 <div class="card wmcard" style="text-align:center;padding:6px;"><h4><i
-                        class="fas fa-heartbeat grey-text"></i> <span class="grey-text">{{ nr_devices }}</span></h4>
-                    <span class="small grey-text">DEVICES AVAILABLE</span></div>
+                        class="fas fa-heartbeat grey-text"></i> <span class="grey-text">{{ bl_nr_dev }}</span></h4>
+                    <span class="small grey-text">BLE DEVICES FOUND</span></div>
             </div>
             <div class="col s12 m3" style="padding:1px;">
                 <div class="card wmcard" style="text-align:center;padding:6px;"><h4><i
-                        class="fas fa-code-branch grey-text"></i> <span class="grey-text">{{ channel }}</span></h4>
-                    <span class="small grey-text">SELECTED CHANNEL</span></div>
+                        class="fas fa-link grey-text"></i> <span class="grey-text">{{ bl_conn_dev }}</span></h4>
+                    <span class="small grey-text">CONNECTABLE DEVICES</span></div>
             </div>
             <div class="col s12 m3" style="padding:1px;">
                 <div class="card wmcard" style="text-align:center;padding:6px;"><h4><i
-                        class="fas fa-hashtag grey-text"></i> <span class="grey-text">{{ nr_packets }}</span></h4><span
-                        class="small grey-text">PACKETS CAPTURED</span></div>
+                        class="fas fa-book-reader grey-text"></i> <span class="grey-text">{{ ble_readable_dev }}</span>
+                </h4><span
+                        class="small grey-text">READABLE CHARACTERISTICS</span></div>
             </div>
             <div class="col s12 m3" style="padding:1px;">
                 <div class="card wmcard" style="text-align:center;padding:6px;"><h4><i
-                        class="fas fa-key grey-text"></i> <span class="grey-text">{{ nr_transport_key }}</span></h4>
-                    <span class="small grey-text">TRANSPORT KEY</span></div>
-            </div>
+                        class="fas fa-key grey-text"></i> <span class="grey-text">{{ bl_no_ltk }}</span></h4>
+                    {% if ble_no_ltk == 1 %}
+                        <span class="small grey-text">LONG TERM KEY</span></div>
+                    {% else %}
+                        <span class="small grey-text">LONG TERM KEYS</span></div>
+                    {% endif %}
         </div>
+    </div>
 
-        {#  The Services etc overview. Not quite sure what to do with it  #}
-        <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">
-            <div class="card-title" style="padding: 16px 12px 1px 32px;">Channel Overview</div>
+    {#  The Services etc overview. Not quite sure what to do with it  #}
+    <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">
+        <div class="card-title" style="padding: 16px 12px 1px 32px;">RSSI Graph</div>
+        <div class="card-content">
+            {% with 'ble_reports/'|add:rssi_graph_path as static_path %}
+                <img src="{% static static_path %}" alt="RSSI graph in relation to capture device position"
+                     style="width: 60%; display: block;">
+            {% endwith %}
+        </div>
+    </div>
+
+    {#        <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">#}
+    {#            <div class="card-title" style="padding: 16px 12px 1px 32px;">Network Overview</div>#}
+    {#            <div class="card-content">#}
+    {#                {% with "zigbee_reports/"|add:network_graph_render_path as static_path %}#}
+    {#                    <img src="{% static static_path %}" alt="Network Overview" style="width: 80%; display: block;">#}
+    {#                {% endwith %}#}
+    {#            </div>#}
+    {#        </div>#}
+
+    {{ js | safe }}
+
+    {# The device list #}
+    {% for key, value in devices.items %}
+        <div class="card wmcard">
             <div class="card-content">
-{#                {% with "zigbee_reports/"|add:channel_overview_path as static_path %}#}
-{#                    <img src="{% static static_path %}" alt="Channel Overview with Wifi"#}
-{#                         style="width: 100%; display: block;">#}
-{#                {% endwith %}#}
-            </div>
-        </div>
+                <div class="row" style="padding:0; margin-bottom:0; margin-right: 0">
+                    <div class="col s3" style="border-right:solid #444 1px;">
+                        <div class="hindex wmcard">{{ value.host_index }}</div>
+                        {#                            {{ v.newlabelout|safe }}#}
+                        {% if value.address != "" and value.name != "" %}
+                            <h5><a href="/report/{{ value.address }}"
+                                   class="blue-text text-darken-3">{{ value.address }}</a></h5>
+                            <span style="font-size: 14px; color: #9e9e9e"><b>Name: </b> {{ value.name|safe }}</span><br>
+                            <span style="font-size: 14px; color: #9e9e9e"><b>Vendor: </b>{{ value.vendor|safe }}</span>
 
-        <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">
-            <div class="card-title" style="padding: 16px 12px 1px 32px;">Network Overview</div>
-            <div class="card-content">
-{#                {% with "zigbee_reports/"|add:network_graph_render_path as static_path %}#}
-{#                    <img src="{% static static_path %}" alt="Network Overview" style="width: 80%; display: block;">#}
-{#                {% endwith %}#}
-            </div>
-        </div>
-
-        <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">
-            <div class="card-title" style="padding: 16px 12px 1px 32px;">Event Timeline</div>
-            <div class="card-content" style="overflow: scroll;">
-{#                {% with "zigbee_reports/"|add:timeline_path as static_path %}#}
-{#                    <img src="{% static static_path %}" alt="Timeline" style="height: 100%; display: block;">#}
-{#                {% endwith %}#}
-            </div>
-        </div>
+                        {% else %}
+                            <h5><a href="/report/{{ value.address }}"
+                                   class="blue-text text-darken-3">{{ value.address }}</a></h5>
+                            <span style="font-size: 14px; color: #9e9e9e"><b>Vendor: </b>{{ value.vendor|safe }}</span>
+                        {% endif %}
 
 
-        {{ js | safe }}
-
-        {# The device list #}
-        {% for key, value in devices.items %}
-            <div class="card wmcard">
-                <div class="card-content">
-                    <div class="row" style="padding:0px;margin-bottom:0px;">
-                        <div class="col s4" style="border-right:solid #444 1px;">
-                            <div class="hindex wmcard">{{ v.hostindex }}</div>
-                            {{ v.newlabelout|safe }}
-                            {% if v.po != 0 or v.pc != 0 or v.pf != 0 or v.vendor != "" %}
-                                <h5><a href="/report/{{ i }}" class="blue-text text-darken-3">{{ i }}</a></h5>
-                                <span style="font-size: 14px; color: #9e9e9e"><b>Vendor: </b>{{ v.vendor|safe }}</span>
-                                {{ v.hostname|safe }}
-                            {% else %}
-                                <h5>{{ i }}</h5><h5>{{ v.vendor }}</h5>{{ v.hostname|safe }}
-                            {% endif %}
-
-
-                        </div>
-                        <div class="col s4 small grey-text">
-                            <b>PORT STATISTICS</b><br>
-
-                            <table style="border-collapse: collapse; border-spacing: 0; border: none">
-                                <tr style="border: none">
-                                    <td class="evenly-spaced-inner">
-                                        <div>
-                                            <i class="fas fa-lock-open"></i>
-                                            <span class="text">&nbsp;{{ v.po }} open</span>
-                                        </div>
-                                        <div>
-                                            <i class="fas fa-lock"></i>
-                                            <span class="text">&nbsp;{{ v.pc }} closed</span>
-                                        </div>
-                                        <div>
-                                            <i class="fas fa-filter"></i>
-                                            <span class="text">&nbsp;{{ v.pf }} filtered</span>
-                                        </div>
-                                    </td>
-
-                                </tr>
-                            </table>
-                        </div>
-
-                        <div class="col s2 small grey-text">
-                            <b>SERVICES</b><br><br>
-                            {{ v.services|safe }}
-                        </div>
-
-                        <div class="col s2 small grey-text">
-                            <b>PORTS</b><br><br>
-                            {{ v.ports|safe }}
-                        </div>
                     </div>
-                </div>
 
-                <div class="card-action">
-                    <ul id="hostdd{{ v.hostindex }}" class="dropdown-content" style="min-width:200px;">
-                        <li><a href="#!"
-                               onclick="setLabel('host', 'Vulnerable', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span
-                                class="tmlabel red">Vulnerable</span></a></li>
-                        <li><a href="#!"
-                               onclick="setLabel('host', 'Warning', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span
-                                class="tmlabel orange">Warning</span></a></li>
-                        <li><a href="#!"
-                               onclick="setLabel('host', 'Checked', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span
-                                class="tmlabel blue">Checked</span></a></li>
-                        <li><a class="grey-text" href="#!"
-                               onclick="removeLabel('host', '{{ v.addressmd5 }}', {{ v.hostindex }});">Remove label</a>
-                        </li>
-                        <li class="divider"></li>
-                        <li><a class="grey-text" href="#!"
-                               onclick="openNotes('{{ v.addressmd5 }}', '{{ v.notesb64 }}');">Insert notes</a></li>
-                        {{ v.removenotes|safe }}
-                    </ul>
-                    <a href="#!" class="grey-text dropdown-trigger" data-target="hostdd{{ v.hostindex }}"><i
-                            class="fas fa-ellipsis-v"></i> Actions</a>
+                    <div class="col s1  grey-text" style="text-align: center;">
+                        <b>RSSI</b><br><br>
+                        <i class="material-icons">near_me</i>
+                        <div>{{ value.mean_rssi }} dBm</div>
+                    </div>
 
-                    {{ v.notesout|safe }}
+                    <div class="col s2 grey-text" style="text-align: center">
+                        <b>Address Type</b><br><br>
+                        {% if value.address_type == 'random' %}
+                            <i class="material-icons">shuffle</i>
+                            <div>Random</div>
+                        {% else %}
+                            <i class="material-icons">public</i>
+                            <div>Public</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col s1 grey-text" style="text-align: center;">
+                        <b>Connectable</b><br><br>
+                        {% if value.connectable %}
+                            <i class="material-icons">bluetooth_searching</i>
+                            <div>Yes</div>
+                        {% else %}
+                            <i class="material-icons">bluetooth_disabled</i>
+                            <div>No</div>
+                        {% endif %}
+                    </div>
+
+                     <div class="col s1 grey-text" style="text-align: center;">
+                        <b></b><br><br>
+                    </div>
+
+                    <div class="col s4 grey-text" style="text-align: center">
+                        <b>Flags</b><br><br>
+                        <table style="width: 100%; border-collapse: collapse; border-spacing: 0; margin: 0 auto;" class="small center-align">
+                            {% for flag, v in value.flags.items %}
+                                <tr style="border: none">
+                                    <td style="width: 20px; vertical-align: middle; padding: 2px 5px 2px 0;">
+                                        {% if v == "True" %}
+                                            <div class="dot"
+                                                 style="height: 12px; width: 12px; border-radius: 50%; display: inline-block;
+                                                     background-color: #1565C0 ;
+                                                     border: 1px solid #1565C0 ;"></div>
+                                        {% else %}
+                                            <div class="dot" style="height: 12px; width: 12px; border-radius: 50%; display: inline-block;
+                                            background-color: transparent;
+                                            border: 1px solid #ccc;"></div>
+                                        {% endif %}
+
+                                    </td>
+                                    <td style="vertical-align: middle; padding: 2px 0;">
+                                        <span class="text">{{ flag }}</span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+
 
                 </div>
             </div>
-        {% endfor %}
+
+            <div class="card-action">
+                <ul id="hostdd{{ v.hostindex }}" class="dropdown-content" style="min-width:200px;">
+                    <li><a href="#!"
+                           onclick="setLabel('host', 'Vulnerable', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span
+                            class="tmlabel red">Vulnerable</span></a></li>
+                    <li><a href="#!"
+                           onclick="setLabel('host', 'Warning', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span
+                            class="tmlabel orange">Warning</span></a></li>
+                    <li><a href="#!"
+                           onclick="setLabel('host', 'Checked', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span
+                            class="tmlabel blue">Checked</span></a></li>
+                    <li><a class="grey-text" href="#!"
+                           onclick="removeLabel('host', '{{ v.addressmd5 }}', {{ v.hostindex }});">Remove label</a>
+                    </li>
+                    <li class="divider"></li>
+                    <li><a class="grey-text" href="#!"
+                           onclick="openNotes('{{ v.addressmd5 }}', '{{ v.notesb64 }}');">Insert notes</a></li>
+                    {{ v.removenotes|safe }}
+                </ul>
+                <a href="#!" class="grey-text dropdown-trigger" data-target="hostdd{{ v.hostindex }}"><i
+                        class="fas fa-ellipsis-v"></i> Actions</a>
+
+                {{ v.notesout|safe }}
+
+            </div>
+        </div>
+    {% endfor %}
     </div>
 
 {% endblock %}

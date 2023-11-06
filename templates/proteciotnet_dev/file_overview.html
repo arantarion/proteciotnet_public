@@ -22,7 +22,7 @@
             <div class="col s12 m3">
                 <div class="card darken-1">
                     <div class="card-content white-text" style="background-color: #0a3d91;">
-                        <span class="card-title" style="margin-bottom: 0;"><i class="material-icons">bluetooth</i> 0 Bluetooth Scans</span>
+                        <span class="card-title" style="margin-bottom: 0;"><i class="material-icons">bluetooth</i> {{ stats.ble_files_count }} Bluetooth Scans</span>
 
                     </div>
                 </div>
@@ -116,17 +116,17 @@
                     <tr>
                         <th>Filename</th>
                         <th class="hide-on-small-only">Timestamp</th>
-                        <th class="hide-on-small-only">Host Count</th>
-                        <th>Scanned Hosts</th>
+                        <th class="hide-on-small-only">Device Count</th>
+                        <th>Connectable Device Count</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for i,v in ble_files.items %}
                         <tr>
-                            <td><b><a class="blue-text" href="{{ v.ble_href }}">{{ v.ble_filename|safe }}</a></b></td>
-                            <td class="hide-on-small-only">{{ v.ble_startstr }}</td>
-                            <td class="hide-on-small-only">{{ v.ble_hostnum }}</td>
-                            <td class="hide-on-small-only">{{ v.ble_channel }}</td>
+                            <td><b><a class="blue-text" href="{{ v.bl_href }}">{{ v.bl_filename|safe }}</a></b></td>
+                            <td class="hide-on-small-only">{{ v.bl_startstr }}</td>
+                            <td class="hide-on-small-only">{{ v.bl_nr_devices }}</td>
+                            <td class="hide-on-small-only">{{ v.bl_nr_conn_devices }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>

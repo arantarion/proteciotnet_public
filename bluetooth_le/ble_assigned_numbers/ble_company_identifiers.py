@@ -1,4 +1,4 @@
-COMPANY_IDENTIFIERS = {
+company_identifiers = {
     "0x0D0F": "Timebirds Australia Pty Ltd",
     "0x0D0E": "PetVoice Co., Ltd.",
     "0x0D0D": "C.Ed. Schulte GmbH Zylinderschlossfabrik",

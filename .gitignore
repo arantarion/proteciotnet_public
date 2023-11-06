@@ -211,3 +211,7 @@ static/*.pdf
 !/static/reports/backgrounds/*
 
 *.sqlite
+
+/bluetooth_le/ble_assigned_numbers/yaml_json/*
+/static/zigbee_reports/*
+/static/ble_reports/*

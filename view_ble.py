@@ -85,6 +85,7 @@ def _construct_device_info(data, md5_sum_of_scanfile):
 
         device_info[address] = {
             'address': address,
+            'address_linked': address,
             'name': device.get('device_name', ""),
             'vendor': device.get('vendor', ""),
             'mean_rssi': rssi_tooltip_html,
@@ -150,6 +151,9 @@ def _construct_device_info(data, md5_sum_of_scanfile):
                                      'notesb64': notesb64,
                                      'notesout': notesout})
 
+        if total_characteristics_count > 0:
+            device_info[address]['address_linked'] = f'{address} <i class="material-icons" style="font-size: 70%;">open_in_new</i>'
+
         host_index += 1
         readable_characteristics_count_all += total_characteristics_count
 
@@ -192,5 +196,29 @@ def bluetooth_low_energy(request):
                '</script>'
 
     logger.debug(f"Successfully created dict r with display information for the HTML page")
+
+    return r
+
+
+def ble_details(request):
+    r = {'auth': True, 'js': ""}
+
+    addr = request.get_full_path().split("/")[-1]
+
+    ble_file_filename = request.session['scanfile'].replace(".csv", ".json")
+    ble_file_filename_without_extension = ble_file_filename.replace('.json', "")
+    with open(f"{_BASE_STATIC_BLE_DIR}{ble_file_filename}", "r", encoding='utf-8') as f:
+        json_input = json.load(f)
+
+    for elem in json_input:
+        if elem.get("address", "") == addr:
+            r.update({
+                "extra_data": elem.get("extra_data", ""),
+                "attribute_data": elem.get("attribute_data", "")
+            })
+
+    r['scan_filename'] = f"{ble_file_filename_without_extension}.csv"
+    r['address'] = addr
+    r['hostname'] = f'<span class="small grey-text"><b>Type:</b> Name</span><br>'
 
     return r

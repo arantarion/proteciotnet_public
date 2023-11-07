@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views, api, pdf, functions_nmap, functions, view_zigbee, functions_zigbee, functions_ble
+from . import views, api, pdf, functions_nmap, functions, view_zigbee, functions_zigbee, functions_ble, view_ble
 
 
 urlpatterns = [
@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/v1/create_zigbee_report', pdf.create_zigbee_report, name="zigbee_report"),
 
     path('api/v1/ble/scan/new', functions_ble.new_ble_scan, name='apiv1_scan_ble_new'),
+    path('ble_report/<address>', view_ble.ble_details, name="ble_details"),
 ]
 
 # path('api/v1/nmap/scan/active', functions_nmap.nmap_scaninfo, name='apiv1_scan_active'),

@@ -12,7 +12,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 
 from proteciotnet_dev.view_zigbee import zigbee
-from proteciotnet_dev.view_ble import bluetooth_low_energy
+from proteciotnet_dev.view_ble import bluetooth_low_energy, ble_details
 from proteciotnet_dev.api import label
 from proteciotnet_dev.CVSS_Vectors import Cvss3vector, Cvss2Vector
 from proteciotnet_dev.functions import *
@@ -123,6 +123,10 @@ def details(request, address, sorting='standard'):
 
     if "about" in request.path:
         return render(request, 'proteciotnet_dev/about.html', r)
+
+    if "ble_report" in request.path:
+        r = ble_details(request=request)
+        return render(request, 'proteciotnet_dev/ble_device_details.html', r)
 
     oo = xmltodict.parse(open('/opt/xml/' + request.session['scanfile'], 'r').read())
     r['out2'] = json.dumps(oo['nmaprun'], indent=4)

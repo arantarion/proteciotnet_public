@@ -405,7 +405,7 @@ table.custom-table td {
 }
 
 .toggle-checkbox:checked + .toggle-switch {
-    background: #2196F3;
+    background: #1565C0;
 }
 
 .toggle-checkbox:checked + .toggle-switch:before {

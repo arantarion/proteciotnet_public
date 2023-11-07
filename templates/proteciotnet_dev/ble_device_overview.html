@@ -11,7 +11,7 @@
                 <div class="row hide-on-med-and-down">
                     <div class="col s12 m4 title-small grey-text">
                         <a href="/setscanfile/unset">
-                            <button class="btn blue btn-floating" id="backbtn"
+                            <button class="btn btn-floating" id="backbtn" style="background-color: #1565C0;"
                                     title="Go back">
                                 <i class="fas fa-arrow-left"></i>
                             </button>
@@ -41,13 +41,13 @@
                                 <td><b class="orange-text">Scan End:</b></td>
                                 <td>{{ bl_scan_end_time }}</td>
                             </tr>
-                            <tr>
-                                <td><b class="orange-text">No. Devices:</b></td>
-                                <td>{{ bl_nr_dev }}</td>
-
-                                <td><b class="orange-text">Connectable Devices:</b></td>
-                                <td>{{ bl_conn_dev }}</td>
-                            </tr>
+                            {#                            <tr>#}
+                            {#                                <td><b class="orange-text">No. Devices:</b></td>#}
+                            {#                                <td>{{ bl_nr_dev }}</td>#}
+                            {##}
+                            {#                                <td><b class="orange-text">Connectable Devices:</b></td>#}
+                            {#                                <td>{{ bl_conn_dev }}</td>#}
+                            {#                            </tr>#}
                             <tr>
                                 <td><b class="orange-text">LTKs:</b></td>
                                 <td>{{ bl_ltk }}</td>
@@ -65,7 +65,6 @@
                 <div class="col s12 m4 title-small grey-text">Actions</div>
                 <br>
 
-                {#            THINK ABOUT PCAP DOWNLOAD #}
                 <ul id="dd_{{ bl_filename }}" class="dropdown-content" style="min-width:300px; border-radius: 4px;">
                     <li><a href="#" onclick="createZigBeeReport('{{ bl_filename }}', 'pcap')" style="color:#111111">Make
                         PCAP file available</a></li>
@@ -133,143 +132,128 @@
                     {% else %}
                         <span class="small grey-text">LONG TERM KEYS</span></div>
                     {% endif %}
+            </div>
         </div>
-    </div>
 
-    {#  The Services etc overview. Not quite sure what to do with it  #}
-    <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">
-        <div class="card-title" style="padding: 16px 12px 1px 32px;">RSSI Graph</div>
-        <div class="card-content">
-            {% with 'ble_reports/'|add:rssi_graph_path as static_path %}
-                <img src="{% static static_path %}" alt="RSSI graph in relation to capture device position"
-                     style="width: 60%; display: block;">
-            {% endwith %}
-        </div>
-    </div>
-
-    {#        <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">#}
-    {#            <div class="card-title" style="padding: 16px 12px 1px 32px;">Network Overview</div>#}
-    {#            <div class="card-content">#}
-    {#                {% with "zigbee_reports/"|add:network_graph_render_path as static_path %}#}
-    {#                    <img src="{% static static_path %}" alt="Network Overview" style="width: 80%; display: block;">#}
-    {#                {% endwith %}#}
-    {#            </div>#}
-    {#        </div>#}
-
-    {{ js | safe }}
-
-    {# The device list #}
-    {% for key, value in devices.items %}
-        <div class="card wmcard">
+        <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">
+            <div class="card-title" style="padding: 16px 12px 1px 32px;">RSSI Graph</div>
             <div class="card-content">
-                <div class="row" style="padding:0; margin-bottom:0; margin-right: 0">
-                    <div class="col s3" style="border-right:solid #444 1px;">
-                        <div class="hindex wmcard">{{ value.host_index }}</div>
-                        {#                            {{ v.newlabelout|safe }}#}
-                        {% if value.address != "" and value.name != "" %}
-                            <h5><a href="/report/{{ value.address }}"
-                                   class="blue-text text-darken-3">{{ value.address }}</a></h5>
-                            <span style="font-size: 14px; color: #9e9e9e"><b>Name: </b> {{ value.name|safe }}</span><br>
-                            <span style="font-size: 14px; color: #9e9e9e"><b>Vendor: </b>{{ value.vendor|safe }}</span>
+                <img src="{% static rssi_graph_path %}" alt="RSSI graph in relation to capture device position"
+                     style="width: 60%; display: block;">
+            </div>
+        </div>
 
-                        {% else %}
-                            <h5><a href="/report/{{ value.address }}"
-                                   class="blue-text text-darken-3">{{ value.address }}</a></h5>
-                            <span style="font-size: 14px; color: #9e9e9e"><b>Vendor: </b>{{ value.vendor|safe }}</span>
-                        {% endif %}
+        {{ js | safe }}
 
+        {# The device list #}
+        {% for key, value in devices.items %}
+            <div class="card wmcard">
+                <div class="card-content">
+                    <div class="row" style="padding:0; margin-bottom:0; margin-right: 0">
+                        <div class="col s3" style="border-right:solid #444 1px;">
+                            <div class="hindex wmcard">{{ value.hostindex }}</div>
+                            {{ value.newlabelout|safe }}
+                            {% if value.address != "" and value.name != "" %}
+                                <h5><a href="/report/{{ value.address }}"
+                                       class="blue-text text-darken-3">{{ value.address }}</a></h5>
+                                <span style="font-size: 14px; color: #9e9e9e"><b>Name: </b> {{ value.name|safe }}</span><br>
+                                <span style="font-size: 14px; color: #9e9e9e"><b>Vendor: </b>{{ value.vendor|safe }}</span>
+                            {% else %}
+                                <h5><a href="/report/{{ value.address }}"
+                                       class="blue-text text-darken-3">{{ value.address }}</a></h5>
+                                <span style="font-size: 14px; color: #9e9e9e"><b>Vendor: </b>{{ value.vendor|safe }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="col s1 grey-text" style="text-align: center;">
+                            <b>RSSI</b><br><br>
+                            <i class="material-icons">near_me</i>
+                            <div>{{ value.mean_rssi | safe }}</div>
+{#                            <div>{{ value.mean_rssi }} dBm</div>#}
+                        </div>
+
+                        <div class="col s2 grey-text" style="text-align: center">
+                            <b>Address Type</b><br><br>
+                            {% if value.address_type == 'random' %}
+                                <i class="material-icons">shuffle</i>
+                                <div>{{ value.random_addr_resolved_type | safe }}</div>
+                            {% else %}
+                                <i class="material-icons">public</i>
+                                <div>{{ value.random_addr_resolved_type | safe }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col s1 grey-text" style="text-align: center;">
+                            <b>Connectable</b><br><br>
+                            {% if value.connectable %}
+                                <i class="material-icons">bluetooth_searching</i>
+                                <div>Yes</div>
+                            {% else %}
+                                <i class="material-icons">bluetooth_disabled</i>
+                                <div>No</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col s1 grey-text" style="text-align: center;">
+                            <b></b><br><br>
+                        </div>
+
+                        <div class="col s4 grey-text" style="text-align: center">
+                            <b>Flags</b><br><br>
+                            <table style="width: 100%; border-collapse: collapse; border-spacing: 0; margin: 0 auto;"
+                                   class="small center-align">
+                                {% for flag, v in value.flags.items %}
+                                    <tr style="border: none">
+                                        <td style="width: 20px; vertical-align: middle; padding: 2px 5px 2px 0;">
+                                            {% if v == "True" %}
+                                                <div class="dot"
+                                                     style="height: 12px; width: 12px; border-radius: 50%; display: inline-block;
+                                                             background-color: #1565C0 ;
+                                                             border: 1px solid #1565C0 ;"></div>
+                                            {% else %}
+                                                <div class="dot" style="height: 12px; width: 12px; border-radius: 50%; display: inline-block;
+                                                    background-color: transparent;
+                                                    border: 1px solid #ccc;"></div>
+                                            {% endif %}
+
+                                        </td>
+                                        <td style="vertical-align: middle; padding: 2px 0;">
+                                            <span class="text">{{ flag }}</span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
 
                     </div>
+                </div>
 
-                    <div class="col s1  grey-text" style="text-align: center;">
-                        <b>RSSI</b><br><br>
-                        <i class="material-icons">near_me</i>
-                        <div>{{ value.mean_rssi }} dBm</div>
-                    </div>
+                <div class="card-action">
+                    <ul id="hostdd{{ value.hostindex }}" class="dropdown-content" style="min-width:200px;">
+                        <li><a href="#!"
+                               onclick="setLabel('host', 'Vulnerable', '{{ value.addressmd5 }}', {{ value.hostindex }});"><span
+                                class="tmlabel red">Vulnerable</span></a></li>
+                        <li><a href="#!"
+                               onclick="setLabel('host', 'Warning', '{{ value.addressmd5 }}', {{ value.hostindex }});"><span
+                                class="tmlabel orange">Warning</span></a></li>
+                        <li><a href="#!"
+                               onclick="setLabel('host', 'Checked', '{{ value.addressmd5 }}', {{ value.hostindex }});"><span
+                                class="tmlabel blue">Checked</span></a></li>
+                        <li><a class="grey-text" href="#!"
+                               onclick="removeLabel('host', '{{ value.addressmd5 }}', {{ value.hostindex }});">Remove label</a>
+                        </li>
+                        <li class="divider"></li>
+                        <li><a class="grey-text" href="#!"
+                               onclick="openNotes('{{ value.addressmd5 }}', '{{ value.notesb64 }}');">Insert notes</a></li>
+                        {{ value.removenotes|safe }}
+                    </ul>
+                    <a href="#!" class="grey-text dropdown-trigger" data-target="hostdd{{ value.hostindex }}"><i
+                            class="fas fa-ellipsis-v"></i> Actions</a>
 
-                    <div class="col s2 grey-text" style="text-align: center">
-                        <b>Address Type</b><br><br>
-                        {% if value.address_type == 'random' %}
-                            <i class="material-icons">shuffle</i>
-                            <div>Random</div>
-                        {% else %}
-                            <i class="material-icons">public</i>
-                            <div>Public</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="col s1 grey-text" style="text-align: center;">
-                        <b>Connectable</b><br><br>
-                        {% if value.connectable %}
-                            <i class="material-icons">bluetooth_searching</i>
-                            <div>Yes</div>
-                        {% else %}
-                            <i class="material-icons">bluetooth_disabled</i>
-                            <div>No</div>
-                        {% endif %}
-                    </div>
-
-                     <div class="col s1 grey-text" style="text-align: center;">
-                        <b></b><br><br>
-                    </div>
-
-                    <div class="col s4 grey-text" style="text-align: center">
-                        <b>Flags</b><br><br>
-                        <table style="width: 100%; border-collapse: collapse; border-spacing: 0; margin: 0 auto;" class="small center-align">
-                            {% for flag, v in value.flags.items %}
-                                <tr style="border: none">
-                                    <td style="width: 20px; vertical-align: middle; padding: 2px 5px 2px 0;">
-                                        {% if v == "True" %}
-                                            <div class="dot"
-                                                 style="height: 12px; width: 12px; border-radius: 50%; display: inline-block;
-                                                     background-color: #1565C0 ;
-                                                     border: 1px solid #1565C0 ;"></div>
-                                        {% else %}
-                                            <div class="dot" style="height: 12px; width: 12px; border-radius: 50%; display: inline-block;
-                                            background-color: transparent;
-                                            border: 1px solid #ccc;"></div>
-                                        {% endif %}
-
-                                    </td>
-                                    <td style="vertical-align: middle; padding: 2px 0;">
-                                        <span class="text">{{ flag }}</span>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </table>
-                    </div>
-
-
+                    {{ value.notesout|safe }}
                 </div>
             </div>
-
-            <div class="card-action">
-                <ul id="hostdd{{ v.hostindex }}" class="dropdown-content" style="min-width:200px;">
-                    <li><a href="#!"
-                           onclick="setLabel('host', 'Vulnerable', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span
-                            class="tmlabel red">Vulnerable</span></a></li>
-                    <li><a href="#!"
-                           onclick="setLabel('host', 'Warning', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span
-                            class="tmlabel orange">Warning</span></a></li>
-                    <li><a href="#!"
-                           onclick="setLabel('host', 'Checked', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span
-                            class="tmlabel blue">Checked</span></a></li>
-                    <li><a class="grey-text" href="#!"
-                           onclick="removeLabel('host', '{{ v.addressmd5 }}', {{ v.hostindex }});">Remove label</a>
-                    </li>
-                    <li class="divider"></li>
-                    <li><a class="grey-text" href="#!"
-                           onclick="openNotes('{{ v.addressmd5 }}', '{{ v.notesb64 }}');">Insert notes</a></li>
-                    {{ v.removenotes|safe }}
-                </ul>
-                <a href="#!" class="grey-text dropdown-trigger" data-target="hostdd{{ v.hostindex }}"><i
-                        class="fas fa-ellipsis-v"></i> Actions</a>
-
-                {{ v.notesout|safe }}
-
-            </div>
-        </div>
-    {% endfor %}
+        {% endfor %}
     </div>
 
 {% endblock %}

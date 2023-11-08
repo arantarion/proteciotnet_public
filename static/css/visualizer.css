@@ -1,0 +1,26 @@
+/* ------------ Visualizer ------------- */
+        
+.visual-package {padding:3px;border-radius:2px;margin-top:3px;}
+.visual-header {cursor:pointer;}
+
+.visual-name {color: rgb(128, 128, 128);}
+
+.visual-array {background-color:transparent;border:thin solid transparent; font-size: 12pt;}
+.visual-object {background-color:transparent;border-top: thin solid #424242; padding: 5px 10px 5px 25px;}
+.visual-string {color:#1565C0; font-size: 12pt;}
+.visual-number {color:#1565C0;font-size: 12pt;}
+.visual-function {color:#1565C0; font-size: 12pt;}
+
+.visual-open .visual-children {display:block;}
+.visual-closed .visual-children {display:none;}
+
+.visual-arrow {background-image:url("d.png"); background-repeat:no-repeat; background-color:transparent; height:17px; width:17px; display:inline-block;}
+
+.visual-open .visual-arrow {background-position:-20px 0;}
+.visual-closed .visual-arrow {background-position:0 0;}
+
+.visual-type {display:none; color: transparent;font-size:8pt;float:right;}
+
+.hide {
+    display:none !important;
+}

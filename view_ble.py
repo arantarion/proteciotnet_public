@@ -36,6 +36,17 @@ def _rssi_to_distance(rssi):
     return round(10 ** ((mp - (int(rssi)))/(10 * n)), 2)
 
 
+def _replace_bools_with_strings(obj):
+    if isinstance(obj, dict):
+        return {k: _replace_bools_with_strings(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_replace_bools_with_strings(element) for element in obj]
+    elif isinstance(obj, bool):
+        return str(obj)  # Converts the boolean to a lowercase string
+    else:
+        return obj
+
+
 def _resolve_random_addr_type(address):
     binary_mac = bin(int(address.replace(":", ""), 16))[2:].zfill(48)
     msb = binary_mac[-2:]
@@ -214,11 +225,31 @@ def ble_details(request):
         if elem.get("address", "") == addr:
             r.update({
                 "extra_data": elem.get("extra_data", ""),
-                "attribute_data": elem.get("attribute_data", "")
+                "attribute_data": _replace_bools_with_strings(elem.get("attribute_data", ""))
             })
 
     r['scan_filename'] = f"{ble_file_filename_without_extension}.csv"
     r['address'] = addr
-    r['hostname'] = f'<span class="small grey-text"><b>Type:</b> Name</span><br>'
+    r['hostname'] = f'<span class="grey-text"><b>Type:</b> Name</span><br>'
+
+    r['json_output_extra_data'] = f"""
+                        <script>
+                            var json = {r['extra_data']}
+                            $(function(){{
+                                var _visualizer = new visualizer($("#output_extra_data"));
+                                _visualizer.visualize(json, 'Advertisement Data');
+                            }});
+                        </script>
+                    """
+
+    r['json_output_attribute_data'] = f"""
+                        <script>
+                            var json_attr = {[r['attribute_data']]}
+                            $(function(){{
+                                var _visualizer_attr = new visualizer($("#output_attribute_data"));
+                                _visualizer_attr.visualize(json_attr, 'Readable Data');
+                            }});
+                        </script>
+                    """
 
     return r

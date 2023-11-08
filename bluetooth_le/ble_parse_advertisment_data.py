@@ -1,6 +1,5 @@
 from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_ad_types import ad_types
 from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_company_identifiers import company_identifiers
-from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_flags import flags
 from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_ms_device_type import ms_device_type
 from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_ms_flags_and_device_status import ms_flags_and_device_status
 from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_uuids import uuids

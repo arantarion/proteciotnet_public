@@ -139,7 +139,7 @@
         </li>
 
         <li class="wm_line">
-            <div>social</div>
+            <div class="center center-align">social</div>
         </li>
         <li><i class="fab fa-gitlab"></i> <a href="https://gitlab.com/hweckermann/proteciotnet">GitLab Project</a></li>
 
@@ -152,32 +152,32 @@
 
 </div>
 
-
-{% if scanfile %}
-    <ul id="slide-out" class="sidenav">
-        <li>
-            <div class="user-view">
-                <div class="background" style="text-align:center;">
-                    <img src="/static/logoblack.png" style="max-width:200px;margin-top:20px;">
-                </div>
-                <br>
-            </div>
-        </li>
-        <li><a href="/setscanfile/unset"><i class="material-icons">wifi</i>Show all Nmap scan</a></li>
-        <li><a href="/"><i class="material-icons">info</i>Show scan details</a></li>
-
-        <li>
-            <div class="divider"></div>
-        </li>
-        <li><a class="subheader">Support ProtecIotnet on GitLab</a></li>
-        <li style="padding-left:30px;margin-top:-20px;"><i class="fab fa-gitlab"></i> <a
-                href="https://gitlab.com/hweckermann/proteciotnet">GitLab Project</a></li>
-        <li style="padding-left:30px;margin-top:-20px;"><i class="fas fa-star"></i> <a
-                href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabstar">Star this project</a></li>
-        <li style="padding-left:30px;margin-top:-20px;"><i class="fas fa-code-branch"></i> <a
-                href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabfork">Fork this project</a></li>
-    </ul>
-{% endif %}
+{##}
+{#{% if scanfile %}#}
+{#    <ul id="slide-out" class="sidenav">#}
+{#        <li>#}
+{#            <div class="user-view">#}
+{#                <div class="background" style="text-align:center;">#}
+{#                    <img src="/static/logoblack.png" style="max-width:200px;margin-top:20px;">#}
+{#                </div>#}
+{#                <br>#}
+{#            </div>#}
+{#        </li>#}
+{#        <li><a href="/setscanfile/unset"><i class="material-icons">wifi</i>Show all Nmap scan</a></li>#}
+{#        <li><a href="/"><i class="material-icons">info</i>Show scan details</a></li>#}
+{##}
+{#        <li>#}
+{#            <div class="divider"></div>#}
+{#        </li>#}
+{#        <li><a class="subheader">Support ProtecIotnet on GitLab</a></li>#}
+{#        <li style="padding-left:30px;margin-top:-20px;"><i class="fab fa-gitlab"></i> <a#}
+{#                href="https://gitlab.com/hweckermann/proteciotnet">GitLab Project</a></li>#}
+{#        <li style="padding-left:30px;margin-top:-20px;"><i class="fas fa-star"></i> <a#}
+{#                href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabstar">Star this project</a></li>#}
+{#        <li style="padding-left:30px;margin-top:-20px;"><i class="fas fa-code-branch"></i> <a#}
+{#                href="https://gitlab.com/hweckermann/proteciotnet" id="gitlabfork">Fork this project</a></li>#}
+{#    </ul>#}
+{#{% endif %}#}
 
 
 {% block content %}

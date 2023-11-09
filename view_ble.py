@@ -1,9 +1,11 @@
+import base64
 import hashlib
 import html
 import json
 import logging
 import os.path
 import re
+import urllib.parse
 
 from proteciotnet_dev.functions import label_to_color, label_to_margin
 
@@ -215,6 +217,30 @@ def ble_details(request):
     r = {'auth': True, 'js': ""}
 
     addr = request.get_full_path().split("/")[-1]
+    scanmd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
+    r['md5_sum_of_scanfile'] = scanmd5
+
+    addressmd5 = hashlib.md5(str(addr).encode('utf-8')).hexdigest()
+
+    # collect all labels in labelhost dict
+    labelhost = {}
+    labelfiles = os.listdir('/opt/notes')
+    for lf in labelfiles:
+        m = re.match('^(' + scanmd5 + ')_([a-z0-9]{32,32})\.host\.label$', lf)
+        if m is not None:
+            if m.group(1) not in labelhost:
+                labelhost[m.group(1)] = {}
+            labelhost[m.group(1)][m.group(2)] = open('/opt/notes/' + lf, 'r').read()
+
+    # collect all notes in noteshost dict
+    noteshost = {}
+    notesfiles = os.listdir('/opt/notes')
+    for nf in notesfiles:
+        m = re.match('^(' + scanmd5 + ')_([a-z0-9]{32,32})\.notes$', nf)
+        if m is not None:
+            if m.group(1) not in noteshost:
+                noteshost[m.group(1)] = {}
+            noteshost[m.group(1)][m.group(2)] = open('/opt/notes/' + nf, 'r').read()
 
     ble_file_filename = request.session['scanfile'].replace(".csv", ".json")
     ble_file_filename_without_extension = ble_file_filename.replace('.json', "")
@@ -251,5 +277,27 @@ def ble_details(request):
                             }});
                         </script>
                     """
+    labelout = '<span id="hostlabel"></span>'
+    if scanmd5 in labelhost:
+        if addressmd5 in labelhost[scanmd5]:
+            labelcolor = label_to_color(labelhost[scanmd5][addressmd5])
+            _ = label_to_margin(labelhost[scanmd5][addressmd5])
+            _ = '<span id="hostlabel" style="margin-left:60px;margin-top:-24px;" class="rightlabel ' \
+                + labelcolor + '">' + html.escape(labelhost[scanmd5][addressmd5]) + '</span>'
+
+            r['label'] = html.escape(labelhost[scanmd5][addressmd5])
+            r['labelcolor'] = labelcolor
+
+    r['table'] = ''
+    if scanmd5 in noteshost:
+        if addressmd5 in noteshost[scanmd5]:
+            notesb64 = noteshost[scanmd5][addressmd5]
+            r['table'] += '<div class="card" style="background-color:#3e3e3e;">' + \
+                          '	<div class="card-content"><h5>Notes</h5>' + \
+                          '		' + base64.b64decode(urllib.parse.unquote(notesb64)).decode('ascii') + \
+                          '	</div>' + \
+                          '</div>'
+            r['notes'] = base64.b64decode(urllib.parse.unquote(notesb64)).decode('ascii')
+
 
     return r

@@ -7,18 +7,17 @@
         {# Scan data overview without actions  #}
         <div class="card wmcard" style="display: flex; justify-content: space-between;">
             <div class="card-content">
-
                 <div class="row hide-on-med-and-down">
-                    <div class="col s12 m4 title-small grey-text">
+                    <div class="col s6 card-title grey-text">
                         <a href="/setscanfile/unset">
-                            <button class="btn btn-floating" id="backbtn" style="background-color: #1565C0;"
+                            <button class="btn btn-floating" id="backbtn" style="line-height:0 !important; background-color: #1565C0;"
                                     title="Go back">
                                 <i class="fas fa-arrow-left"></i>
                             </button>
                         </a>
-                        &nbsp;BLE Scan Information
+                        &nbsp; BLE Scan Information
                     </div>
-                    <div class="col s12 m4 title-small red-text right">
+                    <div class="col s6 title-small red-text right right-align">
                         <a href="#!" onclick="delete_file('{{ bl_filename }}');" class="red-text">
                             <span class="material-icons" style="font-size: 20px;">scan_delete</span>Delete File</a>
                     </div>
@@ -248,7 +247,7 @@
                                 class="tmlabel orange">Warning</span></a></li>
                         <li><a href="#!"
                                onclick="setLabel('host', 'Checked', '{{ value.addressmd5 }}', {{ value.hostindex }});"><span
-                                class="tmlabel blue">Checked</span></a></li>
+                                class="tmlabel special_blue">Checked</span></a></li>
                         <li><a class="grey-text" href="#!"
                                onclick="removeLabel('host', '{{ value.addressmd5 }}', {{ value.hostindex }});">Remove label</a>
                         </li>

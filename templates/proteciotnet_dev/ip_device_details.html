@@ -15,11 +15,11 @@
 
                         <span class="card-title">
                             <a href="/">
-                            <button class="btn btn-danger btn-floating btn-lg" style="line-height: 0; background-color: #1565C0;" id="backbtn"
+                            <button class="btn btn-danger btn-floating btn-lg" style="line-height: 0 !important; background-color: #1565C0 !important;" id="backbtn"
                                     title="Go back">
                                 <i class="fas fa-arrow-left"></i>
                             </button></a>
-                            {{ address }}
+                            &nbsp; {{ address }}
                         </span>
 
                         {{ hostname | safe }}
@@ -72,7 +72,7 @@
                                 {{ v.cpe|safe }}
                             </td>
                             <td>
-                                <button class="detail_button blue right white-text"
+                                <button class="detail_button right white-text"
                                         onclick="apiPortDetails('{{ address }}','{{ v.portid }}')">
                                     Show details
                                 </button>

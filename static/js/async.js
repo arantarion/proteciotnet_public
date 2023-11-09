@@ -1055,7 +1055,7 @@ function setLabel(type, label, hashstr, i) {
                     margin = '28px';
                     break;
                 case 'Checked':
-                    color = '#0c7bbb';
+                    color = '#1565C0';
                     margin = '28px';
                     break;
             }
@@ -1083,7 +1083,7 @@ function setLabel(type, label, hashstr, i) {
             $('#hostlabelbb' + i).css("margin-top", '-3px')
             $('#hostlabelbb' + i).css("background-color", color);
             $('#hostlabelbb' + i).attr("class", "")
-            //$('#hostlabelbb'+i).addClass(color);
+            // $('#hostlabelbb'+i).addClass(color);
         }
     });
 }

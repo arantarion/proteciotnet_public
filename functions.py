@@ -133,7 +133,7 @@ def label_to_color(label):
         'Vulnerable': 'red',
         'Critical': 'black',
         'Warning': 'orange',
-        'Checked': 'blue'
+        'Checked': 'special_blue'
     }
 
     return labels.get(label)

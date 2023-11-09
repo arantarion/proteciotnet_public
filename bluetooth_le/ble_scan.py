@@ -1108,9 +1108,21 @@ def runner(filename: str,
 
 
 def main2():
-    global BT_SCAN_TIME
-    BT_SCAN_TIME = 10
-    scan_all_devices_and_read_all_fields("/home/henry/Downloads/test_scanner_saturday")
+    print("Starting Script. Initializing Scanner Object")
+    scanner1 = BLEScanner(filename="/home/henry/Downloads/long_time_scan",
+                          connectable_only=False)
+    try:
+        scanner1.scan(duration=99999)
+    except BTLEDisconnectError:
+        try:
+            logger.info("First scanning attempt failed. Trying again after 0.2 seconds...")
+            sleep(0.2)
+            scanner1.scan(duration=BT_SCAN_TIME)
+        except Exception:
+            logger.error(f"An error occurred while scanning devices")
+            pass
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":

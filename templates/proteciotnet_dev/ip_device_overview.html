@@ -6,13 +6,13 @@
         <div class="card wmcard" style="display: flex; justify-content: space-between;">
             <div class="card-content">
                 <div class="row hide-on-med-and-down">
-                    <div class="col s12 m4 title-small grey-text">
+                    <div class="col s6 card-title grey-text">
                         <a href="/setscanfile/unset">
-                            <button class="btn blue btn-floating" id="backbtn"
+                            <button class="btn blue btn-floating" id="backbtn" style="line-height:0 !important; background-color: #1565C0 !important;"
                                     title="Go back">
                                 <i class="fas fa-arrow-left"></i>
                             </button></a>
-                        &nbsp;Scan Information</div>
+                        &nbsp; Scan Information</div>
                     <div class="col s12 m4 title-small red-text right">
                         <a href="#!" onclick="delete_file('{{ stats.filename }}');" class="red-text">
                         <span class="material-icons" style="font-size: 20px;">scan_delete</span>
@@ -226,7 +226,7 @@
                                 class="tmlabel orange">Warning</span></a></li>
                         <li><a href="#!"
                                onclick="setLabel('host', 'Checked', '{{ v.addressmd5 }}', {{ v.hostindex }});"><span
-                                class="tmlabel blue">Checked</span></a></li>
+                                class="tmlabel special_blue">Checked</span></a></li>
                         <li><a class="grey-text" href="#!"
                                onclick="removeLabel('host', '{{ v.addressmd5 }}', {{ v.hostindex }});">Remove label</a>
                         </li>

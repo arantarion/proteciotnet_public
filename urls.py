@@ -5,6 +5,9 @@ from . import views, api, pdf, functions_nmap, functions, view_zigbee, functions
 
 urlpatterns = [
     path('', views.index, name='index'),
+
+    path('view/login/', views.user_login, name='login'),
+
     path('setscanfile/<scanfile>', views.setscanfile, name='setscanfile'),
     path('set_online_state', functions.set_state, name='offline_mode'),
     path('about/', views.about, name="about"),

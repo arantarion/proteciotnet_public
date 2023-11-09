@@ -1,0 +1,31 @@
+{% extends "proteciotnet_dev/main.html" %}
+
+{% load static %}
+
+{% block content %}
+    <div class="container" style="margin-top:100px;">
+        <div class="row">
+            <div class="col s12 m4 offset-m4">
+{#                <div class="card wmcard">#}
+{#                    <div class="card-content">#}
+{#                        <span class="card-title"></span>#}
+                        <div class="form">
+
+                        <form class="custom-login-form login-form" method="post" action="{% url 'login' %}">
+                            {% csrf_token %}
+                            {{ form.as_p }}
+
+                            {% if form.errors %}
+                                <p>Your username and password didn't match. Please try again.</p>
+                            {% endif %}
+
+                            <button class="login-button" type="submit">Login</button>
+                        </form>
+                        </div>
+                    </div>
+{#                </div>#}
+{#            </div>#}
+        </div>
+    </div>
+
+{% endblock %}

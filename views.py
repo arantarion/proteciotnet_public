@@ -9,7 +9,9 @@ from datetime import datetime
 
 from django.http import HttpResponse
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import AuthenticationForm
 
 from proteciotnet_dev.view_zigbee import zigbee
 from proteciotnet_dev.view_ble import bluetooth_low_energy, ble_details
@@ -45,13 +47,29 @@ main_logger.addHandler(stream_handler)
 # logger.critical("This is a critical message")
 
 
-def login(request):
-    r = {}
-
-    if request.method == "POST":
-        return HttpResponse(json.dumps(r), content_type="application/json")
-
-    return render(request, 'proteciotnet_dev/main.html', r)
+def user_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('proteciotnet_dev/file_overview.html')  # Redirect to a 'home' page or desired URL
+            else:
+                return HttpResponse("Invalid username or password.")
+        else:
+            return HttpResponse("Invalid form.")
+    else:
+        form = AuthenticationForm()
+        return render(request, 'proteciotnet_dev/login.html', {'form': form})
+    # r = {}
+    #
+    # if request.method == "POST":
+    #     return HttpResponse(json.dumps(r), content_type="application/json")
+    #
+    # return render(request, 'proteciotnet_dev/main.html', r)
 
 
 def about(request):
@@ -127,6 +145,10 @@ def details(request, address, sorting='standard'):
     if "ble_report" in request.path:
         r = ble_details(request=request)
         return render(request, 'proteciotnet_dev/ble_device_details.html', r)
+
+    if "login" in request.path:
+        form = AuthenticationForm()
+        return render(request, 'proteciotnet_dev/login.html', {'form': form})
 
     oo = xmltodict.parse(open('/opt/xml/' + request.session['scanfile'], 'r').read())
     r['out2'] = json.dumps(oo['nmaprun'], indent=4)

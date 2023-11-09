@@ -120,8 +120,13 @@ def _construct_device_info(data, md5_sum_of_scanfile):
         device_info[address]['characteristics_count'] = total_characteristics_count
 
         for extra in device.get('extra_data', []):
-            if extra.get('Type', {}).get('Description') == 'Flags':
-                device_info[address]['flags'] = extra.get('Flags', "")
+            if isinstance(extra, dict):
+                dev_type = extra.get('Type', {})
+
+                if dev_type:
+                    dev_desc = dev_type.get('Description', "")
+                    if dev_desc == 'Flags':
+                        device_info[address]['flags'] = extra.get('Flags', "")
 
         if not device_info[address]['flags']:
             device_info[address]['flags'] = {'LE Limited Discoverable Mode': 'False',
@@ -164,8 +169,8 @@ def _construct_device_info(data, md5_sum_of_scanfile):
                                      'notesb64': notesb64,
                                      'notesout': notesout})
 
-        if total_characteristics_count > 0:
-            device_info[address]['address_linked'] = f'{address} <i class="material-icons" style="font-size: 70%;">open_in_new</i>'
+        if total_characteristics_count > 0 or device.get('extra_data', []):
+            device_info[address]['address_linked'] = f'{address}'# <i class="material-icons" style="font-size: 70%;">open_in_new</i>'
 
         host_index += 1
         readable_characteristics_count_all += total_characteristics_count
@@ -209,7 +214,7 @@ def bluetooth_low_energy(request):
                '</script>'
 
     logger.debug(f"Successfully created dict r with display information for the HTML page")
-
+    r['pdml_html'] = open(f"{_BASE_STATIC_BLE_DIR}sniffle_snoops.html").read().replace("#e5e5e5", "transparent")
     return r
 
 
@@ -257,6 +262,7 @@ def ble_details(request):
     r['scan_filename'] = f"{ble_file_filename_without_extension}.csv"
     r['address'] = addr
     r['hostname'] = f'<span class="grey-text"><b>Type:</b> Name</span><br>'
+    r['json_output_attribute_data'] = ""
 
     r['json_output_extra_data'] = f"""
                         <script>
@@ -268,22 +274,24 @@ def ble_details(request):
                         </script>
                     """
 
-    r['json_output_attribute_data'] = f"""
-                        <script>
-                            var json_attr = {[r['attribute_data']]}
-                            $(function(){{
-                                var _visualizer_attr = new visualizer($("#output_attribute_data"));
-                                _visualizer_attr.visualize(json_attr, 'Readable Data');
-                            }});
-                        </script>
-                    """
-    labelout = '<span id="hostlabel"></span>'
+    if r['attribute_data']:
+        r['json_output_attribute_data'] = f"""
+                            <script>
+                                var json_attr = {[r['attribute_data']]}
+                                $(function(){{
+                                    var _visualizer_attr = new visualizer($("#output_attribute_data"));
+                                    _visualizer_attr.visualize(json_attr, 'Readable Data');
+                                }});
+                            </script>
+                        """
+
+    # labelout = '<span id="hostlabel"></span>'
     if scanmd5 in labelhost:
         if addressmd5 in labelhost[scanmd5]:
             labelcolor = label_to_color(labelhost[scanmd5][addressmd5])
-            _ = label_to_margin(labelhost[scanmd5][addressmd5])
-            _ = '<span id="hostlabel" style="margin-left:60px;margin-top:-24px;" class="rightlabel ' \
-                + labelcolor + '">' + html.escape(labelhost[scanmd5][addressmd5]) + '</span>'
+            # labelmargin = label_to_margin(labelhost[scanmd5][addressmd5])
+            # labelout = '<span id="hostlabel" style="margin-left:60px;margin-top:-24px;" class="rightlabel ' \
+            #     + labelcolor + '">' + html.escape(labelhost[scanmd5][addressmd5]) + '</span>'
 
             r['label'] = html.escape(labelhost[scanmd5][addressmd5])
             r['labelcolor'] = labelcolor
@@ -298,6 +306,7 @@ def ble_details(request):
                           '	</div>' + \
                           '</div>'
             r['notes'] = base64.b64decode(urllib.parse.unquote(notesb64)).decode('ascii')
+
 
 
     return r

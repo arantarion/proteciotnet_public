@@ -1,6 +1,8 @@
 import csv
 import json
+import subprocess
 import warnings
+from multiprocessing import Process
 
 import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
@@ -10,6 +12,9 @@ from svgpathtools import svg2paths
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
+BLE_REPORT_STATIC_DIR = "/opt/proteciotnet/proteciotnet_dev/static/ble_reports/"
+WIRESHARK_DISPLAY_FILTER_STRING = "(btle.advertising_header.pdu_type == 5 || btle.data_header.length > 0) || (btsmp)"
+XSL_PATH = "/opt/proteciotnet/proteciotnet_dev/static/executables/pdml2html.xsl"
 
 def _create_json_info_part(ble_filename, scan_start_time, scan_end_time, interfaces, nr_devices, conn_devices):
     return {
@@ -68,7 +73,7 @@ def csv_to_json(csv_file_path, json_file_path=""):
     return data_list, rssi_values
 
 
-def create_rssi_graph(csv_file_path):
+def create_rssi_graph(csv_file_path, ble_scan_results, output_path):
     rssi_values = []
     with open(csv_file_path, 'r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
@@ -164,13 +169,19 @@ def create_rssi_graph(csv_file_path):
     ax.set_yticklabels(["Immediate", "Near", "Midrange", "Far", "Very Far"])
     ax.set_xticks([])
     ax.set_xticklabels("")
-    ax.legend(handles=markers,
-              loc='upper left',
-              bbox_to_anchor=(0.25, 1.05),
-              ncol=2,
-              fancybox=True,
-              shadow=True,
-              title="Device names")
+    legend = ax.legend(handles=markers,
+                       loc='upper left',
+                       bbox_to_anchor=(1.02, 1),
+                       ncol=2,
+                       fancybox=True,
+                       shadow=False,
+                       title="Device names",
+                       labelcolor="white",
+                       edgecolor='none',
+                       framealpha=0)
+    plt.setp(legend.get_title(), color='white')
+    legend.get_frame().set_alpha(0)
+    legend.get_frame().set_facecolor((0, 0, 0, 0))
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     plt.ylabel("Distance to user", color='white')
@@ -183,14 +194,30 @@ def create_rssi_graph(csv_file_path):
         spine.set_color('white')
 
     # plt.show()
-    plt.savefig("/home/henry/Downloads/my_test_graph.svg",
+    plt.savefig(output_path,
                 format="svg",
                 transparent=True,
                 bbox_inches="tight")
 
 
-csv_file_path = '/home/henry/Downloads/ble_scan_test_data.csv'
+def convert_ble_sniff_to_html(filename):
+    def conversion_process():
+        base_filename = filename.split("/")[-2]
+        pdml_filename = base_filename + '.pdml'
+        html_filename = base_filename + '.html'
 
-ble_scan_results, rssi_values = csv_to_json(csv_file_path, f"{csv_file_path}.json")
+        # Convert pcap to pdml
+        tshark_cmd = f"tshark -r {filename} -Y '{WIRESHARK_DISPLAY_FILTER_STRING}' -T pdml > {BLE_REPORT_STATIC_DIR}{pdml_filename}"
+        subprocess.run(tshark_cmd, shell=True)
 
-create_rssi_graph(csv_file_path)
+        # Convert pdml to html
+        xslt_cmd = f"xsltproc {XSL_PATH} {BLE_REPORT_STATIC_DIR}{pdml_filename} > {BLE_REPORT_STATIC_DIR}{html_filename}"
+        subprocess.run(xslt_cmd, shell=True)
+
+    process = Process(target=conversion_process)
+    process.start()
+    return process
+
+# csv_file_path = '/home/henry/Downloads/ble_scan_test_data.csv'
+# ble_scan_results, rssi_values = csv_to_json(csv_file_path, f"{csv_file_path}.json")
+# create_rssi_graph(csv_file_path)

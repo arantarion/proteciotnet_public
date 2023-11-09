@@ -15,6 +15,7 @@ from django.contrib.auth.forms import AuthenticationForm
 
 from proteciotnet_dev.view_zigbee import zigbee
 from proteciotnet_dev.view_ble import bluetooth_low_energy, ble_details
+from proteciotnet_dev.bluetooth_le.ble_perform_data_analysis import csv_to_json, create_rssi_graph
 from proteciotnet_dev.api import label
 from proteciotnet_dev.CVSS_Vectors import Cvss3vector, Cvss2Vector
 from proteciotnet_dev.functions import *
@@ -24,6 +25,9 @@ _MEDUSA_SUPPORTED_SERVICES = ['ssh', 'ftp', 'postgresql', 'telnet', 'mysql', 'ms
                               'vnc', 'imap', 'imaps', 'nntp', 'pcanywheredata', 'pop3', 'pop3s',
                               'exec', 'login', 'microsoft-ds', 'smtp', 'smtps', 'submission',
                               'svn', 'iss-realsecure', 'snmptrap', 'snmp', 'http']
+
+BLE_FILE_DIR = "/opt/ble/"
+BLE_STATIC_REPORT_DIR = "/opt/proteciotnet/proteciotnet_dev/static/ble_reports/"
 
 logging_level = logging.DEBUG
 main_logger = logging.getLogger()
@@ -640,52 +644,80 @@ def index(request, filterservice="", filterportid=""):
         r['stats'] = {'po': 0, 'pc': 0, 'pf': 0}
 
         ble_files_count = 0
-        for c in csvfiles:
-            if re.search('\.csv$', c) is None:
+        for csv_file in csvfiles:
+            if re.search('\.csv$', csv_file) is None:
                 continue
 
-            json_filepath = f'/opt/proteciotnet/proteciotnet_dev/static/ble_reports/{c.replace(".csv", ".json")}'
-            if os.path.isfile(json_filepath):
+            json_filepath = f'{BLE_STATIC_REPORT_DIR}{csv_file.replace(".csv", ".json")}'
+            svg_filepath = f'{BLE_STATIC_REPORT_DIR}{csv_file.replace(".csv", ".svg")}'
+            ble_scan_results = ""
 
-                logger.debug(f"Found CSV file {c}. Json path is {json_filepath}")
-
+            if not os.path.isfile(json_filepath):
+                logger.debug(f"CSV file {csv_file} has no matching JSON file. It has to be created...")
                 try:
-                    with open(f'{json_filepath}', "r", encoding='utf-8') as f:
-                        json_input = json.load(f)
-
-                    logger.debug(f"Successfully read json file {c}")
-
-                except Exception:
-                    r['ble_files'][c] = r['ble_files'][c] = {
-                        'bl_filename': html.escape(c),
-                        'bl_startstr': 0,
-                        'bl_nr_devices': 0,
-                        'bl_nr_conn_devices': 0,
-                        'bl_href': '#!',
-                        'bl_interface': 'invalid'
-                    }
-                    logger.debug(f"Could not read json file for {c}")
+                    ble_scan_results, rssi_values = csv_to_json(csv_file_path=f"{BLE_FILE_DIR}{csv_file}",
+                                                                json_file_path=json_filepath)
+                except Exception as e:
+                    logger.error(f"Could not create JSON file for {csv_file} - {e}")
                     continue
+                logger.debug(f"Successfully created JSON file from CSV file {csv_file}")
 
-                ble_files_count += 1
-                ble_info_header = json_input[0]
+            elif not os.path.isfile(svg_filepath):
+                logger.debug(f"CSV file {csv_file} has no matching SVG file. It has to be created...")
 
-                logger.debug(f"Increased file count and extracted info header from {c}")
-
-                if ble_info_header['ble_nr_devices'] != 0:
-                    view_href = '/setscanfile/' + html.escape(c)
-                    logger.debug(f"Found at least one device in {c}")
+                if ble_scan_results:
+                    try:
+                        create_rssi_graph(csv_file_path=f"{BLE_FILE_DIR}{csv_file}",
+                                          ble_scan_results=ble_scan_results,
+                                          output_path=svg_filepath)
+                    except Exception as e:
+                        logger.error(f"Could not create SVG file for {csv_file} - {e}")
+                        continue
+                    logger.debug(f"Successfully created SVG file from CSV file {csv_file}")
                 else:
-                    view_href = '#!'
-                    logger.debug(f"Found no device in {c}")
+                    logger.error(f"Can't create SVG graph because ble_scan_results are missing")
 
-                r['ble_files'][c] = {
-                    'bl_filename': html.escape(c),
-                    'bl_startstr': html.escape(ble_info_header['ble_scan_start_time']),
-                    'bl_nr_devices': ble_info_header['ble_nr_devices'],
-                    'bl_nr_conn_devices': ble_info_header['ble_connectable_devices'],
-                    'bl_href': view_href,
+
+            else:
+                logger.debug(f"Found CSV file {csv_file}. Json path is {json_filepath}")
+
+            try:
+                with open(f'{json_filepath}', "r", encoding='utf-8') as f:
+                    json_input = json.load(f)
+
+                logger.debug(f"Successfully read json file {csv_file}")
+
+            except Exception:
+                r['ble_files'][csv_file] = r['ble_files'][csv_file] = {
+                    'bl_filename': html.escape(csv_file),
+                    'bl_startstr': 0,
+                    'bl_nr_devices': 0,
+                    'bl_nr_conn_devices': 0,
+                    'bl_href': '#!',
+                    'bl_interface': 'invalid'
                 }
+                logger.debug(f"Could not read json file for {csv_file}")
+                continue
+
+            ble_files_count += 1
+            ble_info_header = json_input[0]
+
+            logger.debug(f"Increased file count and extracted info header from {csv_file}")
+
+            if ble_info_header['ble_nr_devices'] != 0:
+                view_href = '/setscanfile/' + html.escape(csv_file)
+                logger.debug(f"Found at least one device in {csv_file}")
+            else:
+                view_href = '#!'
+                logger.debug(f"Found no device in {csv_file}")
+
+            r['ble_files'][csv_file] = {
+                'bl_filename': html.escape(csv_file),
+                'bl_startstr': html.escape(ble_info_header['ble_scan_start_time']),
+                'bl_nr_devices': ble_info_header['ble_nr_devices'],
+                'bl_nr_conn_devices': ble_info_header['ble_connectable_devices'],
+                'bl_href': view_href,
+            }
 
         zigbee_files_count = 0
         for j in jsonfiles:

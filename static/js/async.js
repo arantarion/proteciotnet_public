@@ -1,4 +1,3 @@
-//var active_scan_timer;
 var wmover = false;
 var wmopen = false;
 var navbarvisible = false;
@@ -408,7 +407,7 @@ function new_bl_scan() {
         }
     });
 
-    $('#ble_filename').on('input', function() {
+    $('#ble_filename').on('input', function () {
         if ($(this).val().trim() !== "") {
             $('#ble_sniff_filename, #ble_sniff_timeout, #ble_ltk, #ble_decrypt_packages_switch, #ble_send_dev_addr, #ble_chara, #ble_value, #ble_subscribe_chara_switch').prop('disabled', true);
             $('#ble_sniff_filename, #ble_sniff_timeout, #ble_ltk, #ble_send_dev_addr, #ble_chara, #ble_value').val("")
@@ -418,7 +417,7 @@ function new_bl_scan() {
         }
     });
 
-    $('#ble_sniff_filename').on('input', function() {
+    $('#ble_sniff_filename').on('input', function () {
         if ($(this).val().trim() !== "") {
             $('#ble_filename, #ble_scan_time, #ble_continuous_switch, #ble_list_only_switch, #ble_connectable_only_switch, #ble_beacons_only_switch, #ble_bonding_test_switch, #ble_schedule, #ble_scan_frequency, #ble_interface_nr, #ble_specific_device, #ble_send_dev_addr, #ble_chara, #ble_value, #ble_subscribe_chara_switch').prop('disabled', true);
             $('#ble_filename, #ble_scan_time, #ble_interface_nr, #ble_specific_device, #ble_send_dev_addr, #ble_chara, #ble_value').val('');
@@ -428,7 +427,7 @@ function new_bl_scan() {
         }
     });
 
-    $('#ble_send_dev_addr').on('input', function() {
+    $('#ble_send_dev_addr').on('input', function () {
         if ($(this).val().trim() !== "") {
             $('#ble_filename, #ble_scan_time, #ble_continuous_switch, #ble_list_only_switch, #ble_connectable_only_switch, #ble_beacons_only_switch, #ble_bonding_test_switch, #ble_schedule, #ble_scan_frequency, #ble_interface_nr, #ble_specific_device, #ble_sniff_filename, #ble_sniff_timeout, #ble_ltk, #ble_decrypt_packages_switch').prop('disabled', true);
             $('#ble_filename, #ble_scan_time, #ble_interface_nr, #ble_specific_device, #ble_sniff_filename, #ble_sniff_timeout, #ble_ltk').val('');
@@ -443,9 +442,6 @@ function new_bl_scan() {
     $('#modal1').modal('open');
     $('select').formSelect();
 }
-
-
-
 
 function start_ble_scan() {
     $('#modal1').modal('close');
@@ -516,7 +512,6 @@ function start_ble_scan() {
         }
     });
 }
-
 
 function new_zigbee_scan() {
     $('#modaltitle').html('<i class="material-icons">sensors</i> New ZigBee Scan');
@@ -619,7 +614,6 @@ function start_zigbee_scan() {
         }
     });
 }
-
 
 function newscan() {
     $('#modaltitle').html('<i class="material-icons">wifi_tethering</i> New Nmap Scan');
@@ -786,7 +780,6 @@ function startscan() {
     });
 }
 
-
 function checkCVE() {
     if ($('#cpestring').length <= 0) {
         M.toast({html: 'Please, select a scan report first'});
@@ -819,7 +812,6 @@ function checkCVE() {
     });
     return 0;
 }
-
 
 function createReport(filename, filetype) {
     $('#modal1').modal('close');
@@ -900,7 +892,6 @@ function openReport(filename, filetype) {
     window.open(`/static/reports/${new_filename}.${filetype}`, '_blank');
 
 }
-
 
 function genPDF(md5scan) {
     if (/^[a-f0-9]{32,32}$/.test(md5scan)) {
@@ -1133,6 +1124,275 @@ function start_bruteforcer(filename, host) {
     $('#modal1').modal('open');
 }
 
+function ble_info() {
+    $('#modaltitle').html('Bluetooth Low Energy (BLE) information and security considerations');
+    $('#modalbody').html(`
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; }
+        h1, h2 { color: #1565C0; font-size: 18pt; }
+        h3 { color: #1565C0; font-size: 16pt; }
+        p { text-align: justify; }
+        a { color: #1565C0; }
+        ul { list-style-type: square; }
+        .toc { background-color: #f9f9f9; border: 1px solid #ccc; padding: 10px 10px 10px 30px; max-width: 400px; margin-left: 40px;}
+        img { max-width: 100%; height: auto; text-align: center; display:block;}
+        table, th, td {
+            border: 0;
+            border-collapse: collapse;
+            padding: 0;
+            margin: 0; 
+        .tg  {border:none;border-collapse:collapse;border-spacing:0; padding: 5px;}
+        .tg td{background-color:#fff;border-color:#ccc;border-style:solid;border-width:0px;color:#333;
+          font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;word-break:normal; padding: 5px;}
+        .tg th{background-color:#f0f0f0;border-color:#ccc;border-style:solid;border-width:0px;color:#333;
+          font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal; padding: 5px;}
+        .tg .tg-lboi{border-color:inherit;text-align:left;vertical-align:middle}
+        .tg .tg-72fj{border-color:inherit;font-size:16px;font-weight:bold;text-align:center;vertical-align:middle}
+        .tg .tg-uzvj{border-color:inherit;font-weight:bold;text-align:center;vertical-align:middle}
+    </style>  
+      
+    <div class="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+            <li><a style="color: #1565C0;" href="#introduction">Introduction to BLE</a></li>
+            <li><a style="color: #1565C0;" href="#features">Key Features and Advantages</a></li>
+            <li><a style="color: #1565C0;" href="#gatt">Generic Attribute Profile (GATT)</a></li>
+            <li><a style="color: #1565C0;" href="#gap">Generic Access Profile (GAP)</a></li>
+            <li><a style="color: #1565C0;" href="#security">Security in BLE</a></li>
+            <li><a style="color: #1565C0;" href="#security-issues">Security Issues and Considerations</a></li>
+            <li><a style="color: #1565C0;" href="#things_to_look_for">Things to look out for</a></li>
+        </ul>
+    </div>
+     <br>
+        
+    <h2 id="introduction">Introduction to BLE</h2>
+    Bluetooth Low Energy (BLE), also known as Bluetooth LE or Bluetooth Smart, is a wireless personal area 
+    network technology designed for applications in healthcare, fitness, beacon technology, security, and home 
+    entertainment. It is <b>independent of classic Bluetooth</b> and was integrated into Bluetooth 4.0 in December 2009 
+    as Bluetooth Low Energy.<br>
+    <center><img class="center" style="width: 30%;" src="/static/img/ble_info/ble_vs_bl_classic.png" alt="Supported devices and platforms for BLE"></center>
+    
+    <br><br>
+        
+    <h2 id="features">Key Features and Advantages</h2>
+    BLE uses the 2.4 GHz radio frequency band, similar to classic Bluetooth. However, it employs a simpler 
+    modulation system, making it different from the classic version. This enables dual-mode devices to share 
+    a single radio antenna. The BLE 4.0 specification allows devices to support either or both of the LE and BR/EDR 
+    systems. BLE devices are broadly categorized into 'Bluetooth Smart Ready' - indicating dual-mode compatibility, 
+    and 'Bluetooth Smart' - indicating LE-only devices.<br>
+    BLE is natively supported by various mobile operating systems including iOS, Android, Windows Phone, 
+    as well as desktop operating systems like macOS, Linux, and different versions of Windows. 
+    This wide support contributes to its popularity across different device types and platforms.
+    While Bluetooth Classic specifies a full stack with its applications, such as phone book access or file transfer,
+    BLE only employs a basic stack with a set of defined profiles (see. image 1).
+    <img src="" alt="Supported devices and platforms for BLE">
+    
+    <br><br>
+    
+    <h2 id="gatt">Generic Attribute Profile (GATT)</h2>
+    GATT defines the way that two Bluetooth Low Energy devices transfer data back and forth using concepts called 
+    Services and Characteristics. It makes use of a generic data protocol called the Attribute Protocol (ATT), 
+    which is used to store Services, Characteristics and related data in a simple lookup table using 16-bit IDs 
+    for each entry in the table. GATT comes into play after a dedicated connection is established between devices (see.
+    chapter on GAP).<br>
+    A peripheral (e.g. a sensor) is called the GATT server and it holds the ATT lookup data as well as service and 
+    characteristic definitions. A central device (e.g. a phone) on the other hand is the GATT client and sends requests 
+    to a GATT server.
+    <center><img class="center" style="width: 30%;" src="/static/img/ble_info/gatt_topo.png" alt="BLE Connected Topology"></center>
+    
+    <h3>Attributes, Services and Characteristics</h3>
+    GATT transactions in BLE are based on high-level, nested objects called Profiles, Services and Characteristics.
+    An attribute consists of a Handle, a Type, Permission and a Value, while Services group conceptually related 
+    attributes.
+    Profiles do not exist on the BLE peripheral, it just predefines a collection of Services. The list for all GATT-
+    based profiles can be seen <a href="https://www.bluetooth.com/specifications/specs/">here</a>.
+    Characteristics are the lowest level concepts in GATT. They represent a container for user data. Like services
+    characteristics have predefined 16-bit or 128-bit UUIDs. There are also predifined standard characteristics which 
+    ensure interoperability across BLE-hardware and software. Further, there are multiple permissions for characteristics:
+    <br><br>
+    <table style="margin-left: 20px; max-width: fit-content;">
+            <tr>
+            <td><strong>Read</strong></td>
+            <td>Allows the characteristic to be read.</td>
+            </tr>
+            <tr>
+            <td><strong>Write</strong></td>
+            <td>Permits writing to the characteristic.</td>
+            </tr>
+            <tr>
+            <td><strong>Write Without Response &nbsp&nbsp&nbsp&nbsp</strong></td>
+            <td> Enables writing to the characteristic without requiring a response from the receiver.</td>
+            </tr>
+            <tr>
+            <td><strong>Signed Write</strong></td>
+            <td>Allows writing to the characteristic with an authenticated signature.</td>
+            </tr>
+            <tr>
+            <td><strong>Notify</strong></td>
+            <td>Permits the characteristic to notify a connected device when its value changes.</td>
+            </tr>
+            <tr>
+            <td><strong>Indicate</strong></td>
+            <td>Enables the characteristic to indicate to a connected device when its value changes requiring an acknowledgment.</td>
+            </tr>
+            <tr>
+            <td><strong>Authenticated Read</strong></td>
+            <td>Allows reading the characteristic with authentication.</td>
+            </tr>
+            <tr>
+            <td><strong>Authenticated Write</strong></td>
+            <td>Permits writing to the characteristic with authentication.</td>
+            </tr>
+            <tr>
+            <td><strong>Extended Properties</strong></td>
+            <td>Defines additional properties of the characteristic.</td>
+            </tr>
+            <tr>
+            <td><strong>Broadcast</strong></td>
+            <td>Enables broadcasting of the characteristic’s value.</td>
+            </tr>
+    </table>
+    
+    <br><br>
+    
+    <h2 id="gap">Generic Access Profile (GAP)</h2>
+    The Generic Acces Profile (GAP) is used for device discovery, broadcasting data, establishing connections as well
+    as name discovery, connection parameter updates etc. Also GAP specifies four roles for devices: Broadcaster,
+    Observer, Central and Peripheral. <br>
+    To announce oneself devices use advertising packets. Connectable, non-connectable, scannable, non-scannable, 
+    directed and undirected are esablished as advertising properties. Furthermore, non-discoverable, limited 
+    discoverable and general discoverable are possible discoverable modes.
+    <br><br>
+    <center><img class="center" style="width: 50%;" src="/static/img/ble_info/ble_addr_types.png" alt="BLE address types"></center>
+    <br>
+    <center><img class="center" style="width: 40%;" src="/static/img/ble_info/ble_addr_types_2.png" alt="BLE address types - how do differentiate"></center>
+    
+    <br><br>
+    
+    <h2 id="security">Security in BLE</h2>
+    BLE employs 4 security levels in Security Mode 1: No security, unauthenticated encryption, authenticated encryption and 
+    authenticated encryption with Secure Connections pairing. In Security Mode 2 there is Unauthenticated data signing
+    and Authenticated data signing.
+    BLE incorporates robust security features designed to protect against various cyber threats. It achieves 
+    this through secure pairing methods, encryption, and privacy features. Despite these mechanisms, 
+    vulnerabilities exist, particularly during the pairing process and in legacy BLE connections.<br>
+    BLE faces two common types of cyberattacks: passive eavesdropping and man-in-the-middle attacks. Passive 
+    eavesdropping involves unauthorized access to data transmission, while man-in-the-middle attacks involve 
+    intercepting and possibly altering data between devices. BLE Secure connections are inherently protected 
+    against passive eavesdropping but require careful implementation of pairing methods to safeguard against 
+    man-in-the-middle attacks.<br>
+    The pairing process in BLE is crucial for establishing secure connections. It involves several phases where 
+    devices exchange keys and authentication data. Supported pairing methods are just works, passkey entry, numeric
+    comparison and out of band. The pairing methods depend on device capabilities however. The bonding process, 
+    which is optional, stores this authentication data for future secure reconnections. However, vulnerabilities exist, 
+    particularly during the initial phases where data exchange is not encrypted.<br>
+    <br>
+<table class="tg">
+<thead>
+  <tr>
+    <th class="tg-lboi"></th>
+    <th class="tg-72fj" colspan="5">Initiator&nbsp;&nbsp;</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-uzvj">Responder</td>
+    <td class="tg-uzvj">DisplayOnly</td>
+    <td class="tg-uzvj">Display YesNo</td>
+    <td class="tg-uzvj">Keyboard Only</td>
+    <td class="tg-uzvj">NoInput NoOutput</td>
+    <td class="tg-uzvj">Keyboard Display</td>
+  </tr>
+  <tr>
+    <td class="tg-uzvj">Display Only</td>
+    <td class="tg-lboi">Just Works <br>Unauthenticated</td>
+    <td class="tg-lboi">Just Works<br>Unauthenticated</td>
+    <td class="tg-lboi">Passkey Entry: responder displays, initiator inputs <br>Authenticated</td>
+    <td class="tg-lboi">Just Works <br>Unauthenticated</td>
+    <td class="tg-lboi">Passkey Entry: responder displays, initiator inputs <br>Authenticated</td>
+  </tr>
+  <tr>
+    <td class="tg-uzvj" rowspan="2">Display YesNo</td>
+    <td class="tg-lboi" rowspan="2">Just Works <br>Unauthenticated</td>
+    <td class="tg-lboi">Just Works (For LE Legacy Pairing) <br>Unauthenticated</td>
+    <td class="tg-lboi" rowspan="2">Passkey Entry: responder displays, initiator inputs<br>Authenticated<br></td>
+    <td class="tg-lboi" rowspan="2">Just Works<br>Unauthenticated</td>
+    <td class="tg-lboi">Passkey Entry (For LE Legacy Pairing): responder displays, initiator inputs <br>Authenticated</td>
+  </tr>
+  <tr>
+    <td class="tg-lboi">Numeric Comparison (For LE Secure Connections) <br>Authenticated</td>
+    <td class="tg-lboi">Numeric Comparison (For LE Secure Connections)<br>Authenticated</td>
+  </tr>
+  <tr>
+    <td class="tg-uzvj">Keyboard Only</td>
+    <td class="tg-lboi">Passkey Entry: initiator displays, responder inputs <br>Authenticated</td>
+    <td class="tg-lboi">Passkey Entry: initiator displays, responder inputs <br>Authenticated</td>
+    <td class="tg-lboi">Passkey Entry: initiator and responder inputs <br>Authenticated</td>
+    <td class="tg-lboi">Just Works<br>Unauthenticated</td>
+    <td class="tg-lboi">Passkey Entry: initiator displays, responder inputs<br>Authenticated</td>
+  </tr>
+  <tr>
+    <td class="tg-uzvj">Noinput NoOutput</td>
+    <td class="tg-lboi">Just Works<br>Unauthenticated</td>
+    <td class="tg-lboi">Just Works<br>Unauthenticated</td>
+    <td class="tg-lboi">Just Works<br>Unauthenticated</td>
+    <td class="tg-lboi">Just Works<br>Unauthenticated</td>
+    <td class="tg-lboi">Just Works<br>Unauthenticated</td>
+  </tr>
+  <tr>
+    <td class="tg-uzvj" rowspan="2">Keyboard Display</td>
+    <td class="tg-lboi" rowspan="2">Passkey Entry: initiator displays, responder inputs<br>Authenticated<br></td>
+    <td class="tg-lboi">Passkey Entry (For LE Legacy Pairing): initiator displays, responder inputs <br>Authenticated</td>
+    <td class="tg-lboi" rowspan="2">Passkey Entry: responder displays, initiator inputs<br>Authenticated</td>
+    <td class="tg-lboi" rowspan="2">Just Works<br>Unauthenticated</td>
+    <td class="tg-lboi">Passkey Entry (For LE Legacy Pairing): initiator displays, responder inputs <br>Authenticated</td>
+  </tr>
+  <tr>
+    <td class="tg-lboi">Numeric Comparison (For LE Secure Connections)<br>Authenticated</td>
+    <td class="tg-lboi">Numeric Comparison (For LE Secure Connections) <br>Authenticated</td>
+  </tr>
+</tbody>
+</table>
+    <br>
+    BLE security is anchored on three types of keys: the Long Term Key (LTK) for encryption, the Connection 
+    Signature Resolving Key (CSRK) for data signing, and the Identity Resolving Key (IRK) for device privacy. 
+    These keys play critical roles in ensuring the confidentiality, integrity, and privacy of the BLE communication.
+    Furthermore, there is also the Short Term Key (STK). BLE uses AES with 128-bit keys for encryption. Data signing with the CSRK 
+    ensures data integrity and authenticity. Additionally, BLE employs Resolvable Private Addresses (RPAs), 
+    generated using the IRK, to protect device privacy and prevent unauthorized tracking.
+    
+        <br><br>
+    
+    <h2 id="security-issues">Security Issues and Considerations</h2>
+    Users should be aware of the potential vulnerabilities in BLE, especially during pairing and in devices with 
+    outdated BLE versions. These vulnerabilities can expose users to risks like eavesdropping and data manipulation.
+    It is essential to use secure pairing methods and keep BLE devices updated. Understanding the types of keys 
+    and their roles in BLE security can also help users in making informed decisions about their devices.
+    Users are advised to use devices with the latest BLE versions for enhanced security. They should also be 
+    cautious with the types of devices they connect to and ensure secure settings are enabled, especially in 
+    environments where sensitive data is transmitted.<br>
+   
+        <br><br>
+    
+    <h2 id="things_to_look_for">Things to look out for</h2>
+    <ul>
+        <li>- Is the device discoverable/connectable? Should it be? And when?</li>
+        <li>- Is the device trackable (address type)?</li>
+        <li>- What capabilities are present and which flags are set (paring methods, Secure Connections)?</li>
+        <li>- What security mode is used by the connection?</li>
+        <li>- Are critical attributes accessible without proper security level?</li>
+        <li>- Do the keys (TK, STK, LTK, etc.) change?</li>
+        <li>- Is data written to attributes parsed correctly?</li>
+        <li>- What use cases are there? Is there a potential vulnerable application layer protocol?</li>
+        <li>- Should other applications be able to interact with the bonded device?</li>
+        <li>- Is the power relevant? Are power draining attacks possible? (connection parameters, advertising intervals, 
+        TX power, timeouts, etc.)</li>
+    </ul>
+        `
+    );
+    $('#modalfooter').html('<button class="modal-close waves-effect waves-green btn grey">Close</button>');
+    $('#modal1').modal('open');
+}
 
 function cve_info() {
     $('#modaltitle').html('What are CVEs and why you should care');

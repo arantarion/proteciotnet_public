@@ -11,10 +11,10 @@ from time import sleep
 from bluepy import btle
 from bluepy.btle import Peripheral, UUID, Scanner, DefaultDelegate, BTLEDisconnectError
 
-from proteciotnet_dev.bluetooth_le.ble_appearance_dict import BLE_APPEARANCE
+from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_appearance_dict import BLE_APPEARANCE
 from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_company_identifiers import company_identifiers
-from proteciotnet_dev.static.py.vendor_macs_dict import vendor_mac_lookup_table
 from proteciotnet_dev.bluetooth_le.ble_parse_advertisment_data import parse_adv_data
+from proteciotnet_dev.static.py.vendor_macs_dict import vendor_mac_lookup_table
 
 # from ble_assigned_numbers.ble_company_identifiers import company_identifiers
 # from ble_appearance_dict import BLE_APPEARANCE

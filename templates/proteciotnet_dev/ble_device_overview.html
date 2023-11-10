@@ -65,28 +65,15 @@
                 <br>
 
                 <ul id="dd_{{ bl_filename }}" class="dropdown-content" style="min-width:300px; border-radius: 4px;">
-                    <li><a href="#" onclick="createZigBeeReport('{{ bl_filename }}', 'pcap')" style="color:#111111">Make
-                        PCAP file available</a></li>
-                    <li><a href="#" onclick="createZigBeeReport('{{ bl_filename }}', 'html')" style="color:#111111">Create
-                        HTML file</a></li>
-                    <li><a href="#!" onclick="createZigBeeReport('{{ bl_filename }}', 'ps')" style="color:#111111">Create
-                        PDF file</a></li>
-                    <li><a href="#!" onclick="createZigBeeReport('{{ bl_filename }}', 'json')" style="color:#111111">Create
-                        JSON file</a></li>
-                    <li><a href="#!" onclick="createZigBeeReport('{{ bl_filename }}', 'csv')" style="color:#111111">Create
-                        CSV file</a></li>
-                    <li><a href="#!" onclick="createZigBeeReport('{{ bl_filename }}', 'plain')" style="color:#111111">Create
-                        text file</a></li>
-                    <li><a href="#!" onclick="createZigBeeReport('{{ bl_filename }}', 'pcapng')" style="color:#111111">Convert
-                        to
-                        PCAPNG file</a></li>
-                    <li><a href="#!" onclick="createZigBeeReport('{{ bl_filename }}', 'psml')" style="color:#111111">Create
-                        PSML (XML) file</a></li>
-                    <li><a href="#!" onclick="createZigBeeReport('{{ bl_filename }}', 'pdml')" style="color:#111111">Create
-                        PDML (XML) file</a></li>
-                    <li><a href="#!" onclick="createZigBeeReport('{{ bl_filename }}', 'ek')" style="color:#111111">Create
-                        JSON for Elasticsearch</a></li>
-
+                    <li><a href="#" onclick="createBLEReport('{{ bl_filename }}', 'json')" style="color:#111111">Download JSON file</a></li>
+                    <li><a href="#" onclick="createBLEReport('{{ bl_filename }}', 'csv')" style="color:#111111">Download CSV file</a></li>
+                    <li><a href="#!" onclick="createBLEReport('{{ bl_filename }}', 'svg')" style="color:#111111">Download RSSI graph</a></li>
+                    <li><a href="#!" onclick="createBLEReport('{{ bl_filename }}', 'pdf')" style="color:#111111">Create BLE report</a></li>
+                    {% if sniff_html_output %}
+                        <li class="divider" tabindex="-1"></li>
+                        <li><a href="#!" onclick="createBLEReport('{{ bl_filename }}', 'pcap')" style="color:#111111">Download sniff PCAP</a></li>
+                        <li><a href="#!" onclick="createBLEReport('{{ bl_filename }}', 'html')" style="color:#111111">Download sniff HTML</a></li>
+                    {% endif %}
                 </ul>
                 <a class="dropdown-trigger" href="#!" data-target="dd_{{ bl_filename }}" style="color: #ff9800;"><i
                         class="material-icons">note_add</i> Create Report</a><br><br>
@@ -265,12 +252,14 @@
             </div>
         {% endfor %}
 
+    {% if sniff_html_output %}
         <div class="card wmcard hide-on-med-and-down" style="{{ pretablestyle }}">
-            <div class="card-title" style="padding: 16px 12px 1px 32px;">RSSI Graph</div>
+            <div class="card-title" style="padding: 16px 12px 1px 32px;">Sniff Log</div>
             <div class="card-content" style="color:#9e9e9e; font-size: 14px;">
-                {{ pdml_html | safe }}
+                {{ sniff_html_output | safe }}
             </div>
         </div>
+    {% endif %}
 
     </div>
 

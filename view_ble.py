@@ -9,7 +9,6 @@ import urllib.parse
 
 from proteciotnet_dev.functions import label_to_color, label_to_margin
 
-
 _BASE_BLE_DIR = "/opt/ble/"
 _BASE_STATIC_BLE_DIR = "/opt/proteciotnet/proteciotnet_dev/static/ble_reports/"
 
@@ -35,7 +34,7 @@ def _mean(lst: list) -> int:
 def _rssi_to_distance(rssi):
     n = 2
     mp = -69
-    return round(10 ** ((mp - (int(rssi)))/(10 * n)), 2)
+    return round(10 ** ((mp - (int(rssi))) / (10 * n)), 2)
 
 
 def _replace_bools_with_strings(obj):
@@ -103,7 +102,8 @@ def _construct_device_info(data, md5_sum_of_scanfile):
             'vendor': device.get('vendor', ""),
             'mean_rssi': rssi_tooltip_html,
             'address_type': device.get('address_type', ""),
-            'random_addr_resolved_type': _resolve_random_addr_type(address) if device.get('address_type', "") == "random" else public_addr_tooltip_html,
+            'random_addr_resolved_type': _resolve_random_addr_type(address) if device.get('address_type',
+                                                                                          "") == "random" else public_addr_tooltip_html,
             'connectable': device.get('conn') == 'True',
             'flags': dict(),
             'hostindex': host_index,
@@ -137,7 +137,8 @@ def _construct_device_info(data, md5_sum_of_scanfile):
                                              }
 
         labelout = '<span id="hostlabel' + str(host_index) + '"></span>'
-        newlabelout = '<div id="hostlabel' + str(host_index) + '"></div><div id="hostlabelbb' + str(host_index) + '"></div>'
+        newlabelout = '<div id="hostlabel' + str(host_index) + '"></div><div id="hostlabelbb' + str(
+            host_index) + '"></div>'
         if md5_sum_of_scanfile in labels_of_host:
             if addressmd5 in labels_of_host[md5_sum_of_scanfile]:
                 labelcolor = label_to_color(labels_of_host[md5_sum_of_scanfile][addressmd5])
@@ -170,7 +171,8 @@ def _construct_device_info(data, md5_sum_of_scanfile):
                                      'notesout': notesout})
 
         if total_characteristics_count > 0 or device.get('extra_data', []):
-            device_info[address]['address_linked'] = f'{address}'# <i class="material-icons" style="font-size: 70%;">open_in_new</i>'
+            device_info[address][
+                'address_linked'] = f'{address}'  # <i class="material-icons" style="font-size: 70%;">open_in_new</i>'
 
         host_index += 1
         readable_characteristics_count_all += total_characteristics_count
@@ -213,8 +215,16 @@ def bluetooth_low_energy(request):
                '	});' + \
                '</script>'
 
+    r['sniff_html_output'] = ""
+    html_file_filename = f"{ble_file_filename_without_extension}.html"
+    if os.path.isfile(f"{_BASE_STATIC_BLE_DIR}{html_file_filename}"):
+        html_file_handle = (open(f"{_BASE_STATIC_BLE_DIR}{html_file_filename}")
+                            .read()
+                            .replace("#e5e5e5", "transparent"))
+        html_file_handle = html_file_handle.replace(html_file_handle[html_file_handle.find("<body>")+6:html_file_handle.find("<tt>")], "")
+        r['sniff_html_output'] += html_file_handle
+
     logger.debug(f"Successfully created dict r with display information for the HTML page")
-    r['pdml_html'] = open(f"{_BASE_STATIC_BLE_DIR}sniffle_snoops.html").read().replace("#e5e5e5", "transparent")
     return r
 
 
@@ -306,7 +316,5 @@ def ble_details(request):
                           '	</div>' + \
                           '</div>'
             r['notes'] = base64.b64decode(urllib.parse.unquote(notesb64)).decode('ascii')
-
-
 
     return r

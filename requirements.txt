@@ -10,3 +10,6 @@ tqdm
 matplotlib
 numpy
 bluepy
+PyYAML
+svgpath2mpl
+svgpathtools

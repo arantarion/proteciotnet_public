@@ -171,8 +171,7 @@ def _construct_device_info(data, md5_sum_of_scanfile):
                                      'notesout': notesout})
 
         if total_characteristics_count > 0 or device.get('extra_data', []):
-            device_info[address][
-                'address_linked'] = f'{address}'  # <i class="material-icons" style="font-size: 70%;">open_in_new</i>'
+            device_info[address]['address_linked'] = f'{address} '
 
         host_index += 1
         readable_characteristics_count_all += total_characteristics_count

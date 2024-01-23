@@ -3,6 +3,7 @@ from datetime import datetime
 
 from proteciotnet_dev.static.py.vendor_macs_dict import vendor_mac_lookup_table
 
+
 def _find_reciprocal_pairs(mapped_set):
     reciprocal_pairs = set()
     for pair in mapped_set:

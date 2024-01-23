@@ -76,6 +76,7 @@ def _get_timestamp() -> str:
     # return current_datetime.strftime("%Y_%m:%d_%H:%M_%S")
     return current_datetime.strftime("%A, %d. %B %Y - %H:%M:%S")
 
+
 def _read_existing_data(filename: str) -> list:
     """
     Read data from a CSV file and return a list of tuples.

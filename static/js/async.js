@@ -652,65 +652,6 @@ function newscan() {
         '</tr>' +
         '</table>' +
         '<br>' +
-        '<h5>3. Parameters:</h5>' +
-        '<p style="font-size: medium;">' +
-        '    Parameters in Nmap are utilized to customize the scan. Here are some common and useful parameters:' +
-        '</p>' +
-
-        '<table style="border-collapse: collapse; width: 50%; font-size: 13px; border: none;">' +
-        '<tr>' +
-        '<td style="padding: 10px; border: none;"><code>-p</code></td>' +
-        '<td style="padding: 10px; border: none;">Specify the port range (e.g., <code>-p 20-1024</code>).</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td style="padding: 10px; border: none;"><code>-T4</code></td>' +
-        '<td style="padding: 10px; border: none;">Set the timing template to "aggressive" (speeds up the scan).</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td style="padding: 10px; border: none;"><code>-A</code></td>' +
-        '<td style="padding: 10px; border: none;">Enable OS detection, version detection, script scanning, and traceroute.</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td style="padding: 10px; border: none;"><code>-sV</code></td>' +
-        '<td style="padding: 10px; border: none;">Probe open ports to determine service/version info</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td style="padding: 10px; border: none;"><code>-sC</code></td>' +
-        '<td style="padding: 10px; border: none;">equivalent to --script=default.</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td style="padding: 10px; border: none;"><code>-O</code></td>' +
-        '<td style="padding: 10px; border: none;">Enable OS detection.</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td style="padding: 10px; border: none;"><code>-Pn</code></td>' +
-        '<td style="padding: 10px; border: none;">Skip host discovery and scan anyway.</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td style="padding: 10px; border: none;"><code>-sS/sT/sA/sW/sM</code></td>' +
-        '<td style="padding: 10px; border: none;">TCP SYN/Connect()/ACK/Window/Maimon scans.</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td style="padding: 10px; border: none;"><code>-sU</code></td>' +
-        '<td style="padding: 10px; border: none;">Perform a UDP scan.</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td style="padding: 10px; border: none;"><code>-F</code></td>' +
-        '<td style="padding: 10px; border: none;">Fast mode - Scan fewer ports than the default scan</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td style="padding: 10px; border: none;"><code>--open</code></td>' +
-        '<td style="padding: 10px; border: none;">Only show open ports.</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td style="padding: 10px; border: none;"><code>--script</code></td>' +
-        '<td style="padding: 10px; border: none;">Specify custom NSE scripts to run (e.g., <code>--script=vuln</code>).</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td style="padding: 10px; border: none;"><code>--script-args</code></td>' +
-        '<td style="padding: 10px; border: none;">Provide arguments to NSE scripts (e.g., <code>--script-args=user=foo,pass=bar</code>).</td>' +
-        '</tr>' +
-        '</table>' +
 
         '<p style="font-size: medium;">more information at <a href="https://nmap.org/book/man-briefoptions.html">https://nmap.org/book/man-briefoptions.html</a></p>' +
 
@@ -719,18 +660,110 @@ function newscan() {
         '<br>' +
 
         '<hr>' +
-        '<table style=" border-collapse: collapse; width: 60%; max-width: 800px;">' +
+        '<table style=" border-collapse: collapse; width: 55%; max-width: 800px;">' +
         '    <tr style="border: none;">' +
-        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="xmlfilename">XML Filename:</label></td>' +
-        '        <td style="padding: 10px; vertical-align: middle; border: none;"><input placeholder="e.g. my_scan.xml (you can omit the .xml)" id="xmlfilename" type="text" class="validate"></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="xmlfilename">XML Filename</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><input placeholder="e.g. my_scan.xml" id="xmlfilename" type="text" class="validate"></td>' +
         '    </tr>' +
         '    <tr style="border: none;">' +
-        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="targethost">Target IP or Hostname:</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="targethost">Target IP, IP range or hostname</label></td>' +
         '        <td style="padding: 10px; vertical-align: middle; border: none;"><input placeholder="e.g. 192.168.1.0/24" id="targethost" type="text" class="validate"></td>' +
         '    </tr>' +
         '    <tr style="border: none;">' +
-        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="params">Nmap Parameters:</label></td>' +
-        '        <td style="padding: 10px; vertical-align: middle; border: none;"><input placeholder="e.g. -sT -A -T4" id="params" type="text" class="validate"></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-A">Enable OS detection, version detection, script scanning,<br> and traceroute (-A)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><div class="switch"><label>Off<input id="option-A" name="os_detection" type="checkbox"><span class="lever"></span>On</label></div></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-p">Specify the port range (-p)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><input type="text" id="option-p" placeholder="e.g. 20-1024"></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-p-all">Use all ports (-p-)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><div class="switch"><label>Off<input id="option-p-all" name="all_ports" type="checkbox"><span class="lever"></span>On</label></div></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-sV">Determine service/version info (-sV)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><div class="switch"><label>Off<input id="option-sV" name="service_scan" type="checkbox"><span class="lever"></span>On</label></div></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-sC">Use default scripts (-sC)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><div class="switch"><label>Off<input id="option-sC" name="default_scripts" type="checkbox"><span class="lever"></span>On</label></div></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-O">Enable OS detection (-O)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><div class="switch"><label>Off<input id="option-O" name="OS_detection" type="checkbox"><span class="lever"></span>On</label></div></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-Pn">Skip host discovery and scan anyway (-Pn)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><div class="switch"><label>Off<input id="option-Pn" name="skip_host_discovery" type="checkbox"><span class="lever"></span>On</label></div></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-sS">TCP SYN Scan (-sS)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><div class="switch"><label>Off<input id="option-sS" name="tcp_scan" type="checkbox"><span class="lever"></span>On</label></div></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-sT">Connect Scan (-sT)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><div class="switch"><label>Off<input id="option-sT" name="connect_scan" type="checkbox"><span class="lever"></span>On</label></div></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-sA">ACK Scan (-sA)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><div class="switch"><label>Off<input id="option-sA" name="ack_scan" type="checkbox"><span class="lever"></span>On</label></div></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-sW">Window Scan (-sW)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><div class="switch"><label>Off<input id="option-sW" name="window_scan" type="checkbox"><span class="lever"></span>On</label></div></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-sM">Maimon scan (-sM)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><div class="switch"><label>Off<input id="option-sM" name="maimon_scan" type="checkbox"><span class="lever"></span>On</label></div></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-sU">Perform a UDP scan (-sU)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><div class="switch"><label>Off<input id="option-sU" name="udp_scan" type="checkbox"><span class="lever"></span>On</label></div></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-F">Fast mode (scan 100 ports) (-F)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><div class="switch"><label>Off<input id="option-F" name="fast_mode" type="checkbox"><span class="lever"></span>On</label></div></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-open">Show open ports only (--open)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><div class="switch"><label>Off<input id="option-open" name="only_open_ports" type="checkbox"><span class="lever"></span>On</label></div></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-T">Specify timing template (1 to 5) (-T)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><input placeholder="e.g. 2 " id="option-T" type="number" min="1" max="5" class="validate"></td>' +
+        '<span class="helper-text" data-error="Timing template must be between 1 and 5!"></span>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-script">Specify NSE scripts (--script)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><input placeholder="e.g. vuln,http,intrusive " id="option-script" type="text" class="validate"></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-local-script">Use all local scripts</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><div class="switch"><label>Off<input id="option-local-script" name="local_scripts" type="checkbox"><span class="lever"></span>On</label></div></td>' +
+        '    </tr>' +
+        '</table>' +
+        '<h6>Advanced options:</h6>' +
+        '<table style=" border-collapse: collapse; width: 65%; max-width: 800px;">' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-e">Specify an interface (-e)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><input placeholder="e.g. eno0" id="option-e" type="text" class="validate"></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-v">Specify verbosity level (max. 3) (-v)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><input placeholder="e.g. 2" id="option-v" type="text" class="validate"></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-d">Specify debug level (max. 9) (-d)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><input placeholder="e.g. 1" id="option-d" type="text" class="validate"></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-webxml">Specify an online stylesheet (--webxml)</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><input placeholder="e.g. link.xsl" id="option-webxml" type="text" class="validate"></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;">A great example is:<br>https://raw.githubusercontent.com/honze-net/nmap-bootstrap-xsl/master/nmap-bootstrap.xsl</td>' +
         '    </tr>' +
         '</table>' +
 
@@ -747,9 +780,39 @@ function newscan() {
         '			<option value="1m">Monthly</option>' +
         '		</select></div>' +
         '	</div>' +
-        '</div>' +
-        ''
+        '</div>'
     );
+
+    $('#option-A').change(function () {
+        if ($(this).is(':checked')) {
+            $('#option-sV').prop('disabled', true);
+            $('#option-sC').prop('disabled', true);
+            $('#option-O').prop('disabled', true);
+            $('#option-sV, #option-sC, #option-O').prop("checked", false)
+        } else {
+            $('#option-sV').prop('disabled', false);
+            $('#option-sC').prop('disabled', false);
+            $('#option-O').prop('disabled', false);
+        }
+    });
+
+    $('#option-p-all').change(function () {
+        if ($(this).is(':checked')) {
+            $('#option-p').prop('disabled', true).val("");
+            // $('#option-p').val("");
+        } else {
+            $('#option-p').prop('disabled', false);
+        }
+    });
+
+    $('#option-p').on('input', function () {
+        if ($(this).val().trim() !== "") {
+            $('#option-p-all').prop('disabled', true).prop('checked', false);
+        } else {
+            $('#option-p-all').prop('disabled', false);
+        }
+    });
+
     $('#modalfooter').html('<button onclick="startscan();" class="btn green">Start</button>');
     $('#modal1').modal('open');
     $('select').formSelect();
@@ -764,14 +827,42 @@ function startscan() {
         xmlFilename += '.xml';
     }
 
+    var args = {
+        'option-A': $('#option-A').prop('checked'),
+        'option-p': $('#option-p').val().replace(/\s/g, ''),
+        'option-p-all': $('#option-p-all').prop('checked'),
+        'option-sV': $('#option-sV').prop('checked'),
+        'option-sC': $('#option-sC').prop('checked'),
+        'option-O': $('#option-O').prop('checked'),
+        'option-Pn': $('#option-Pn').prop('checked'),
+        'option-sS': $('#option-sS').prop('checked'),
+        'option-sT': $('#option-sT').prop('checked'),
+        'option-sA': $('#option-sA').prop('checked'),
+        'option-sW': $('#option-sW').prop('checked'),
+        'option-sM': $('#option-sM').prop('checked'),
+        'option-sU': $('#option-sU').prop('checked'),
+        'option-F': $('#option-F').prop('checked'),
+        'option-open': $('#option-open').prop('checked'),
+        'option-T': $('#option-T').val(),
+        'option-script': $('#option-script').val().replace(/\s/g, ''),
+        'option-local-script': $('#option-local-script').prop('checked'),
+        'option-e': $('#option-e').val(),
+        'option-v': $('#option-v').val(),
+        'option-d': $('#option-d').val(),
+        'option-webxml': $('#option-webxml').val(),
+        'schedule': $('#schedule').prop('checked'),
+        'frequency': $('#frequency').val()
+    };
+
     $.post('/api/v1/nmap/scan/new', {
         'csrfmiddlewaretoken': csrftoken,
         'filename': xmlFilename,
         'target': $('#targethost').val(),
-        'params': $('#params').val(),
-        'schedule': $('#schedule').prop('checked'),
-        'frequency': $('#frequency').val(),
+        'args': JSON.stringify(args)
     }).done(function (d) {
+        if (typeof (d['error']) == 'error2') {
+            swal("Error", d['error'], "error");
+        }
         if (typeof (d['error']) != 'undefined') {
             swal("Error", "Invalid syntax or disallowed characters", "error");
         } else {

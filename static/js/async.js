@@ -746,6 +746,10 @@ function newscan() {
         '<h6>Advanced options:</h6>' +
         '<table style=" border-collapse: collapse; width: 65%; max-width: 800px;">' +
         '    <tr style="border: none;">' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-free">Specify additional parameters</label></td>' +
+        '        <td style="padding: 10px; vertical-align: middle; border: none;"><input placeholder="e.g. --min-parallelism <numprobes>" id="option-free" type="text" class="validate"></td>' +
+        '    </tr>' +
+        '    <tr style="border: none;">' +
         '        <td style="padding: 10px; vertical-align: middle; border: none;"><label class="params_label" for="option-e">Specify an interface (-e)</label></td>' +
         '        <td style="padding: 10px; vertical-align: middle; border: none;"><input placeholder="e.g. eno0" id="option-e" type="text" class="validate"></td>' +
         '    </tr>' +
@@ -799,17 +803,21 @@ function newscan() {
     $('#option-p-all').change(function () {
         if ($(this).is(':checked')) {
             $('#option-p').prop('disabled', true).val("");
+            $('#option-F').prop('disabled', true).prop('checked', false);
             // $('#option-p').val("");
         } else {
             $('#option-p').prop('disabled', false);
+            $('#option-F').prop('disabled', false)
         }
     });
 
     $('#option-p').on('input', function () {
         if ($(this).val().trim() !== "") {
             $('#option-p-all').prop('disabled', true).prop('checked', false);
+            $('#option-F').prop('disabled', true).prop('checked', false);
         } else {
             $('#option-p-all').prop('disabled', false);
+            $('#option-F').prop('disabled', false)
         }
     });
 
@@ -846,6 +854,7 @@ function startscan() {
         'option-T': $('#option-T').val(),
         'option-script': $('#option-script').val().replace(/\s/g, ''),
         'option-local-script': $('#option-local-script').prop('checked'),
+        'option-free': $('#option-free').val(),
         'option-e': $('#option-e').val(),
         'option-v': $('#option-v').val(),
         'option-d': $('#option-d').val(),

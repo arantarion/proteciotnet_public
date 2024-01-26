@@ -85,6 +85,9 @@ def nmap_newscan(request):
             elif args.get('option-local-script', ''):
                 command.append(f"--script {NSE_SCRIPT_DIR}")
 
+            if args.get("option-free", ""):
+                command.append(f"{args.get('option-free')}")
+
             command.append(f"-oX /tmp/{filename}.active")
             command.append(target)
 
@@ -102,9 +105,9 @@ def nmap_newscan(request):
             nmap_command += 'mv /tmp/' + request.POST['filename'] + '.active /opt/xml/' + request.POST['filename']
             nmap_command += ' &'
 
-            nmap_command = 'nmap -A -sT -F --open -p 30-50 -e wlan0 -T 4 -d1 -v2 --script True -oX /tmp/my_scan.xml.active localhost && sleep 10 && mv /tmp/my_scan.xml.active /opt/xml/my_scan.xml &'
-
-            #os.popen(nmap_command)
+            print(nmap_command)
+            return HttpResponse(json.dumps(res, indent=4), content_type="application/json")
+            os.popen(nmap_command)
 
             try:
                 process = subprocess.Popen(nmap_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

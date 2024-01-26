@@ -3,6 +3,13 @@
 # This script checks for active network interfaces, retrieves the IP address,
 # activates a Python virtual environment, and runs the ProtecIoTnet server.
 
+
+if [ $(id -u) -ne 0 ]; then
+  echo -e "\e[31mThis script must be run as root\e[0m"
+  exit 1
+fi
+
+
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
 }

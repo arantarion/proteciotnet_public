@@ -16,7 +16,7 @@ from proteciotnet_dev.zigbee.find_cc2531_interface import get_zigbee_usb_interfa
 logger = logging.getLogger(__name__)
 
 _TERMINATE_AFTER_X_PACKETS = 10
-_TERMINATE_AFTER_X_TIME = 15
+_TERMINATE_AFTER_X_TIME = 25
 _FOLDER_PATH = "/opt/zigbee/"
 
 
@@ -75,7 +75,7 @@ def _find_channel(sniffing_device=""):
     else:
         _COMMAND = ['sudo', 'zbstumbler', '-w', _OUTPUT_PATH]
 
-    logger.info(f"trying to start zbstumbler with commands: {' '.join(_COMMAND)}")
+    logger.info(f"trying to start zbstumbler with commands: {' '.join(_COMMAND)}. Running for {_TERMINATE_AFTER_X_TIME} seconds.")
     try:
         child = pexpect.spawn(' '.join(_COMMAND))
         sleep(_TERMINATE_AFTER_X_TIME)
@@ -85,9 +85,9 @@ def _find_channel(sniffing_device=""):
     except:
         logger.error("something went wrong while executing zbstumbler. are you root?")
 
-    logger.info("successfully ran zbstumbler")
+    logger.info(f"successfully ran zbstumbler. Output at {_OUTPUT_PATH}.")
     if _check_file(_OUTPUT_PATH):
-        return f"{_OUTPUT_PATH}/{_FILENAME}"
+        return f"{_OUTPUT_PATH}"
     else:
         return None
 
@@ -117,16 +117,24 @@ def _sniff_traffic(filename, channel, num_packages, sniffing_interface, dev_name
     _FILENAME = f"{filename}.pcap"
     _OUTPUT_PATH = f"{_FOLDER_PATH}{_FILENAME}"
 
+    logger.info(f"Starting ZigBee sniffing with filename {_FILENAME} in path {_OUTPUT_PATH}")
+
     _COMMAND = ['sudo', 'python3', f'/opt/proteciotnet/proteciotnet_dev/zigbee/zbdumb.py', '-i', sniffing_interface,
-                '-d', dev_name, '-c', channel, '-w', _OUTPUT_PATH, '-W', 'ZigBeeSucks', '-n', num_packages]
+                '-d', dev_name, '-c', channel, '-w', _OUTPUT_PATH, '-W', 'ZigBeeSucks', '-n', f'{num_packages}']
+
+    logger.info(f"ZigBee Sniffing command is {''.join(_COMMAND)}")
+
+    #subprocess.Popen(_COMMAND, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     process = subprocess.Popen(_COMMAND, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
 
-    # print("Output:", stdout.decode())
-    # print("Errors:", stderr.decode())
+    print("Output:", stdout.decode())
+    print("Errors:", stderr.decode())
 
     # sudo zbdump -i 1:8 -d "CC2531 USB Dongle" -c 20 -w tester.pcap -n 5
+
+    logger.info(f"Ran sniffing successfully.")
 
     return _FILENAME
 
@@ -146,7 +154,7 @@ def zigbee_postprocessing_json(file_path, scan_info, sniffing_device, sniffing_d
         "sniffing_channel": sniffing_channel
     }
 
-    with open(file_path, 'r') as f:
+    with open(file_path, 'r+') as f:
         data = json.load(f)
 
     if isinstance(data, list):
@@ -199,43 +207,64 @@ def new_zigbee_scan(request):
         sniffing_device_description = ""
 
         if channel:
+            logger.info(f"Channel set by user: {channel}")
             sniffing_channel = channel
         elif user_pcap_path:
+            logger.info(f"User supplied pcap file path: {user_pcap_path}. Using default channel. Performing only "
+                        f"postprocessing")
             sniffing_scan_info = "User supplied ZigBee sniffing file"
-            zigbee_postprocessing_json(file_path=user_pcap_path,
+            json_filename = _convert_pcap(in_filename=user_pcap_path, output_type="json")
+            zigbee_postprocessing_json(file_path=json_filename,
                                        scan_info=sniffing_scan_info,
                                        sniffing_device="some ZigBee sniffer device",
                                        sniffing_device_id="?",
                                        sniffing_channel="?"
                                        )
+            logger.info(f"Postprocessing complete for user supplied pcap file.")
             return HttpResponse(json.dumps(res, indent=4), content_type="application/json")
 
         if not interface_id:
+            logger.info("Determining ZigBee device interface")
             sniffing_device, sniffing_device_description = get_zigbee_usb_interface()
+            logger.info(f"Sniffing device: {sniffing_device} / {sniffing_device_description}")
         if not channel:
+            logger.info("Determining ZigBee channel")
             channel_scan_path = _find_channel()
             if channel_scan_path:
+                logger.info("Scanning for ZigBee devices using zbstumbler")
                 devices_in_scan = _read_zbstumbler_file(channel_scan_path)
+                logger.info(f"Devices found: {devices_in_scan}")
+                logger.info("Trying to determine the most likely channel")
                 sniffing_channel = _determine_most_likely_channel(devices_in_scan)
+                logger.info(f"Channel found: {sniffing_channel}")
             else:
+                logger.error("Error while searching for ZigBee channel")
                 return HttpResponse(json.dumps({'error': 'Can\'t find channel.'}, indent=4),
                                     content_type="application/json")
 
+        logger.info("Starting ZigBee sniffing")
         pcap_path = _sniff_traffic(filename=filename,
                                    channel=sniffing_channel,
                                    num_packages=_TERMINATE_AFTER_X_PACKETS,
                                    sniffing_interface=sniffing_device
                                    )
+        logger.info("Completed ZigBee sniffing")
+        logger.info("Starting pcap to json conversion")
 
         json_filename = _convert_pcap(in_filename=pcap_path, output_type="json")
+
+        logger.info("Completed pcap to json conversion")
+        logger.info("Starting zigbee postprocessing")
+
         zigbee_postprocessing_json(file_path=json_filename,
                                    scan_info=sniffing_scan_info,
                                    sniffing_device=sniffing_device_description,
                                    sniffing_device_id=sniffing_device,
                                    sniffing_channel=sniffing_channel
                                    )
-
+        logger.info("Completed zigbee postprocessing")
         return HttpResponse(json.dumps(res, indent=4), content_type="application/json")
     else:
+        logger.error("Error while performing ZigBee scan")
         res = {'error': 'invalid syntax'}
         return HttpResponse(json.dumps(res, indent=4), content_type="application/json")

@@ -6,6 +6,7 @@ cisco
 apc
 pass
 security
+sshuser
 user
 system
 sys

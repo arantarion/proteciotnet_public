@@ -9,7 +9,7 @@ import sys
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-_IP = "192.168.178.38"
+_IP = "192.168.1.225"
 _PORT = "5000"
 _TIMEOUT = 1
 

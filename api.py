@@ -1,17 +1,20 @@
 import base64
 import html
 import logging
+import os
 import urllib.parse
-
-import xmltodict, json, hashlib, re
+import subprocess
+import xmltodict
+import json
+import hashlib
+import re
 import requests
 from django.http import HttpResponse
 from django.shortcuts import render
 
-import subprocess
-
 from proteciotnet_dev.functions import *
 from proteciotnet_dev.bruteforce_attacks.automatic_service_bruteforce import auto_bruteforce
+
 
 logger = logging.getLogger(__name__)
 _BASE_STATIC_DIRECTORY = "/opt/proteciotnet/proteciotnet_dev/static"

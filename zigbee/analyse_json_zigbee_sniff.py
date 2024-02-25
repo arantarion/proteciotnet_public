@@ -1,5 +1,5 @@
-from collections import Counter
 from datetime import datetime
+from collections import Counter
 
 from proteciotnet_dev.static.py.vendor_macs_dict import vendor_mac_lookup_table
 

@@ -1,14 +1,14 @@
+import os
 import csv
 import json
-import logging
-import os
-import subprocess
-import tempfile
-from collections import Counter
-from datetime import datetime
-from time import sleep
-
 import pexpect
+import logging
+import tempfile
+import subprocess
+
+from time import sleep
+from datetime import datetime
+from collections import Counter
 from django.http import HttpResponse
 
 from proteciotnet_dev.zigbee.find_cc2531_interface import get_zigbee_usb_interface

@@ -1,7 +1,6 @@
 import re
 import subprocess
 
-# Target device to look for. If you are using another ZigBee USB dongle please change this.
 _TARGET = "CC2531"
 
 

@@ -33,14 +33,10 @@ logging_level = logging.DEBUG
 main_logger = logging.getLogger()
 main_logger.setLevel(logging_level)
 
-# Set up a stream handler to log to the console
 stream_handler = colorlog.StreamHandler()
 stream_handler.setFormatter(
-    # colorlog.ColoredFormatter("%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
     colorlog.ColoredFormatter(
         "%(log_color)s%(name)s: %(asctime)s |\t%(levelname)s\t| %(filename)s:%(lineno)s | %(process)d >>> %(message)s"))
-
-# Add handler to logger
 main_logger.addHandler(stream_handler)
 
 

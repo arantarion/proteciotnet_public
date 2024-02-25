@@ -5,8 +5,6 @@ import xml.etree.ElementTree as ET
 import logging
 from datetime import datetime
 
-# Medusa Docu http://foofus.net/goons/jmk/medusa/medusa.html
-
 logger = logging.getLogger(__name__)
 
 NAME_MAP = {

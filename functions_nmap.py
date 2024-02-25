@@ -92,21 +92,11 @@ def nmap_newscan(request):
             command.append(target)
 
             nmap_command = ' '.join(command)
-
-
-
-            # nmap_command = "nmap "
-            # nmap_command += request.POST["params"]
-            # nmap_command += ' --script=' + settings.BASE_DIR + '/proteciotnet_dev/nmap/nse/ '
-            # nmap_command += '-oX /tmp/' + request.POST["filename"] + '.active '
-            # nmap_command += request.POST['target'] + ' > /dev/null 2>&1 && '
             nmap_command += ' > /dev/null 2>&1 && '
             nmap_command += 'sleep 10 && '
             nmap_command += 'mv /tmp/' + request.POST['filename'] + '.active /opt/xml/' + request.POST['filename']
             nmap_command += ' &'
 
-            print(nmap_command)
-            return HttpResponse(json.dumps(res, indent=4), content_type="application/json")
             os.popen(nmap_command)
 
             try:
@@ -123,7 +113,6 @@ def nmap_newscan(request):
                 os.rename('/tmp/my_scan.xml.active', '/opt/xml/my_scan.xml')
 
             except Exception as e:
-                # Handle any exceptions that occur
                 res = {'error': str(e)}
                 return HttpResponse(json.dumps(res, indent=4), content_type="application/json")
 
@@ -137,9 +126,6 @@ def nmap_newscan(request):
                 schedobj = {'params': request.POST, 'lastrun': time.time(), 'number': 0}
                 filenamemd5 = hashlib.md5(str(request.POST['filename']).encode('utf-8')).hexdigest()
                 writefile = f'{settings.BASE_DIR}/proteciotnet_dev/nmap/schedule/{filenamemd5}.json'
-
-                # file = open(writefile, "w")
-                # file.write(json.dumps(schedobj, indent=4))
 
                 with open(writefile, "w") as file:
                     file.write(json.dumps(schedobj, indent=4))

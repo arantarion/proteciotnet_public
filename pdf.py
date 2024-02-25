@@ -1,15 +1,14 @@
 import os
 import tempfile
 import time
-from time import sleep
-
-from django.http import HttpResponse
 import subprocess
 import datetime
 import json
 import logging
 import csv
 
+from time import sleep
+from django.http import HttpResponse
 from django.shortcuts import render
 
 from proteciotnet_dev.functions import *

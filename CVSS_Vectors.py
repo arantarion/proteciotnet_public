@@ -1,6 +1,3 @@
-# V2_PATTERN = "AV:([L|A|N])/AC:(H|M|L)/Au:([M|S|N])/C:([N|P|C])/I:([N|P|C])/A:([N|P|C])"
-
-
 def _parse_vector(vector_string):
     fields = {}
     parts = vector_string.split("/")

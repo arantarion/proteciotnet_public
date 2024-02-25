@@ -4,7 +4,6 @@ import json
 import os
 import re
 import logging
-
 import xmltodict
 from django.http import HttpResponse
 
@@ -64,7 +63,7 @@ def get_cvss_color(cvss_score, version=2):
     try:
         cvss_score = float(cvss_score)
     except ValueError:
-        return 'black', 'white'  # Return None if the cvss_score cannot be converted to a float
+        return 'black', 'white'
 
     if version == 2:
         for score_range, color in score_range_version_2.items():
@@ -76,7 +75,6 @@ def get_cvss_color(cvss_score, version=2):
             if score_range_v3[0] <= cvss_score <= score_range_v3[1]:
                 return color, "white" if color != "yellow" else "black"
 
-    # Return None if the cvss_score is not within any defined range
     return 'black', 'white'
 
 
@@ -314,8 +312,6 @@ def get_ports_details(scanfile: str) -> dict:
                     - 'CVE' (list): List of Common Vulnerabilities and Exposures (CVE) associated with the host.
     """
 
-    # I think unused and in api.py
-
     try:
         parsed_xml_nmap_file = xmltodict.parse(open('/opt/xml/' + scanfile, 'r').read())
     except:
@@ -345,8 +341,6 @@ def get_ports_details(scanfile: str) -> dict:
     cve_of_host = get_cve(md5_hash_of_scanfile)
 
     for items in nmap_run_dict['host']:
-
-        # this fixes single host report
         if type(items) is dict:
             item = items
         else:
@@ -441,26 +435,6 @@ def insert_linebreaks(input_string: str, max_line_length: int = 40) -> str:
     Returns:
         str: The input string with inserted line breaks into HTML paragraphs.
     """
-
-    # words = input_string.split()
-    # lines = []
-    # line = ""
-    # 
-    # for word in words:
-    #     if len(line) + len(word) + 1 <= max_line_length:
-    #         if line:
-    #             line += " " + word
-    #         else:
-    #             line = word
-    #     else:
-    #         lines.append(line)
-    #         line = word
-    # 
-    # if line:
-    #     lines.append(line)
-    # 
-    # joined_lines = "<br>".join(lines)
-    # return f"<p>{joined_lines}</p>"
 
     lines = []
     current_line = ""

@@ -4,12 +4,6 @@ from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_ms_device_type impor
 from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_ms_flags_and_device_status import ms_flags_and_device_status
 from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_uuids import uuids
 
-# from ble_assigned_numbers.ble_ad_types import ad_types
-# from ble_assigned_numbers.ble_company_identifiers import company_identifiers
-# from ble_assigned_numbers.ble_ms_device_type import ms_device_type
-# from ble_assigned_numbers.ble_ms_flags_and_device_status import ms_flags_and_device_status
-# from ble_assigned_numbers.ble_uuids import uuids
-
 
 def _parse_ble_adv_data(advertisement_data: str) -> list:
     """
@@ -96,7 +90,9 @@ def _parse_apple_data(apple_data: str) -> dict:
             "State": "Separated",
             "Maintained": bool((bytes_data[2] >> 2) & 1),
             "Battery": battery_states[(bytes_data[2] >> 6) & 3],
-            "Separated Public Key": '0x' + ''.join([hex(x) for x in bytes_data[3:25]]).replace("0x", "").upper(),
+            "Separated Public Key": '0x' + ''.join([hex(x) for x in bytes_data[3:25]])
+            .replace("0x", "")
+            .upper(),
             "Public Key Bits": bytes_data[25] & 3,
             "Hint": bytes_data[26]
         }
@@ -135,7 +131,7 @@ def _parse_i_beacon_data(i_beacon_data: str) -> dict:
     Parses iBeacon-specific BLE advertisement data.
 
     :param i_beacon_data: data identified to belong to Apple iBeacons as per
-    http://www.havlena.net/en/location-technologies/ibeacons-how-do-they-technically-work/
+    https://www.havlena.net/en/location-technologies/ibeacons-how-do-they-technically-work/
     :type i_beacon_data: str
     :return: Dict containing the information in the data being proximity UUID, major, minor and tx power
     :rtype: dict
@@ -210,7 +206,9 @@ def _parse_adv_data_to_json(advertisement_data: str) -> list:
         elif "Name" in entry["Type"]["Description"]:
             entry["Name"] = bytes.fromhex(elem['data']).decode(errors='ignore')
         elif elem['type'] == "0A":
-            entry["TX Power Level (dBm)"] = int(elem['data'], 16) - 256 if int(elem['data'], 16) > 127 else int(elem['data'], 16)
+            entry["TX Power Level (dBm)"] = int(elem['data'], 16) - 256 \
+                if int(elem['data'], 16) > 127 \
+                else int(elem['data'], 16)
         else:
             entry["Data"] = elem['data']
 
@@ -233,22 +231,3 @@ def parse_adv_data(hex_data: str) -> list:
     data = str(hex_data).replace("0x", "").upper()
     parsed_data = _parse_adv_data_to_json(data)
     return parsed_data
-
-
-# iBeacon: 02151CA92E23F0874DF7B9A2FD4B716A4BF60AE3000003
-# Win10:   1EFF0600010920021C34290C9C8C7826DF7FC4A4107A4FB4935DC9A7FE7C00
-# Win10.2: 1EFF06000109200607D3C3EBD018A8EF5B2277E2660B0EE9FEDDDEF47B658E
-# Sony HP: 030303FE0E094C455F57482D31303030584D35
-# Find My: 07FF4C0012020001
-# Segway:  0201060B0953656777617920496F5409FFFFFF8C59DCF571A211079ECADC240EE5A9E093F3A3B50100406E
-# Garmin:  02010611079F99A2DBF39118A3F24B2590E25B74AA1908424C455F4761726D696E2044726976652023333339313833
-# JBL:     0201060D162CFE004008005A32345A5014020AF6031603FE0816DFFD43200153E515084A424C204C4956452050524F2B205457532D4C45
-# Daikin:  020106110677AE8C12719E7BB6E6113A2110E1412107084461696B696E05FF9300E0000F0942524331482033433A33363A3234
-# Samsung: 1BFF7500420401806028395EDEA9CA2A395EDEA9C901000000000000
-# JBL Tune: 0303DFFD0C16DFFDB52000C8AF0000A43C11094A424C2054554E453637304E432D4C45
-# Samsung Smart: 02010403025AFD17165AFD15DCC7014348F47468AACF29B30000004F0DAA910A09536D61727420546167
-# Matsushita: 02010609FF9E8EEAA1DE42C8E81107454C4261686F72694103AB2D4D4952500C094C452D525A2D533330305706FF3A00BCA0E3
-# Find my: 0x1EFF4C00121910E7D63F125160D7EC1974466AE4497E2362C8AD84603502E1
-# Nearby: 0x02011A020A0C0CFF4C001007081F730B533C78
-# Find my: 0x07FF4C0012020003
-

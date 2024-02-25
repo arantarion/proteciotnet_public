@@ -4,8 +4,8 @@ import os
 import subprocess
 import threading
 from multiprocessing import Process
-
 from django.http import HttpResponse
+
 from proteciotnet_dev.bluetooth_le.ble_scan import runner, scan_continuous
 
 is_scanning = False
@@ -109,10 +109,7 @@ def new_ble_scan(request):
 
         print(ble_data)
 
-
-        # Scan
         if ble_filename:
-            # Continuous scan mode only
             if ble_continuous_scan:
                 logger.info("Continuous scanning selected by user")
                 start_scan()
@@ -120,7 +117,6 @@ def new_ble_scan(request):
                 p.start()
             else:
                 logger.info("Time based scanning selected")
-                # scan for ble_scan_time_len time -> check modes
                 runner(filename=ble_filename,
                        interface=0,
                        scan_time=ble_scan_time_length,
@@ -133,7 +129,6 @@ def new_ble_scan(request):
                        specific_device_addr=ble_specific_device_addr
                        )
 
-        # Sniff
         elif ble_sniff_filename:
             logger.info("BLE sniffing selected by user")
             try:
@@ -167,7 +162,6 @@ def new_ble_scan(request):
                 logger.error(f"Could not sniff BLE traffic - {e}")
                 return HttpResponse(json.dumps({'error': 'invalid syntax'}, indent=4), content_type="application/json")
 
-        # Send or subscribe
         elif ble_device_send_addr:
             logger.warning("Not implemented")
             return HttpResponse(json.dumps({'error': 'not implemented'}, indent=4), content_type="application/json")

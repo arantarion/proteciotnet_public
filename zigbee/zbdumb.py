@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-'''
+"""
 zbdump - a tcpdump-like tool for ZigBee/IEEE 802.15.4 networks
 
 Compatible with Wireshark 1.1.2 and later (jwright@willhackforsushi.com)
 The -p flag adds CACE PPI headers to the PCAP (ryan@rmspeers.com)
-'''
+"""
+
 from typing import Optional, Any, List, Dict, Union
 
 import sys

@@ -41,13 +41,13 @@ fi
 
 
 log "Activating Python virtual environment."
-source /opt/proteciotnet/proteciotnet_dev/venv/bin/activate || { log "Error: Failed to activate virtual environment."; exit 1; }
+source env/bin/activate || { log "Error: Failed to activate virtual environment."; exit 1; }
 
 
 #log "Running scripts."
 #bash /opt/proteciotnet/proteciotnet_dev/nmap/runcron.sh > /dev/null 2>&1 &
 #log "Started nmap script in background."
 
-python3 /opt/proteciotnet/manage.py runserver $ip4:8000
+python3 ProtecIoTnet/manage.py runserver $ip4:8000
 
 

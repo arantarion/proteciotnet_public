@@ -210,6 +210,9 @@ static/*.pdf
 /static/reports/*
 !/static/reports/backgrounds/*
 
+env/*
+ProtecIoTnet/*
+
 *.sqlite
 
 /bluetooth_le/ble_assigned_numbers/yaml_json/*

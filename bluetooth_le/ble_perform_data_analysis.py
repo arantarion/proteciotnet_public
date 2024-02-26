@@ -2,21 +2,56 @@ import csv
 import json
 import subprocess
 import warnings
-from multiprocessing import Process
+import logging
 
 import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
 import numpy as np
+
 from svgpath2mpl import parse_path
 from svgpathtools import svg2paths
+from multiprocessing import Process
+from configparser import ConfigParser, ExtendedInterpolation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-BLE_REPORT_STATIC_DIR = "/opt/proteciotnet/proteciotnet_dev/static/ble_reports/"
-WIRESHARK_DISPLAY_FILTER_STRING = "(btle.advertising_header.pdu_type == 5 || btle.data_header.length > 0) || (btsmp)"
-XSL_PATH = "/opt/proteciotnet/proteciotnet_dev/static/executables/pdml2html.xsl"
+#BLE_REPORT_STATIC_DIR = "/opt/proteciotnet/proteciotnet_dev/static/ble_reports/"
+#WIRESHARK_DISPLAY_FILTER_STRING = "(btle.advertising_header.pdu_type == 5 || btle.data_header.length > 0) || (btsmp)"
+#XSL_PATH = "/opt/proteciotnet/proteciotnet_dev/static/executables/pdml2html.xsl"
 
-def _create_json_info_part(ble_filename, scan_start_time, scan_end_time, interfaces, nr_devices, conn_devices):
+logger = logging.getLogger(__name__)
+
+try:
+    config_ble_scan = ConfigParser(interpolation=ExtendedInterpolation())
+    config_ble_scan.read('../proteciotnet.config')
+
+    _XSL_FILE_LOCATION = config_ble_scan.get('BLE', 'xsl_file_location')
+    _BLUETOOTH_WIRESHARK_DISPLAY_FILTER = config_ble_scan.get('BLE', 'bluetooth_wireshark_display_filter')
+    _BLE_REPORTS_DIRECTORY = config_ble_scan.get('BLE_PATHS', 'ble_reports_directory')
+
+    _STATIC_DIRECTORY = config_ble_scan.get('GENERAL_PATHS', 'static_directory')
+
+    logger.info("Successfully loaded config file 'proteciotnet.config'")
+except Exception as e:
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    exit(-3)
+
+
+def _create_json_info_part(ble_filename: str, scan_start_time: str, scan_end_time: str, interfaces: str, nr_devices: int, conn_devices: int) -> dict:
+    """
+    Create a JSON object containing BLE scan information.
+
+    Args:
+        ble_filename (str): The name of the BLE scan file.
+        scan_start_time (str): The start time of the BLE scan.
+        scan_end_time (str): The end time of the BLE scan.
+        interfaces (str): Information about the BLE interfaces used for scanning.
+        nr_devices (int): The total number of BLE devices detected.
+        conn_devices (int): The number of connectable BLE devices.
+
+    Returns:
+        dict: A JSON object containing BLE scan information.
+    """
     return {
         'ble_filename': ble_filename,
         'ble_scan_start_time': scan_start_time,
@@ -28,7 +63,20 @@ def _create_json_info_part(ble_filename, scan_start_time, scan_end_time, interfa
     }
 
 
-def csv_to_json(csv_file_path, json_file_path=""):
+def csv_to_json(csv_file_path: str, json_file_path: str = ""):
+    """
+    Convert a CSV file containing BLE scan data to a JSON file.
+
+    Args:
+        csv_file_path (str): The path to the input CSV file.
+        json_file_path (str, optional): The path to save the output JSON file. If not provided,
+            the JSON data will be returned without saving to a file. Defaults to "".
+
+    Returns:
+        tuple: A tuple containing two elements:
+            - A list of dictionaries representing the BLE scan data.
+            - A list of lists containing RSSI values.
+    """
     data_list = []
     rssi_values = []
     timestamps = []
@@ -38,6 +86,8 @@ def csv_to_json(csv_file_path, json_file_path=""):
 
     with open(csv_file_path, 'r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
+
+        logger.debug(f"Reading CSV file {csv_file_path}")
 
         for row in csv_reader:
             device_counter += 1
@@ -67,13 +117,29 @@ def csv_to_json(csv_file_path, json_file_path=""):
     output_data = data_list.copy()
     output_data.insert(0, info_header_json)
 
+    logger.debug(f"Read file {csv_file_path}")
+
     with open(json_file_path, 'w') as json_file:
         json.dump(output_data, json_file, indent=4)
+        logger.debug(f"Successfully written json file {json_file_path}")
 
+    logger.debug(f"data_list: {data_list}")
+    logger.debug(f"rssi_values: {rssi_values}")
     return data_list, rssi_values
 
 
-def create_rssi_graph(csv_file_path, ble_scan_results, output_path):
+def create_rssi_graph(csv_file_path: str, ble_scan_results: list, output_path: str) -> None:
+    """
+    Create an SVG graph representing the RSSI values of BLE scan results.
+
+    Args:
+        csv_file_path (str): Path to the CSV file containing BLE scan data.
+        ble_scan_results (list): List of dictionaries representing BLE scan results.
+        output_path (str): Path to save the output SVG graph.
+
+    Returns:
+        None
+    """
     rssi_values = []
     with open(csv_file_path, 'r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
@@ -92,7 +158,7 @@ def create_rssi_graph(csv_file_path, ble_scan_results, output_path):
     fig, ax = plt.subplots(figsize=(12, 12))
 
     # Custom marker in the shape of a human
-    user_path, attributes = svg2paths('/opt/proteciotnet/proteciotnet_dev/static/img/person.svg')
+    user_path, attributes = svg2paths(f'{_STATIC_DIRECTORY}/img/person.svg')
     user_marker = parse_path(attributes[0]['d'])
 
     min_rssi, max_rssi = -100, 0
@@ -193,31 +259,45 @@ def create_rssi_graph(csv_file_path, ble_scan_results, output_path):
     for spine in ax.spines.values():
         spine.set_color('white')
 
-    # plt.show()
+    logger.debug("Created RSSI graph.")
     plt.savefig(output_path,
                 format="svg",
                 transparent=True,
                 bbox_inches="tight")
 
 
-def convert_ble_sniff_to_html(filename):
+def convert_ble_sniff_to_html(filename: str):
+    """
+    Convert a BLE sniffing pcap file to HTML format using tshark and XSLT transformation.
+
+    Args:
+        filename (str): Path to the input pcap file.
+
+    Returns:
+        multiprocessing.Process: Process object for the conversion task.
+    """
+
     def conversion_process():
+        """
+        Convert a BLE sniffing pcap file to HTML format using tshark and XSLT transformation.
+
+        Returns:
+            None
+        """
         base_filename = filename.split("/")[-2]
         pdml_filename = base_filename + '.pdml'
         html_filename = base_filename + '.html'
 
         # Convert pcap to pdml
-        tshark_cmd = f"tshark -r {filename} -Y '{WIRESHARK_DISPLAY_FILTER_STRING}' -T pdml > {BLE_REPORT_STATIC_DIR}{pdml_filename}"
+        tshark_cmd = f"tshark -r {filename} -Y '{_BLUETOOTH_WIRESHARK_DISPLAY_FILTER}' -T pdml > {_BLE_REPORTS_DIRECTORY}({pdml_filename}"
+        logger.debug(f"tshark_cmd: {tshark_cmd}")
         subprocess.run(tshark_cmd, shell=True)
 
         # Convert pdml to html
-        xslt_cmd = f"xsltproc {XSL_PATH} {BLE_REPORT_STATIC_DIR}{pdml_filename} > {BLE_REPORT_STATIC_DIR}{html_filename}"
+        xslt_cmd = f"xsltproc {_XSL_FILE_LOCATION} {_BLE_REPORTS_DIRECTORY}/{pdml_filename} > {_BLE_REPORTS_DIRECTORY}/{html_filename}"
+        logger.debug(f"xslt_cmd: {xslt_cmd}")
         subprocess.run(xslt_cmd, shell=True)
 
     process = Process(target=conversion_process)
     process.start()
     return process
-
-# csv_file_path = '/home/henry/Downloads/ble_scan_test_data.csv'
-# ble_scan_results, rssi_values = csv_to_json(csv_file_path, f"{csv_file_path}.json")
-# create_rssi_graph(csv_file_path)

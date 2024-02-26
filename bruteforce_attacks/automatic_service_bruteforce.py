@@ -1,11 +1,29 @@
 import os
 import subprocess
 import tempfile
-import xml.etree.ElementTree as ET
 import logging
+
+import xml.etree.ElementTree as ET
+
 from datetime import datetime
+from configparser import ConfigParser, ExtendedInterpolation
 
 logger = logging.getLogger(__name__)
+
+try:
+    config_bruteforce = ConfigParser(interpolation=ExtendedInterpolation())
+    config_bruteforce.read('../proteciotnet.config')
+
+    WIFI_XML_BASE_DIRECTORY = config_bruteforce.get('WIFI_PATHS', 'wifi_xml_base_directory')
+
+    BRUTEFORCE_USERLIST_LOCATION = config_bruteforce.get('WIFI_PATHS', 'bruteforce_userlist_location')
+    BRUTEFORCE_PASSWORDLIST_LOCATION = config_bruteforce.get('WIFI_PATHS', 'bruteforce_passwordlist_location')
+    BRUTEFORCE_LOGS_LOCATION = config_bruteforce.get('WIFI_PATHS', 'bruteforce_logs_location')
+
+    logger.info("Successfully loaded config file 'proteciotnet.config'")
+except Exception as e:
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    exit(-3)
 
 NAME_MAP = {
     "ms-sql-s": "mssql",
@@ -24,19 +42,32 @@ NAME_MAP = {
     "snmptrap": "snmp"
 }
 
-_USERLIST_BASE_LOCATION = "/opt/proteciotnet/proteciotnet_dev/bruteforce_attacks/wordlist/"
-_PASSWORDLIST_BASE_LOCATION = "/opt/proteciotnet/proteciotnet_dev/bruteforce_attacks/wordlist/"
-_OUTPUT_DIRECTORY = "/home/henry/Downloads/protec_medusa_logs/"
-_XML_STANDARD_DIR = "/opt/xml/"
+# _USERLIST_BASE_LOCATION = "/opt/proteciotnet/proteciotnet_dev/bruteforce_attacks/wordlist/"
+# _PASSWORDLIST_BASE_LOCATION = "/opt/proteciotnet/proteciotnet_dev/bruteforce_attacks/wordlist/"
+# _OUTPUT_DIRECTORY = "/home/henry/Downloads/protec_medusa_logs/"
+# _XML_STANDARD_DIR = "/opt/xml/"
 
 _services = {}
 
 
-def _parse_xml(filename):
+def _parse_xml(filename:str) -> None:
+    """
+    Parse an XML file containing information about open ports on hosts.
+
+    Args:
+        filename (str): The path to the XML file.
+
+    Returns:
+        None
+    """
+    logger.info(f"Parsing {filename}...")
+
     supported = ['ssh', 'ftp', 'postgresql', 'telnet', 'mysql', 'ms-sql-s', 'rsh',
                  'vnc', 'imap', 'imaps', 'nntp', 'pcanywheredata', 'pop3', 'pop3s',
                  'exec', 'login', 'microsoft-ds', 'smtp', 'smtps', 'submission',
                  'svn', 'iss-realsecure', 'snmptrap', 'snmp', 'http']
+
+    logger.debug(f"Supported: {supported}")
 
     tree = ET.parse(filename)
     root = tree.getroot()
@@ -61,49 +92,49 @@ def _parse_xml(filename):
                     else:
                         _services[name] = {tmp_port: iplist}
 
+    logger.info(f"Done parsing.")
 
-def _check_file_format(filename):
+
+def _check_file_format(filename: str):
+    """
+    Check if a given file is xml.
+
+    Args:
+        filename (str): The path to the file.
+
+    Returns:
+        str: The format of the file. Possible values are 'xml' for XML format or None if the format is not recognized.
+    """
     in_format = None
     with open(filename) as f:
         filename_line = f.readlines()
         if '<?xml ' in filename_line[0] and 'nmaprun' in filename_line[1]:
+            logger.debug(f"file {filename} is xml.")
             return "xml"
 
+    logger.debug(f"file {filename} is not xml. returnin none")
     return in_format
 
 
-"""
-Syntax: Medusa [-h host|-H file] [-u username|-U file] [-p password|-P file] [-C file] -M module [OPT]
-    -b           : Suppress startup banner
-    -H [FILE]    : File containing target hostnames or IP addresses
-----------------------------------------------------------------------------------------------
-    -h [TEXT]    : Target hostname or IP address
-----------------------------------------------------------------------------------------------   
-    -U [FILE]    : File containing usernames to test
-    -P [FILE]    : File containing passwords to test
-    -M [TEXT]    : Name of the module to execute (without the .mod extension)
-    -t [NUM]     : Total number of logins to be tested concurrently
-    -n [NUM]     : Use for non-default TCP port number
-    -T [NUM]     : Total number of hosts to be tested concurrently
-    -f           : Stop scanning host after first valid username/password found.
-    -v [NUM]     : Verbose level [0 - 6 (more)]
-    -w [NUM]     : Error debug level [0 - 10 (more)]
-    -e [n/s/ns]  : Additional password checks ([n] No Password, [s] Password = Username)
-    -O [FILE]    : File to append log information to
-----------------------------------------------------------------------------------------------
-    -V           : Display version
-    -m [TEXT]    : Parameter to pass to the module. This can be passed multiple times with a
-                 different parameter each time and they will all be sent to the module (i.e.
-                 -m Param1 -m Param2, etc.)
-    -F           : Stop audit after first valid username/password found on any host.
-"""
+def _brute(service: str, port: int, filename: str, output: str, single_host: str = "") -> str:
+    """
+    Perform brute-force attack using Medusa.
 
-def _brute(service, port, filename, output, single_host=""):
-    userlist = f'{_USERLIST_BASE_LOCATION}{service}/user'
-    passlist = f'{_PASSWORDLIST_BASE_LOCATION}{service}/password'
+    Args:
+        service (str): The name of the service.
+        port (int): The port number.
+        filename (str): The name of the file containing the target hosts.
+        output (str): The directory where the output file will be saved.
+        single_host (str, optional): The single host to attack. Defaults to "".
+
+    Returns:
+        str: The name of the log file generated by Medusa.
+    """
+    userlist = f'{BRUTEFORCE_USERLIST_LOCATION}/{service}/user'
+    passlist = f'{BRUTEFORCE_PASSWORDLIST_LOCATION}/{service}/password'
     output_file = f'{output}/{port}-{service}-success.txt'
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    logfile_name = f'{_OUTPUT_DIRECTORY}{timestamp}_proteciotnet_medusa.log'
+    logfile_name = f'{BRUTEFORCE_LOGS_LOCATION}/{timestamp}_proteciotnet_medusa.log'
 
     cmd = ['medusa', '-b', '-H', filename, '-U', userlist, '-P', passlist, '-M', service, '-t', '2', '-n', port, '-T',
            '1', '-f', '-v', '5', '-w', '5', '-e' 'ns', '-O', logfile_name]
@@ -122,28 +153,40 @@ def _brute(service, port, filename, output, single_host=""):
 
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, bufsize=1)
 
-    print("#"*150)
+    logger.info("#"*150)
     for line in p.stdout:
-        print(line.strip('\n'))
+        logger.info(line.strip('\n'))
         if 'SUCCESS' in line:
             with open(output_file, 'a') as out_file:
                 out_file.write("[+]" + line)
-    print("#" * 150)
+    logger.info("#" * 150)
     logger.info("Medusa has finished.")
     return logfile_name
 
 
-def auto_bruteforce(filename, host):
+def auto_bruteforce(filename: str, host: str) -> None:
+    """
+    Front facing function to perform automated brute-force attempts using Medusa.
+    Handels all the input and output needed to bruteforce.
+    Calls _brute for actual brute-force.
+
+    Args:
+        filename (str): The name of the XML file containing the target hosts and services.
+        host (str): The host to target for brute-force attacks. Specify 'all' to target all hosts.
+
+    Returns:
+        None
+    """
     logger.info("Starting auto bruteforcing attempt using medusa.")
-    filename = f"{_XML_STANDARD_DIR}{filename}"
+    filename = f"{WIFI_XML_BASE_DIRECTORY}/{filename}"
 
     if os.system("command -v medusa > /dev/null") != 0:
         logger.error("Command medusa not found. Please install medusa")
         return
 
-    if not os.path.exists(_OUTPUT_DIRECTORY):
-        logger.warning(f"{_OUTPUT_DIRECTORY} does not exist. Trying to create it.")
-        os.mkdir(_OUTPUT_DIRECTORY)
+    if not os.path.exists(BRUTEFORCE_LOGS_LOCATION):
+        logger.warning(f"{BRUTEFORCE_LOGS_LOCATION} does not exist. Trying to create it.")
+        os.mkdir(BRUTEFORCE_LOGS_LOCATION)
 
     if os.path.isfile(filename) and _check_file_format(filename) == "xml":
         _parse_xml(filename)
@@ -153,9 +196,9 @@ def auto_bruteforce(filename, host):
 
     try:
         tmppath = tempfile.mkdtemp(prefix="proteciotnet-tmp")
-    except:
-        logger.error("Error while creating temporary directory.")
-        exit(4)
+    except Exception as e_no_dir:
+        logger.error(f"Error while creating temporary directory. Error {e_no_dir}")
+        exit(-4)
 
     logger.info(f"Successfully passed all preliminary checks and parsing / {filename}")
 
@@ -171,14 +214,21 @@ def auto_bruteforce(filename, host):
                     for ip in iplist:
                         f.write(ip + '\n')
                 logger.info(f"Successfully wrote IPs to temporary file {temp_ip_filename}")
-                logfile_name = _brute(service=service, port=port, filename=temp_ip_filename, output=_OUTPUT_DIRECTORY)
+                logfile_name = _brute(service=service,
+                                      port=port,
+                                      filename=temp_ip_filename,
+                                      output=BRUTEFORCE_LOGS_LOCATION)
                 something_worked = True
         else:
             for port in _services[service]:
                 if host in _services[service][port]:
                     logger.info(f"Instructing medusa with bruteforcing {host} on port {port} for service {service}")
                     temp_ip_filename = f'{tmppath}/tmp-{service}-{port}'
-                    logfile_name = _brute(service=service, port=port, filename=temp_ip_filename, output=_OUTPUT_DIRECTORY, single_host=host)
+                    logfile_name = _brute(service=service,
+                                          port=port,
+                                          filename=temp_ip_filename,
+                                          output=BRUTEFORCE_LOGS_LOCATION,
+                                          single_host=host)
                     something_worked = True
 
     if not something_worked:

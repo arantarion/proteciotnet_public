@@ -4,11 +4,12 @@ import sys
 import logging
 import multiprocessing
 import os.path
+
 from datetime import datetime
 from threading import Thread
 from time import sleep
-
 from bluepy import btle
+from configparser import ConfigParser, ExtendedInterpolation
 from bluepy.btle import Peripheral, UUID, Scanner, DefaultDelegate, BTLEDisconnectError
 
 from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_appearance_dict import BLE_APPEARANCE
@@ -16,20 +17,28 @@ from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_company_identifiers 
 from proteciotnet_dev.bluetooth_le.ble_parse_advertisment_data import parse_adv_data
 from proteciotnet_dev.static.py.vendor_macs_dict import vendor_mac_lookup_table
 
-# from ble_assigned_numbers.ble_company_identifiers import company_identifiers
-# from ble_appearance_dict import BLE_APPEARANCE
-# from vendor_macs_dict import vendor_mac_lookup_table
-# from ble_parse_advertisment_data import parse_adv_data
+logger = logging.getLogger(__name__)
 
-BT_INTERFACE_INDEX = 0
-BT_SCAN_TIME = 2
-CONNECTION_TIMEOUT = 5
+try:
+    config_ble_scan = ConfigParser(interpolation=ExtendedInterpolation())
+    config_ble_scan.read('../proteciotnet.config')
+
+    _BLUETOOTH_INTERFACE_INDEX = int(config_ble_scan.get('BLE', 'bluetooth_interface_index'))
+    _BLUETOOTH_SCAN_TIME_IN_MINUTES = int(config_ble_scan.get('BLE', 'bluetooth_scan_time_in_minutes'))
+    _BLUETOOTH_CONNECTION_TIMEOUT_IN_SECONDS = int(config_ble_scan.get('BLE', 'bluetooth_scan_time_in_minutes'))
+    _BLE_REPORTS_DIRECTORY = config_ble_scan.get('BLE_PATHS', 'ble_reports_directory')
+
+    logger.info("Successfully loaded config file 'proteciotnet.config'")
+except Exception as e:
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    exit(-3)
+
 BLE_PERMISSIONS = ["WRITE NO RESPONSE", "SIGNED WRITE COMMAND", "QUEUED WRITE", "BROADCAST", "READ", "WRITE", "NOTIFY",
                    "INDICATE", "WRITABLE AUXILIARIES"]
 CSV_HEADERS = ["timestamp", "address", "device_name", "vendor", "address_type", "conn", "rssi", 'interface', 'extra_data', 'attribute_data']
 CONNECTION_ERROR = False
 IS_SCANNING = False
-BLE_STATIC_PATH = "/opt/proteciotnet/proteciotnet_dev/static/ble_reports/"
+
 
 ms_device_type = {
     1: "Xbox One",
@@ -54,26 +63,16 @@ ms_flags_and_device_status = {
 }
 
 
-logger = logging.getLogger(__name__)
-stdout = logging.StreamHandler(stream=sys.stdout)
-fmt = logging.Formatter(
-    "%(name)s: %(asctime)s | \t%(levelname)s\t | %(filename)s:%(lineno)s | %(process)d >>> %(message)s"
-)
-stdout.setFormatter(fmt)
-logger.addHandler(stdout)
-logger.setLevel(logging.DEBUG)
-
-
 def _get_timestamp() -> str:
     """
     Returns a formatted timestamp that can be used as a filename or in a file.
-    Timestamp is seperated by underscores for convenience in filenames.
+    Timestamp is separated by underscores for convenience in filenames.
 
     Returns:
-        - str: A underscore separated timestamp of the current time
+        str: A underscore separated timestamp of the current time
     """
     current_datetime = datetime.now()
-    # return current_datetime.strftime("%Y_%m:%d_%H:%M_%S")
+    logger.debug(f"Timestamp: {current_datetime}")
     return current_datetime.strftime("%A, %d. %B %Y - %H:%M:%S")
 
 
@@ -85,12 +84,11 @@ def _read_existing_data(filename: str) -> list:
     format, skips the header, and then appends the first three columns of each
     row to a list as tuples.
 
-    Parameters:
-    - filename (str): The name of the file to read.
+    Args:
+        filename (str): The name of the file to read.
 
     Returns:
-    - list of tuples: A list where each tuple contains the first three columns
-      of a row from the file.
+        list of tuples: A list where each tuple contains the first three columns of a row from the file.
 
     """
     existing_data = []
@@ -100,6 +98,7 @@ def _read_existing_data(filename: str) -> list:
         for row in csvreader:
             if row:
                 existing_data.append(tuple(row[1:4]))
+    logger.debug(f"existing_data: {existing_data}")
     return existing_data
 
 
@@ -111,13 +110,11 @@ def _create_ms_device(r: list) -> dict:
     device and creates a dictionary mapping each device attribute to the
     corresponding parsed value.
 
-    Parameters:
-    - r (str): The raw string containing hexadecimal device information.
+    Args:
+        r (str): The raw string containing hexadecimal device information.
 
     Returns:
-    - dict: A dictionary with keys representing device attributes such as
-      length, fixed, company_id, and others, associated with their respective
-      parsed values.
+        dict: A dictionary with keys representing device attributes such as length, fixed, company_id, and others, associated with their respective arsed values.
 
     """
     output = {
@@ -131,6 +128,7 @@ def _create_ms_device(r: list) -> dict:
         "salt": r[16:24],
         "device_hash": r[24:]
     }
+    logger.debug(f"output: {output}")
     return output
 
 
@@ -142,18 +140,15 @@ def _create_find_my_device(r: list, addr: str) -> dict:
     device and uses an additional address parameter to construct a dictionary
     representing the device attributes.
 
-    Parameters:
-    - r (str): The raw string containing hexadecimal 'Find My' information.
-    - addr (str): An additional string used in generating part of the 'public_key'.
+    Args:
+        r (str): The raw string containing hexadecimal 'Find My' information.
+        addr (str): An additional string used in generating part of the 'public_key'.
 
     Returns:
-    - dict: A dictionary with keys representing device attributes such as
-      length, fixed, company_id, and others, associated with their respective
-      parsed values.
+        dict: A dictionary with keys representing device attributes such as length, fixed, company_id, and others, associated with their respective parsed values.
 
     Note:
-    - The function differentiates between different payload lengths and adjusts
-      the output dictionary accordingly.
+        The function differentiates between different payload lengths and adjusts the output dictionary accordingly.
 
     """
     output = {
@@ -182,6 +177,7 @@ def _create_find_my_device(r: list, addr: str) -> dict:
     elif output['payload_length'] == "19":
         output.update({"public_key": r[16:]})
 
+    logger.debug(f"output: {output}")
     return output
 
 
@@ -190,12 +186,12 @@ class ConnectionTimeoutError(Exception):
     Exception raised for errors in the connection due to a timeout.
 
     Attributes:
-    - address (str): The address of the device where the connection timed out.
-    - timeout (int): The duration (seconds) after which the connection timed out.
+        address (str): The address of the device where the connection timed out.
+        timeout (int): The duration (seconds) after which the connection timed out.
 
     Args:
-    - address (str): The address of the device to which the connection was attempted.
-    - timeout (int): The timeout duration in seconds.
+        address (str): The address of the device to which the connection was attempted.
+        timeout (int): The timeout duration in seconds.
 
     """
     def __init__(self, address, timeout):
@@ -635,7 +631,7 @@ class BLEScanner:
         self.successful_scans = 0
         self.beacons_only = beacons_only
         self.connectable_only = connectable_only
-        self.scanner = Scanner(BT_INTERFACE_INDEX).withDelegate(ScanDelegate(self.filename))
+        self.scanner = Scanner(_BLUETOOTH_INTERFACE_INDEX).withDelegate(ScanDelegate(self.filename))
 
     def __repr__(self) -> str:
         """
@@ -740,16 +736,16 @@ class BLEScanner:
         if not device:
             return
 
-        p = Peripheral(iface=BT_INTERFACE_INDEX)
+        p = Peripheral(iface=_BLUETOOTH_INTERFACE_INDEX)
         try:
             # Implementation to enforce the timeout
             thread = Thread(target=self._connect_peripheral,
                             args=[p, device.address, addr_type])
             thread.start()
-            thread.join(CONNECTION_TIMEOUT)
+            thread.join(_BLUETOOTH_CONNECTION_TIMEOUT_IN_SECONDS)
             if thread.is_alive() or CONNECTION_ERROR:
-                logger.error(f"The device did not respond in the connection timeout of {CONNECTION_TIMEOUT}")
-                raise ConnectionTimeoutError(device.address, CONNECTION_TIMEOUT)
+                logger.error(f"The device did not respond in the connection timeout of {_BLUETOOTH_CONNECTION_TIMEOUT_IN_SECONDS}")
+                raise ConnectionTimeoutError(device.address, _BLUETOOTH_CONNECTION_TIMEOUT_IN_SECONDS)
             logger.info(f"Connected to {addr}.")
 
             logger.info(f"reading services of '{addr}'")
@@ -874,9 +870,11 @@ def scan_continuous(filename: str) -> None:
     file is no longer present in the specified path or a KeyboardInterrupt is
     raised.
 
-    Parameters:
-    - filename (str): The file path where the scan results will be logged.
+    Args:
+        filename (str): The file path where the scan results will be logged.
 
+    Returns:
+        None
     """
 
     logger.info("Starting Script continuously. Initializing Scanner Object")
@@ -901,12 +899,13 @@ def scan_all_devices_and_read_all_fields(filename: str,
     and descriptors (if the `with_descriptors` flag is set to True). After reading all
     the data, it will save the information to a JSON file.
 
-    :param filename: Name of the file to save the scanned data to.
-    :type filename: str
-    :param with_descriptors: Flag indicating if descriptors should be read. Default is False.
-    :type with_descriptors: bool
-    :param connectable_only: Flag indicating to only scan connectable devices
-    :type connectable_only: bool
+    Args:
+        filename (str): Name of the file to save the scanned data to.
+        with_descriptors (bool): Flag indicating if descriptors should be read. Default is False.
+        connectable_only (bool): Flag indicating to only scan connectable devices
+
+    Returns:
+        None
     """
     # ----------------- SCANNING ALL DEVICES ----------------- #
 
@@ -914,12 +913,12 @@ def scan_all_devices_and_read_all_fields(filename: str,
     scanner1 = BLEScanner(filename=filename,
                           connectable_only=connectable_only)
     try:
-        scanner1.scan(duration=BT_SCAN_TIME)
+        scanner1.scan(duration=_BLUETOOTH_SCAN_TIME_IN_MINUTES)
     except BTLEDisconnectError:
         try:
             logger.info("First scanning attempt failed. Trying again after 0.2 seconds...")
             sleep(0.2)
-            scanner1.scan(duration=BT_SCAN_TIME)
+            scanner1.scan(duration=_BLUETOOTH_SCAN_TIME_IN_MINUTES)
         except Exception:
             logger.error(f"An error occurred while scanning devices")
             pass
@@ -952,11 +951,13 @@ def scan_list_only(filename: str, beacons_only: bool, connectable_only: bool) ->
     successful scans are detected, saves the results to a JSON file named
     after the provided filename.
 
-    Parameters:
-    - filename (str): The file path where the scan results will be saved.
-    - beacons_only (bool): Flag to indicate whether only beacons should be scanned.
-    - connectable_only (bool): Flag to indicate whether only connectable devices should be scanned.
+    Args:
+        filename (str): The file path where the scan results will be saved.
+        beacons_only (bool): Flag to indicate whether only beacons should be scanned.
+        connectable_only (bool): Flag to indicate whether only connectable devices should be scanned.
 
+    Returns:
+        None
     """
 
     scanner_list_mode = BLEScanner(filename=filename,
@@ -986,8 +987,11 @@ def scan_single_device(filename: str, device_address: str) -> None:
     it logs the appropriate message.
 
     Parameters:
-    - filename (str): The file path where the scan results will be saved.
-    - device_address (str): The BLE address of the device to scan.
+        filename (str): The file path where the scan results will be saved.
+        device_address (str): The BLE address of the device to scan.
+
+    Returns:
+        None
 
     """
 
@@ -1018,7 +1022,10 @@ def scan_beacons_only(filename: str) -> None:
     AirTags, logging an error if a problem occurs during the scan.
 
     Parameters:
-    - filename (str): The file path where the scan results will be saved.
+        filename (str): The file path where the scan results will be saved.
+
+    Returns:
+        None
 
     """
 
@@ -1034,8 +1041,8 @@ def scan_beacons_only(filename: str) -> None:
 
 def runner(filename: str,
            scan_time: int,
-           interface: int = BT_INTERFACE_INDEX,
-           connection_timeout: int = CONNECTION_TIMEOUT,
+           interface: int = _BLUETOOTH_INTERFACE_INDEX,
+           connection_timeout: int = _BLUETOOTH_CONNECTION_TIMEOUT_IN_SECONDS,
            with_descriptors: bool = False,
            list_mode: bool = False,
            connectable_only: bool = False,
@@ -1055,25 +1062,27 @@ def runner(filename: str,
     and connectable-only filtering.
 
     Parameters:
-    - filename (str): The file path for saving scan results.
-    - scan_time (int): The duration for which the scan should run.
-    - interface (int): The Bluetooth interface index to use for scanning.
-    - connection_timeout (int): The connection timeout duration in seconds.
-    - with_descriptors (bool): Flag to indicate if descriptors should also be scanned.
-    - list_mode (bool): Flag to enable scanning in list mode.
-    - connectable_only (bool): Flag to filter for connectable devices only.
-    - beacons_only (bool): Flag to scan for beacon devices only.
-    - bonding_test (bool): Flag to enable bonding tests (not used in function body).
-    - schedule (bool): Flag to schedule scans (not used in function body).
-    - schedule_frequency (bool): Flag to set the frequency of scheduled scans (not used in function body).
-    - specific_device_addr (str): The BLE address of a specific device to scan for.
+        filename (str): The file path for saving scan results.
+        scan_time (int): The duration for which the scan should run.
+        interface (int): The Bluetooth interface index to use for scanning.
+        connection_timeout (int): The connection timeout duration in seconds.
+        with_descriptors (bool): Flag to indicate if descriptors should also be scanned.
+        list_mode (bool): Flag to enable scanning in list mode.
+        connectable_only (bool): Flag to filter for connectable devices only.
+        beacons_only (bool): Flag to scan for beacon devices only.
+        bonding_test (bool): Flag to enable bonding tests (not used in function body).
+        schedule (bool): Flag to schedule scans (not used in function body).
+        schedule_frequency (bool): Flag to set the frequency of scheduled scans (not used in function body).
+        specific_device_addr (str): The BLE address of a specific device to scan for.
 
+    Returns:
+        None
     """
 
-    global BT_INTERFACE_INDEX, BT_SCAN_TIME, CONNECTION_TIMEOUT
-    BT_INTERFACE_INDEX = interface
-    BT_SCAN_TIME = scan_time
-    CONNECTION_TIMEOUT = connection_timeout
+    global _BLUETOOTH_INTERFACE_INDEX, _BLUETOOTH_SCAN_TIME_IN_MINUTES, _BLUETOOTH_CONNECTION_TIMEOUT_IN_SECONDS
+    _BLUETOOTH_INTERFACE_INDEX = interface
+    _BLUETOOTH_SCAN_TIME_IN_MINUTES = scan_time
+    _BLUETOOTH_CONNECTION_TIMEOUT_IN_SECONDS = connection_timeout
 
     if specific_device_addr:
         scan_device_process = multiprocessing.Process(
@@ -1108,23 +1117,23 @@ def runner(filename: str,
         return
 
 
-def main2():
-    print("Starting Script. Initializing Scanner Object")
-    scanner1 = BLEScanner(filename="/home/henry/Downloads/long_time_scan",
-                          connectable_only=False)
-    try:
-        scanner1.scan(duration=99999)
-    except BTLEDisconnectError:
-        try:
-            logger.info("First scanning attempt failed. Trying again after 0.2 seconds...")
-            sleep(0.2)
-            scanner1.scan(duration=BT_SCAN_TIME)
-        except Exception:
-            logger.error(f"An error occurred while scanning devices")
-            pass
-    except KeyboardInterrupt:
-        pass
-
-
-if __name__ == "__main__":
-    main2()
+# def main2():
+#     logger.info("Starting Script. Initializing Scanner Object")
+#     scanner1 = BLEScanner(filename="",
+#                           connectable_only=False)
+#     try:
+#         scanner1.scan(duration=99999)
+#     except BTLEDisconnectError:
+#         try:
+#             logger.info("First scanning attempt failed. Trying again after 0.2 seconds...")
+#             sleep(0.2)
+#             scanner1.scan(duration=BT_SCAN_TIME)
+#         except Exception:
+#             logger.error(f"An error occurred while scanning devices")
+#             pass
+#     except KeyboardInterrupt:
+#         pass
+#
+#
+# if __name__ == "__main__":
+#     main2()

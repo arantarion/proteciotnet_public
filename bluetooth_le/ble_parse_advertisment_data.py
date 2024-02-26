@@ -4,17 +4,23 @@ from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_ms_device_type impor
 from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_ms_flags_and_device_status import ms_flags_and_device_status
 from proteciotnet_dev.bluetooth_le.ble_assigned_numbers.ble_uuids import uuids
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def _parse_ble_adv_data(advertisement_data: str) -> list:
     """
     Parses BLE advertisement data and returns a list of dictionaries.
 
-    :param advertisement_data: the full advertisement data
-    :type advertisement_data: str
-    :return: a list of dictionaries that contain a split up version of the data consisting of a length for the segment,
-    the type (deducted from https://bitbucket.org/bluetooth-SIG/public/src/main/assigned_numbers/core/ad_types.yaml) and
-    data itself that has to be interpreted
-    :rtype: list
+    Args:
+        advertisement_data (str): the full advertisement data
+
+    Returns:
+        list: a list of dictionaries that contain a split up version of the data consisting of a length for the segment,
+            the type (deducted from https://bitbucket.org/bluetooth-SIG/public/src/main/assigned_numbers/core/ad_types.yaml)
+            and data itself that has to be interpreted
+
     """
     i = 0
     adv_elements = []
@@ -38,17 +44,20 @@ def _parse_ble_adv_data(advertisement_data: str) -> list:
             'type': adv_type,
             'data': data
         })
-
+    logger.debug(f"Advertisement data: {adv_elements}")
     return adv_elements
 
 
 def _parse_ble_flags(flags_hex: str) -> dict:
-    """Parses BLE flags and returns a dictionary.
+    """
+    Parses BLE flags and returns a dictionary.
 
-    :param flags_hex: the flags of the BLE advertisement package in hex format
-    :type flags_hex: str
-    :return: dict containing the flags the device sends
-    :rtype: dict
+    Args:
+        flags_hex (str): the flags of the BLE advertisement package in hex format
+
+    Returns:
+        dict: dict containing the flags the device sends
+
     """
     flags_int = int(flags_hex, 16)
     flag_descriptions = [
@@ -66,11 +75,13 @@ def _parse_apple_data(apple_data: str) -> dict:
     """
     Parses Apple-specific data and returns a dictionary.
 
-    :param apple_data: data identified to belong to Apple FindMy advertisement. Documentation:
-    https://images.frandroid.com/wp-content/uploads/2020/06/Find_My_network_accessory_protocol_specification.pdf
-    :type apple_data: str
-    :return: dict containing data that could be extracted
-    :rtype: dict
+    Args:
+        apple_data (str): data identified to belong to Apple FindMy advertisement. Documentation:
+            https://images.frandroid.com/wp-content/uploads/2020/06/Find_My_network_accessory_protocol_specification.pdf
+
+    Returns:
+        dict: dict containing data that could be extracted
+
     """
 
     bytes_data = [int(apple_data[i:i + 2], 16) for i in range(0, len(apple_data), 2)]
@@ -97,6 +108,7 @@ def _parse_apple_data(apple_data: str) -> dict:
             "Hint": bytes_data[26]
         }
     else:
+        logger.error(f"Invalid payload: {bytes_data}")
         return {"Error": "Unknown payload length"}
 
 
@@ -104,11 +116,13 @@ def _parse_microsoft_ble_data(ms_adv_data: str) -> dict:
     """
     Parses Microsoft-specific BLE advertisement data.
 
-    :param ms_adv_data: data identified to belong to Microsoft BLE advertisement. Documentation:
-    https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cdp/77b446d0-8cea-4821-ad21-fabdf4d9a569?redirectedfrom=MSDN
-    :type ms_adv_data: str
-    :return: dict containing data that was encoded with Microsoft's specification
-    :rtype: dict
+    Args:
+        ms_adv_data (str): data identified to belong to Microsoft BLE advertisement. Documentation:
+            https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cdp/77b446d0-8cea-4821-ad21-fabdf4d9a569?redirectedfrom=MSDN
+
+    Returns:
+        dict: dict containing data that was encoded with Microsoft's specification
+
     """
     ms_adv_data = f"1EFF{ms_adv_data}"
     output = {
@@ -123,6 +137,7 @@ def _parse_microsoft_ble_data(ms_adv_data: str) -> dict:
         "salt": ms_adv_data[16:24],
         "device_hash": ms_adv_data[24:]
     }
+    logger.debug(f"output: {output}")
     return output
 
 
@@ -130,17 +145,21 @@ def _parse_i_beacon_data(i_beacon_data: str) -> dict:
     """
     Parses iBeacon-specific BLE advertisement data.
 
-    :param i_beacon_data: data identified to belong to Apple iBeacons as per
-    https://www.havlena.net/en/location-technologies/ibeacons-how-do-they-technically-work/
-    :type i_beacon_data: str
-    :return: Dict containing the information in the data being proximity UUID, major, minor and tx power
-    :rtype: dict
+    Args:
+        i_beacon_data (str): data identified to belong to Apple iBeacons as per
+            https://www.havlena.net/en/location-technologies/ibeacons-how-do-they-technically-work/
+
+    Returns:
+        dict: Dict containing the information in the data being proximity UUID, major, minor and tx power
+
     """
 
     uuid = i_beacon_data[8:40]
     major = i_beacon_data[40:44]
     minor = i_beacon_data[44:48]
     tx_power = i_beacon_data[48:50]
+
+    logger.debug(f"uuid: {uuid}, major: {major}, minor: {minor}, tx_power: {tx_power}")
 
     return {
         "UUID": uuid,
@@ -154,15 +173,18 @@ def _get_company_by_uuid(data: str) -> str:
     """
     Try to get the company name by the uuid in the data.
 
-    :param data: part of the uuid data that contains the company identifier as per
-    https://bitbucket.org/bluetooth-SIG/public/src/main/assigned_numbers/company_identifiers/company_identifiers.yaml
-    :type data: str
-    :return: The company that produces the device or an empty string if the company can't be found
-    :rtype: str
+    Args:
+        data (str): part of the uuid data that contains the company identifier as per
+            https://bitbucket.org/bluetooth-SIG/public/src/main/assigned_numbers/company_identifiers/company_identifiers.yaml
+
+    Returns:
+        str: The company that produces the device or an empty string if the company can't be found
+
     """
     pairs = [data[i:i + 2] for i in range(0, len(data), 2)]
     pairs.reverse()
     reversed_uuid = ''.join(pairs)
+    logger.debug(f"Reverse UUID: {reversed_uuid}")
     return company_identifiers.get("0x" + reversed_uuid, "")
 
 
@@ -170,11 +192,13 @@ def _parse_adv_data_to_json(advertisement_data: str) -> list:
     """
     Parses advertisement data and returns a JSON object.
 
-    :param advertisement_data: Modified version of raw advertisement data, with the "0x" deleted and converted to
-                               upper-case.
-    :type advertisement_data: str
-    :return: A list of dictionaries with the parsed data
-    :rtype: list
+    Args:
+        advertisement_data (str): Modified version of raw advertisement data, with the "0x" deleted and converted to
+            upper-case.
+
+    Returns:
+        list: A list of dictionaries with the parsed data
+
     """
     parsed_data = _parse_ble_adv_data(advertisement_data)
     parsed_data_dict = []
@@ -214,6 +238,7 @@ def _parse_adv_data_to_json(advertisement_data: str) -> list:
 
         parsed_data_dict.append(entry)
 
+    logger.debug(f"Parsed data: {parsed_data_dict}")
     return parsed_data_dict
 
 
@@ -223,11 +248,14 @@ def parse_adv_data(hex_data: str) -> list:
     company. Can currently parse some generic attributes and data from Microsoft Windows devices, as well as some
     types of Apple device's advertisement data.
 
-    :param hex_data: The raw hex data of the BLE advertisement data
-    :type hex_data: str
-    :return: A list of dictionaries with the parsed data
-    :rtype: list
+    Args:
+        hex_data (str): The raw hex data of the BLE advertisement data
+
+    Returns:
+        list: A list of dictionaries with the parsed data
+
     """
     data = str(hex_data).replace("0x", "").upper()
     parsed_data = _parse_adv_data_to_json(data)
+    logger.debug(f"Parsed advertisement data: {parsed_data}")
     return parsed_data

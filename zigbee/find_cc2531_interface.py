@@ -8,13 +8,13 @@ logger = logging.getLogger(__name__)
 
 try:
     config_find_cc_interface = ConfigParser(interpolation=ExtendedInterpolation())
-    config_find_cc_interface.read('../proteciotnet.config')
+    config_find_cc_interface.read('proteciotnet.config')
 
     _ZIGBEE_USB_TARGET = config_find_cc_interface.get('ZIGBEE', 'zigbee_usb_target')
 
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e} in file {__file__}")
     exit(-3)
 
 

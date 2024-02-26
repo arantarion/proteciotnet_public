@@ -15,7 +15,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 try:
     config_cve_cdn = ConfigParser(interpolation=ExtendedInterpolation())
-    config_cve_cdn.read('../proteciotnet.config')
+    config_cve_cdn.read('proteciotnet.config')
 
     _CVE_SEARCH_IP_ADDRESS = config_cve_cdn.get('CVE_API', 'cve_search_ip_address')
     _CVE_SEARCH_PORT = config_cve_cdn.get('CVE_API', 'cve_search_port')
@@ -26,7 +26,7 @@ try:
 
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e} in file {__file__}")
     exit(-3)
 
 

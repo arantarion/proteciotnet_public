@@ -15,17 +15,13 @@ from configparser import ConfigParser, ExtendedInterpolation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-#BLE_REPORT_STATIC_DIR = "/opt/proteciotnet/proteciotnet_dev/static/ble_reports/"
-#WIRESHARK_DISPLAY_FILTER_STRING = "(btle.advertising_header.pdu_type == 5 || btle.data_header.length > 0) || (btsmp)"
-#XSL_PATH = "/opt/proteciotnet/proteciotnet_dev/static/executables/pdml2html.xsl"
-
 logger = logging.getLogger(__name__)
 
 try:
     config_ble_scan = ConfigParser(interpolation=ExtendedInterpolation())
-    config_ble_scan.read('../proteciotnet.config')
+    config_ble_scan.read('proteciotnet.config')
 
-    _XSL_FILE_LOCATION = config_ble_scan.get('BLE', 'xsl_file_location')
+    _XSL_FILE_LOCATION = config_ble_scan.get('BLE_PATHS', 'xsl_file_location')
     _BLUETOOTH_WIRESHARK_DISPLAY_FILTER = config_ble_scan.get('BLE', 'bluetooth_wireshark_display_filter')
     _BLE_REPORTS_DIRECTORY = config_ble_scan.get('BLE_PATHS', 'ble_reports_directory')
 
@@ -33,7 +29,7 @@ try:
 
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e} in file {__file__}")
     exit(-3)
 
 

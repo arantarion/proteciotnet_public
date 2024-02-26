@@ -12,20 +12,18 @@ It is not intended to be run alone. Please use the ProtecIoTnet web-frontend ins
 
 """
 
-# cdir = os.path.dirname(os.path.realpath(__file__))
-
 logger = logging.getLogger(__name__)
 
 try:
     config_cron = ConfigParser(interpolation=ExtendedInterpolation())
-    config_cron.read('../proteciotnet.config')
+    config_cron.read('proteciotnet.config')
 
     _PROTECIOTNET_NMAP_SCHEDULE_DIRECTORY = config_cron.get('WIFI_PATHS', 'proteciotnet_nmap_schedule_directory')
     _NSE_SCRIPTS_DIRECTORY = config_cron.get('WIFI_PATHS', 'nse_scripts_directory')
 
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e} in file {__file__}")
     exit(-3)
 
 schedfiles = os.listdir(_PROTECIOTNET_NMAP_SCHEDULE_DIRECTORY)

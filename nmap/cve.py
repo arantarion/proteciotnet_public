@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 try:
     config_cve = ConfigParser(interpolation=ExtendedInterpolation())
-    config_cve.read('../proteciotnet.config')
+    config_cve.read('proteciotnet.config')
 
     _WIFI_XML_BASE_DIRECTORY = config_cve.get('WIFI_PATHS', 'wifi_xml_base_directory')
     _CPE_API_URL = config_cve.get('CVE_API_ONLINE', 'cpe_api_url')
@@ -22,7 +22,7 @@ try:
 
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e} in file {__file__}")
     exit(-3)
 
 

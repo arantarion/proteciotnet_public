@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 try:
     config_ble_scan = ConfigParser(interpolation=ExtendedInterpolation())
-    config_ble_scan.read('../proteciotnet.config')
+    config_ble_scan.read('proteciotnet.config')
 
     _BLUETOOTH_INTERFACE_INDEX = int(config_ble_scan.get('BLE', 'bluetooth_interface_index'))
     _BLUETOOTH_SCAN_TIME_IN_MINUTES = int(config_ble_scan.get('BLE', 'bluetooth_scan_time_in_minutes'))
@@ -30,7 +30,7 @@ try:
 
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e} in file {__file__}")
     exit(-3)
 
 BLE_PERMISSIONS = ["WRITE NO RESPONSE", "SIGNED WRITE COMMAND", "QUEUED WRITE", "BROADCAST", "READ", "WRITE", "NOTIFY",

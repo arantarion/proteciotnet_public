@@ -16,20 +16,16 @@ from proteciotnet_dev.zigbee.find_cc2531_interface import get_zigbee_usb_interfa
 
 logger = logging.getLogger(__name__)
 
-# _TERMINATE_RECORDING_AFTER_X_PACKETS = 10
-# _TERMINATE_RECORDING_AFTER_X_TIME = 25
-# _ZIGBEE_JSON_BASE_DIRECTORY = "/opt/zigbee/"
-
 try:
     config_functions_zigbee = ConfigParser(interpolation=ExtendedInterpolation())
     config_functions_zigbee.read('proteciotnet.config')
-    _TERMINATE_RECORDING_AFTER_X_PACKETS = config_functions_zigbee.get('ZIGBEE', 'terminate_recording_after_x_packets')
-    _TERMINATE_RECORDING_AFTER_X_TIME = config_functions_zigbee.get('ZIGBEE', 'terminate_recording_after_x_time')
+    _TERMINATE_RECORDING_AFTER_X_PACKETS = int(config_functions_zigbee.get('ZIGBEE', 'terminate_recording_after_x_packets'))
+    _TERMINATE_RECORDING_AFTER_X_TIME = int(config_functions_zigbee.get('ZIGBEE', 'terminate_recording_after_x_time'))
     _ZIGBEE_JSON_BASE_DIRECTORY = config_functions_zigbee.get('ZIGBEE_PATHS', 'zigbee_json_base_directory')
     _ZIGBEE_PROTECIOTNET_DIRECTORY = config_functions_zigbee.get('ZIGBEE_PATHS', 'zigbee_proteciotnet_directory')
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}  in file {__file__}")
     exit(-3)
 
 

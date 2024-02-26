@@ -159,7 +159,7 @@ def _parse_i_beacon_data(i_beacon_data: str) -> dict:
     minor = i_beacon_data[44:48]
     tx_power = i_beacon_data[48:50]
 
-    logger.debug(f"uuid: {uuid}, major: {major}, minor: {minor}, tx_power: {tx_power}")
+    logger.debug(f"uuid: {uuid}, major: {major}, minor: {minor}, tx_power: {tx_power} in file {__file__}")
 
     return {
         "UUID": uuid,

@@ -1,4 +1,5 @@
 import base64
+import logging
 import os.path
 import subprocess
 # import logging
@@ -28,7 +29,7 @@ _MEDUSA_SUPPORTED_SERVICES = ['ssh', 'ftp', 'postgresql', 'telnet', 'mysql', 'ms
                               'svn', 'iss-realsecure', 'snmptrap', 'snmp', 'http']
 
 # Global logging level
-logging_level = logging.DEBUG
+logging_level = logging.INFO
 main_logger = logging.getLogger()
 main_logger.setLevel(logging_level)
 
@@ -53,7 +54,7 @@ try:
 
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e} in file {__file__}")
     exit(-3)
 
 

@@ -21,12 +21,6 @@ _CVSS_3_PATTERN = r"CVSS 3.[\d|x] score: (\d.\d|0)"
 _CVE_PATTERN = r"CVE-\d{4}-\d{4,7}"
 _CWE_PATTERN = r"CWE-\d{1,3}"
 
-# _BASE_DIRECTORY = "/opt/proteciotnet/proteciotnet_dev/"
-# _BASE_STATIC_DIRECTORY = f"{_BASE_DIRECTORY}static"
-# _BASE_REPORTS_DIR = f"{_BASE_STATIC_DIRECTORY}/reports/"
-# _BASE_ZIGBEE_REPORTS_DIR = f"/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports"
-# _BASE_ZIGBEE_DIR = "/opt/zigbee"
-
 try:
     config_functions = ConfigParser(interpolation=ExtendedInterpolation())
     config_functions.read('proteciotnet.config')
@@ -40,7 +34,7 @@ try:
     _ZIGBEE_REPORTS_DIRECTORY = config_functions.get('ZIGBEE_PATHS', 'zigbee_reports_directory')
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}  in file {__file__}")
     exit(-3)
 
 

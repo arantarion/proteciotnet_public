@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 try:
     config_bruteforce = ConfigParser(interpolation=ExtendedInterpolation())
-    config_bruteforce.read('../proteciotnet.config')
+    config_bruteforce.read('proteciotnet.config')
 
     WIFI_XML_BASE_DIRECTORY = config_bruteforce.get('WIFI_PATHS', 'wifi_xml_base_directory')
 
@@ -22,7 +22,7 @@ try:
 
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e} in file {__file__}")
     exit(-3)
 
 NAME_MAP = {
@@ -41,11 +41,6 @@ NAME_MAP = {
     "iss-realsecure": "vmauthd",
     "snmptrap": "snmp"
 }
-
-# _USERLIST_BASE_LOCATION = "/opt/proteciotnet/proteciotnet_dev/bruteforce_attacks/wordlist/"
-# _PASSWORDLIST_BASE_LOCATION = "/opt/proteciotnet/proteciotnet_dev/bruteforce_attacks/wordlist/"
-# _OUTPUT_DIRECTORY = "/home/henry/Downloads/protec_medusa_logs/"
-# _XML_STANDARD_DIR = "/opt/xml/"
 
 _services = {}
 

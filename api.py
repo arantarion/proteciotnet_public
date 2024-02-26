@@ -17,9 +17,6 @@ from configparser import ConfigParser, ExtendedInterpolation
 from proteciotnet_dev.functions import *
 from proteciotnet_dev.bruteforce_attacks.automatic_service_bruteforce import auto_bruteforce
 
-# _BASE_STATIC_DIRECTORY = "/opt/proteciotnet/proteciotnet_dev/static"
-# _BASE_FILE_DIR = "/opt/xml"
-
 logger = logging.getLogger(__name__)
 
 try:
@@ -30,10 +27,10 @@ try:
     _STATIC_DIRECTORY = config_api.get('GENERAL_PATHS', 'static_directory')
     _NOTES_DIRECTORY = config_api.get('GENERAL_PATHS', 'notes_directory')
     _WIFI_XML_BASE_DIRECTORY = config_api.get('WIFI_PATHS', 'wifi_xml_base_directory')
-    _PROTECIOTNET_NMAP_DIRECTORY = config_api.get('NMAP_PATHS', 'proteciotnet_nmap_directory')
+    _PROTECIOTNET_NMAP_DIRECTORY = config_api.get('WIFI_PATHS', 'proteciotnet_nmap_directory')
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e} in file {__file__}")
     exit(-3)
 
 

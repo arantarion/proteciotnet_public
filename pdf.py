@@ -14,12 +14,6 @@ from configparser import ConfigParser, ExtendedInterpolation
 
 from proteciotnet_dev.functions import *
 
-# _BASE_REPORTS_DIR = "/opt/proteciotnet/proteciotnet_dev/static/reports/"
-# _BASE_ZIGBEE_REPORTS_DIR = "/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports/"
-# _NMAP_FORMATTER_BASE_DIR = "/opt/nmap_formatter/nmap-formatter"
-# _XML_BASE_DIR = "/opt/xml/"
-# _JSON_BASE_DIR = "/opt/zigbee/"
-
 logger = logging.getLogger(__name__)
 
 try:
@@ -27,12 +21,13 @@ try:
     config_pdf.read('proteciotnet.config')
     _REPORTS_DIRECTORY = config_pdf.get('GENERAL_PATHS', 'report_directory')
     _ZIGBEE_REPORTS_DIRECTORY = config_pdf.get('ZIGBEE_PATHS', 'zigbee_reports_directory')
+    _ZIGBEE_JSON_BASE_DIRECTORY = config_pdf.get('ZIGBEE_PATHS', 'zigbee_json_base_directory')
     _NMAP_FORMATTER_LOCATION = config_pdf.get('WIFI_PATHS', 'nmap_formatter_location')
     _WIFI_XML_BASE_DIRECTORY = config_pdf.get('WIFI_PATHS', 'wifi_xml_base_directory')
-    _ZIGBEE_JSON_BASE_DIRECTORY = config_pdf.get('ZIGBEE_PATHS', 'zigbee_json_base_directory')
+
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}  in file {__file__}")
     exit(-3)
 
 

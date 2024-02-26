@@ -19,11 +19,8 @@ try:
     _PROTECIOTNET_NMAP_SCHEDULE_DIRECTORY = config_functions_nmap.get('WIFI_PATHS', 'proteciotnet_nmap_schedule_directory')
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}  in file {__file__}")
     exit(-3)
-
-# PROTECIOTNET_BASE_DIR = '/opt/proteciotnet/proteciotnet_dev/'
-# NSE_SCRIPT_DIR = f"{PROTECIOTNET_BASE_DIR}nmap/nse"
 
 
 def nmap_newscan(request) -> HttpResponse:

@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 
 import matplotlib.dates as mdates
 
@@ -9,21 +10,18 @@ from configparser import ConfigParser, ExtendedInterpolation
 
 from proteciotnet_dev.zigbee.analyse_json_zigbee_sniff import _get_vendor_from_mac
 
-# _ZIGBEE_JSON_BASE_DIRECTORY = "/opt/zigbee/"
-# _ZIGBEE_REPORTS_DIRECTORY = "/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports/"
-
 logger = logging.getLogger(__name__)
 
 try:
     config_zigbee_visualize_events = ConfigParser(interpolation=ExtendedInterpolation())
-    config_zigbee_visualize_events.read('../proteciotnet.config')
+    config_zigbee_visualize_events.read('proteciotnet.config')
 
     _ZIGBEE_JSON_BASE_DIRECTORY = config_zigbee_visualize_events.get('ZIGBEE_PATHS', 'zigbee_json_base_directory')
     _ZIGBEE_REPORTS_DIRECTORY = config_zigbee_visualize_events.get('ZIGBEE_PATHS', 'zigbee_reports_directory')
 
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e} in file {__file__}")
     exit(-3)
 
 

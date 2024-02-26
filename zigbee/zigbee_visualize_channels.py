@@ -11,19 +11,17 @@ from matplotlib import patches
 from matplotlib.path import Path
 from configparser import ConfigParser, ExtendedInterpolation
 
-
-# _BASE_STATIC_ZIGBEE_DIR = "/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports/"
 logger = logging.getLogger(__name__)
 
 try:
     config_zigbee_visualize = ConfigParser(interpolation=ExtendedInterpolation())
-    config_zigbee_visualize.read('../proteciotnet.config')
+    config_zigbee_visualize.read('proteciotnet.config')
 
     _ZIGBEE_REPORTS_DIR = config_zigbee_visualize.get('ZIGBEE_PATHS', 'zigbee_reports_directory')
 
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e} in file {__file__}")
     exit(-3)
 
 

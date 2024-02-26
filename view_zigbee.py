@@ -11,9 +11,6 @@ from .zigbee.zigbee_visualize_channels import create_channel_view
 
 logger = logging.getLogger(__name__)
 
-#_BASE_ZIGBEE_DIR = "/opt/zigbee/"
-#_BASE_STATIC_ZIGBEE_DIR = "/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports/"
-
 try:
     config_view_zigbee = ConfigParser(interpolation=ExtendedInterpolation())
     config_view_zigbee.read('proteciotnet.config')
@@ -21,7 +18,7 @@ try:
     _ZIGBEE_REPORTS_DIRECTORY = config_view_zigbee.get('ZIGBEE_PATHS', 'zigbee_reports_directory')
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
-    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}  in file {__file__}")
     exit(-3)
 
 

@@ -1,6 +1,6 @@
 <div align="center">
-  <a href="https://gitlab.com/hweckermann/proteciotnet">
-    <img src="docs/images/banner_centered_rounded.png" alt="Logo" width="1024" height="271">
+  <a href="https://github.com/arantarion/proteciotnet_public">
+    <img src="misc/images/banner_centered_rounded.png" alt="Logo" width="1024" height="271">
   </a>
 </div>
 

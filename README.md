@@ -11,7 +11,6 @@
   <h1>ProtecIoTnet</h1>
 
   <strong>A web based application for identification and vulnerability scanning of smart home IoT devices</strong>
-  <br />
 </div>
 
 <div align="center">
@@ -25,26 +24,6 @@
 <hr>
 <br>
 
-<details open="open">
-<summary>Table of Contents</summary>
-
-- [About](#about)
-  - [Key Features](#key-features)
-  - [Built With](#built-with)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Usage](#usage)
-- [Project Structure](#project-structure)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [Authors \& contributors](#authors--contributors)
-- [Security](#security)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
-
-</details>
-
 ---
 
 ## About
@@ -56,21 +35,18 @@ User interaction is handled through a Django Web-Server for the most part. There
 ProtecIoTnet was developed for my master's thesis at the FernUniversität in Hagen in collaboration with SySS GmbH in Tübingen who allowed me to create this work and use their resources. I would like to especially thank my supervisors for all their insights and help (also anyone in the hardware team for helping with all my soldering requests).
 
 
-
-### Built With
-
-![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
-![Django](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=django&logoColor=white)
-
 ## Getting Started
 
 ### Prerequisites
 
 - Raspberry Pi 4b (or a similar single-board computer) with sufficient memory and processing power
+- (You can run ProtecIoTnet on most modern debian based systems)
 - Raspbian or another compatible operating system installed on the Raspberry Pi
-- Internet connection to access the web-based application and update dependencies
+- Internet connection to update dependencies
 - RaspBee II
-- A Sniffle compatible board
+- Sniffle compatible board see [Sniffle](https://github.com/nccgroup/Sniffle)
+- CC 2531 ZigBee USB Dongle
+- CC Debugger for flashing
 
 ### Quickstart
 

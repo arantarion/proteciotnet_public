@@ -16,10 +16,10 @@ echo "Welcome to the installer script!"
 echo "This script will guide you through the installation process."
 
 echo "Updating your system"
-#sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y
+sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y
 
 echo "Installing some dependencies"
-#sudo apt install python3 python3-pip curl wget nmap binutils libjpeg62 graphviz wireshark pandoc python-usb python-crypto python-serial python-dev libgcrypt-dev
+sudo apt install python3 python3-pip curl wget nmap binutils libjpeg62 graphviz wireshark pandoc python-usb python-crypto python-serial python-dev libgcrypt-dev
 
 echo "Installing Medusa"
 git clone https://github.com/jmk-foofus/medusa

@@ -1,7 +1,7 @@
 import base64
 import os.path
 import subprocess
-import logging
+#import logging
 import colorlog
 import urllib.parse
 from collections import OrderedDict
@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
+from configparser import ConfigParser, ExtendedInterpolation
 
 from proteciotnet_dev.view_zigbee import zigbee
 from proteciotnet_dev.view_ble import bluetooth_low_energy, ble_details
@@ -21,13 +22,22 @@ from proteciotnet_dev.CVSS_Vectors import Cvss3vector, Cvss2Vector
 from proteciotnet_dev.functions import *
 from proteciotnet_dev.zigbee.analyse_json_zigbee_sniff import find_unique_devices, get_start_time
 
+config_views = ConfigParser(interpolation=ExtendedInterpolation())
+config_views.read('proteciotnet.config')
+
 _MEDUSA_SUPPORTED_SERVICES = ['ssh', 'ftp', 'postgresql', 'telnet', 'mysql', 'ms-sql-s', 'rsh',
                               'vnc', 'imap', 'imaps', 'nntp', 'pcanywheredata', 'pop3', 'pop3s',
                               'exec', 'login', 'microsoft-ds', 'smtp', 'smtps', 'submission',
                               'svn', 'iss-realsecure', 'snmptrap', 'snmp', 'http']
 
-BLE_FILE_DIR = "/opt/ble/"
-BLE_STATIC_REPORT_DIR = "/opt/proteciotnet/proteciotnet_dev/static/ble_reports/"
+
+
+#BLE_FILE_DIR = "/opt/ble/"
+#BLE_STATIC_REPORT_DIR = "/opt/proteciotnet/proteciotnet_dev/static/ble_reports/"
+
+BLE_FILE_DIR = config_views.get('BLE_PATHS', 'ble_csv_base_directory')
+BLE_STATIC_REPORT_DIR = config_views.get('BLE_PATHS', 'ble_reports_directory')
+ZIGBEE_JSON_BASE_DIRECTORY = config_views.get('ZIGBEE_PATHS', 'zigbee_json_base_directory')
 
 logging_level = logging.DEBUG
 main_logger = logging.getLogger()
@@ -644,14 +654,14 @@ def index(request, filterservice="", filterportid=""):
             if re.search('\.csv$', csv_file) is None:
                 continue
 
-            json_filepath = f'{BLE_STATIC_REPORT_DIR}{csv_file.replace(".csv", ".json")}'
-            svg_filepath = f'{BLE_STATIC_REPORT_DIR}{csv_file.replace(".csv", ".svg")}'
+            json_filepath = f'{BLE_STATIC_REPORT_DIR}/{csv_file.replace(".csv", ".json")}'
+            svg_filepath = f'{BLE_STATIC_REPORT_DIR}/{csv_file.replace(".csv", ".svg")}'
             ble_scan_results = ""
 
             if not os.path.isfile(json_filepath):
                 logger.debug(f"CSV file {csv_file} has no matching JSON file. It has to be created...")
                 try:
-                    ble_scan_results, rssi_values = csv_to_json(csv_file_path=f"{BLE_FILE_DIR}{csv_file}",
+                    ble_scan_results, rssi_values = csv_to_json(csv_file_path=f"{BLE_FILE_DIR}/{csv_file}",
                                                                 json_file_path=json_filepath)
                 except Exception as e:
                     logger.error(f"Could not create JSON file for {csv_file} - {e}")
@@ -663,7 +673,7 @@ def index(request, filterservice="", filterportid=""):
 
                 if ble_scan_results:
                     try:
-                        create_rssi_graph(csv_file_path=f"{BLE_FILE_DIR}{csv_file}",
+                        create_rssi_graph(csv_file_path=f"{BLE_FILE_DIR}/{csv_file}",
                                           ble_scan_results=ble_scan_results,
                                           output_path=svg_filepath)
                     except Exception as e:
@@ -721,7 +731,7 @@ def index(request, filterservice="", filterportid=""):
                 continue
 
             try:
-                with open(f'/opt/zigbee/{j}', "r", encoding='utf-8') as f:
+                with open(f'{ZIGBEE_JSON_BASE_DIRECTORY}/{j}', "r", encoding='utf-8') as f:
                     json_input = json.load(f)
 
             except Exception:

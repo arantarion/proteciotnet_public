@@ -10,14 +10,26 @@ from time import sleep
 from datetime import datetime
 from collections import Counter
 from django.http import HttpResponse
+from configparser import ConfigParser, ExtendedInterpolation
 
 from proteciotnet_dev.zigbee.find_cc2531_interface import get_zigbee_usb_interface
 
 logger = logging.getLogger(__name__)
 
-_TERMINATE_AFTER_X_PACKETS = 10
-_TERMINATE_AFTER_X_TIME = 25
-_FOLDER_PATH = "/opt/zigbee/"
+# _TERMINATE_RECORDING_AFTER_X_PACKETS = 10
+# _TERMINATE_RECORDING_AFTER_X_TIME = 25
+# _ZIGBEE_JSON_BASE_DIRECTORY = "/opt/zigbee/"
+
+try:
+    config_functions_zigbee = ConfigParser(interpolation=ExtendedInterpolation())
+    config_functions_zigbee.read('proteciotnet.config')
+    _TERMINATE_RECORDING_AFTER_X_PACKETS = config_functions_zigbee.get('ZIGBEE', 'terminate_recording_after_x_packets')
+    _TERMINATE_RECORDING_AFTER_X_TIME = config_functions_zigbee.get('ZIGBEE', 'terminate_recording_after_x_time')
+    _ZIGBEE_JSON_BASE_DIRECTORY = config_functions_zigbee.get('ZIGBEE_PATHS', 'zigbee_json_base_directory')
+    logger.info("Successfully loaded config file 'proteciotnet.config'")
+except Exception as e:
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    exit(-3)
 
 
 class ZigBeeDevice:
@@ -75,10 +87,10 @@ def _find_channel(sniffing_device=""):
     else:
         _COMMAND = ['sudo', 'zbstumbler', '-w', _OUTPUT_PATH]
 
-    logger.info(f"trying to start zbstumbler with commands: {' '.join(_COMMAND)}. Running for {_TERMINATE_AFTER_X_TIME} seconds.")
+    logger.info(f"trying to start zbstumbler with commands: {' '.join(_COMMAND)}. Running for {_TERMINATE_RECORDING_AFTER_X_TIME} seconds.")
     try:
         child = pexpect.spawn(' '.join(_COMMAND))
-        sleep(_TERMINATE_AFTER_X_TIME)
+        sleep(_TERMINATE_RECORDING_AFTER_X_TIME)
         child.sendcontrol('c')
         child.expect(pexpect.EOF)
 
@@ -115,7 +127,7 @@ def _determine_most_likely_channel(devices):
 
 def _sniff_traffic(filename, channel, num_packages, sniffing_interface, dev_name="CC2531 USB Dongle"):
     _FILENAME = f"{filename}.pcap"
-    _OUTPUT_PATH = f"{_FOLDER_PATH}{_FILENAME}"
+    _OUTPUT_PATH = f"{_ZIGBEE_JSON_BASE_DIRECTORY}{_FILENAME}"
 
     logger.info(f"Starting ZigBee sniffing with filename {_FILENAME} in path {_OUTPUT_PATH}")
 
@@ -141,9 +153,9 @@ def _sniff_traffic(filename, channel, num_packages, sniffing_interface, dev_name
 
 def _convert_pcap(in_filename, output_type):
     out_filepath = in_filename.split(".")[0] + f".{output_type}"
-    subprocess.run(["tshark", "-r", f"{_FOLDER_PATH}{in_filename}", "-T", output_type],
-                   stdout=open(f"{_FOLDER_PATH}{out_filepath}", "w"))
-    return f"{_FOLDER_PATH}{out_filepath}"
+    subprocess.run(["tshark", "-r", f"{_ZIGBEE_JSON_BASE_DIRECTORY}{in_filename}", "-T", output_type],
+                   stdout=open(f"{_ZIGBEE_JSON_BASE_DIRECTORY}{out_filepath}", "w"))
+    return f"{_ZIGBEE_JSON_BASE_DIRECTORY}{out_filepath}"
 
 
 def zigbee_postprocessing_json(file_path, scan_info, sniffing_device, sniffing_device_id, sniffing_channel):
@@ -170,9 +182,9 @@ def zigbee_postprocessing_json(file_path, scan_info, sniffing_device, sniffing_d
 def _convert_pdml_to_html(in_filename):
     out_filename = in_filename.split(".")[0] + ".html"
 
-    if os.path.isfile(f"{_FOLDER_PATH}/pdml2html.xsl"):
-        subprocess.run(["xsltproc", f"{_FOLDER_PATH}/pdml2html.xsl", f"{_FOLDER_PATH}/{in_filename}"],
-                       stdout=open(f"{_FOLDER_PATH}/{out_filename}", "w"))
+    if os.path.isfile(f"{_ZIGBEE_JSON_BASE_DIRECTORY}/pdml2html.xsl"):
+        subprocess.run(["xsltproc", f"{_ZIGBEE_JSON_BASE_DIRECTORY}/pdml2html.xsl", f"{_ZIGBEE_JSON_BASE_DIRECTORY}/{in_filename}"],
+                       stdout=open(f"{_ZIGBEE_JSON_BASE_DIRECTORY}/{out_filename}", "w"))
         return out_filename
 
     return None
@@ -245,7 +257,7 @@ def new_zigbee_scan(request):
         logger.info("Starting ZigBee sniffing")
         pcap_path = _sniff_traffic(filename=filename,
                                    channel=sniffing_channel,
-                                   num_packages=_TERMINATE_AFTER_X_PACKETS,
+                                   num_packages=_TERMINATE_RECORDING_AFTER_X_PACKETS,
                                    sniffing_interface=sniffing_device
                                    )
         logger.info("Completed ZigBee sniffing")

@@ -3,17 +3,30 @@ import logging
 import os
 import subprocess
 import threading
+
 from multiprocessing import Process
 from django.http import HttpResponse
+from configparser import ConfigParser, ExtendedInterpolation
 
 from proteciotnet_dev.bluetooth_le.ble_scan import runner, scan_continuous
 
 is_scanning = False
-SNIFFLE_PATH = "/home/henry/Downloads/BLE_programs/Sniffle-1.7/python_cli/"
-STATIC_PATH = "/opt/proteciotnet/proteciotnet_dev/static/"
-BLE_LOCK_FILENAME = "ble_scan.lock"
+# SNIFFLE_PATH = "/home/henry/Downloads/BLE_programs/Sniffle-1.7/python_cli/"
+# STATIC_PATH = "/opt/proteciotnet/proteciotnet_dev/static/"
+# BLE_LOCK_FILENAME = "ble_scan.lock"
 
 logger = logging.getLogger(__name__)
+
+try:
+    config_functions_ble = ConfigParser(interpolation=ExtendedInterpolation())
+    config_functions_ble.read('proteciotnet.config')
+    STATIC_PATH = config_functions_ble.get('GENERAL_PATHS', 'static_directory')
+    SNIFFLE_PATH = config_functions_ble.get('BLE_PATHS', 'sniffle_location')
+    BLE_LOCK_FILENAME = config_functions_ble.get('BLE', 'ble_lock_filename')
+    logger.info("Successfully loaded config file 'proteciotnet.config'")
+except Exception as e:
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    exit(-3)
 
 
 def start_scan():

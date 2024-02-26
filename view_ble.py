@@ -7,12 +7,24 @@ import os.path
 import re
 import urllib.parse
 
+from configparser import ConfigParser, ExtendedInterpolation
+
 from proteciotnet_dev.functions import label_to_color, label_to_margin
 
-_BASE_BLE_DIR = "/opt/ble/"
-_BASE_STATIC_BLE_DIR = "/opt/proteciotnet/proteciotnet_dev/static/ble_reports/"
+# _BASE_BLE_DIR = "/opt/ble/"
+# _BASE_STATIC_BLE_DIR = "/opt/proteciotnet/proteciotnet_dev/static/ble_reports/"
 
 logger = logging.getLogger(__name__)
+
+try:
+    config_view_ble = ConfigParser(interpolation=ExtendedInterpolation())
+    config_view_ble.read('proteciotnet.config')
+    _BLE_CSV_BASE_DIRECTORY = config_view_ble.get('BLE_PATHS', 'ble_csv_base_directory')
+    _BLE_REPORTS_DIRECTORY = config_view_ble.get('BLE_PATHS', 'ble_reports_directory')
+    logger.info("Successfully loaded config file 'proteciotnet.config'")
+except Exception as e:
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    exit(-3)
 
 
 def _item_generator(json_object, lookup_key):
@@ -184,7 +196,7 @@ def bluetooth_low_energy(request):
 
     ble_file_filename = request.session['scanfile'].replace(".csv", ".json")
     ble_file_filename_without_extension = ble_file_filename.replace('.json', "")
-    with open(f"{_BASE_STATIC_BLE_DIR}{ble_file_filename}", "r", encoding='utf-8') as f:
+    with open(f"{_BLE_REPORTS_DIRECTORY}{ble_file_filename}", "r", encoding='utf-8') as f:
         json_input = json.load(f)
 
     logger.debug(f"Successfully loaded json file {ble_file_filename}")
@@ -216,8 +228,8 @@ def bluetooth_low_energy(request):
 
     r['sniff_html_output'] = ""
     html_file_filename = f"{ble_file_filename_without_extension}.html"
-    if os.path.isfile(f"{_BASE_STATIC_BLE_DIR}{html_file_filename}"):
-        html_file_handle = (open(f"{_BASE_STATIC_BLE_DIR}{html_file_filename}")
+    if os.path.isfile(f"{_BLE_REPORTS_DIRECTORY}{html_file_filename}"):
+        html_file_handle = (open(f"{_BLE_REPORTS_DIRECTORY}{html_file_filename}")
                             .read()
                             .replace("#e5e5e5", "transparent"))
         html_file_handle = html_file_handle.replace(html_file_handle[html_file_handle.find("<body>")+6:html_file_handle.find("<tt>")], "")
@@ -258,7 +270,7 @@ def ble_details(request):
 
     ble_file_filename = request.session['scanfile'].replace(".csv", ".json")
     ble_file_filename_without_extension = ble_file_filename.replace('.json', "")
-    with open(f"{_BASE_STATIC_BLE_DIR}{ble_file_filename}", "r", encoding='utf-8') as f:
+    with open(f"{_BLE_REPORTS_DIRECTORY}{ble_file_filename}", "r", encoding='utf-8') as f:
         json_input = json.load(f)
 
     for elem in json_input:

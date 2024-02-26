@@ -12,13 +12,26 @@ import requests
 from django.http import HttpResponse
 from django.shortcuts import render
 
+from configparser import ConfigParser, ExtendedInterpolation
+
 from proteciotnet_dev.functions import *
 from proteciotnet_dev.bruteforce_attacks.automatic_service_bruteforce import auto_bruteforce
 
+# _BASE_STATIC_DIRECTORY = "/opt/proteciotnet/proteciotnet_dev/static"
+# _BASE_FILE_DIR = "/opt/xml"
 
 logger = logging.getLogger(__name__)
-_BASE_STATIC_DIRECTORY = "/opt/proteciotnet/proteciotnet_dev/static"
-_BASE_FILE_DIR = "/opt/xml"
+
+try:
+    config_api = ConfigParser(interpolation=ExtendedInterpolation())
+    config_api.read('proteciotnet.config')
+    _STATIC_DIRECTORY = config_api.get('GENERAL_PATHS', 'static_directory')
+    _WIFI_XML_BASE_DIRECTORY = config_api.get('WIFI_PATHS', 'wifi_xml_base_directory')
+    logger.info("Successfully loaded config file 'proteciotnet.config'")
+except Exception as e:
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    exit(-3)
+
 
 def rmNotes(request, hashstr):
     scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
@@ -131,7 +144,7 @@ def getCVE(request):
         scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
         logger.info("Trying to retrieve CVE entries")
 
-        if "offline_mode.lock" in os.listdir(_BASE_STATIC_DIRECTORY):
+        if "offline_mode.lock" in os.listdir(_STATIC_DIRECTORY):
             logger.info("Using offline mode to scan CVE entries")
             # cveproc = os.popen(
             #     'sudo python3 /opt/proteciotnet/proteciotnet_dev/nmap/cve_cdn.py ' + request.session['scanfile'])
@@ -387,14 +400,14 @@ def delete_file(request):
 
     logger.info(f"Trying to delete {filename}")
 
-    xml_files = os.listdir(_BASE_FILE_DIR)
+    xml_files = os.listdir(_WIFI_XML_BASE_DIRECTORY)
     if filename in xml_files:
-        os.remove(f"{_BASE_FILE_DIR}/{filename}")
+        os.remove(f"{_WIFI_XML_BASE_DIRECTORY}/{filename}")
         logger.info(f"Successfully deleted {filename}")
         res = {'ok': f'file {filename} deleted'}
         return HttpResponse(json.dumps(res), content_type="application/json")
 
-    logger.error(f"Could not find {filename} in {_BASE_FILE_DIR}")
+    logger.error(f"Could not find {filename} in {_WIFI_XML_BASE_DIRECTORY}")
     res = {'error': request.method}
     return HttpResponse(json.dumps(res), content_type="application/json")
 

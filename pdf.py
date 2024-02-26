@@ -10,16 +10,30 @@ import csv
 from time import sleep
 from django.http import HttpResponse
 from django.shortcuts import render
+from configparser import ConfigParser, ExtendedInterpolation
 
 from proteciotnet_dev.functions import *
 
-_BASE_REPORTS_DIR = "/opt/proteciotnet/proteciotnet_dev/static/reports/"
-_BASE_ZIGBEE_REPORTS_DIR = "/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports/"
-_NMAP_FORMATTER_BASE_DIR = "/opt/nmap_formatter/nmap-formatter"
-_XML_BASE_DIR = "/opt/xml/"
-_JSON_BASE_DIR = "/opt/zigbee/"
+# _BASE_REPORTS_DIR = "/opt/proteciotnet/proteciotnet_dev/static/reports/"
+# _BASE_ZIGBEE_REPORTS_DIR = "/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports/"
+# _NMAP_FORMATTER_BASE_DIR = "/opt/nmap_formatter/nmap-formatter"
+# _XML_BASE_DIR = "/opt/xml/"
+# _JSON_BASE_DIR = "/opt/zigbee/"
 
 logger = logging.getLogger(__name__)
+
+try:
+    config_pdf = ConfigParser(interpolation=ExtendedInterpolation())
+    config_pdf.read('proteciotnet.config')
+    _REPORTS_DIRECTORY = config_pdf.get('GENERAL_PATHS', 'report_directory')
+    _ZIGBEE_REPORTS_DIRECTORY = config_pdf.get('ZIGBEE_PATHS', 'zigbee_reports_directory')
+    _NMAP_FORMATTER_LOCATION = config_pdf.get('WIFI_PATHS', 'nmap_formatter_location')
+    _WIFI_XML_BASE_DIRECTORY = config_pdf.get('WIFI_PATHS', 'wifi_xml_base_directory')
+    _ZIGBEE_JSON_BASE_DIRECTORY = config_pdf.get('ZIGBEE_PATHS', 'zigbee_json_base_directory')
+    logger.info("Successfully loaded config file 'proteciotnet.config'")
+except Exception as e:
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    exit(-3)
 
 
 def _create_yaml_header(filename):
@@ -73,8 +87,8 @@ def _append_yaml_header(filename):
     - text_to_prepend: The string to prepend to the file.
     """
 
-    logger.info(f"Appending YAML header to markdown file -> {_BASE_REPORTS_DIR}{filename}.md")
-    md_filename = f'{_BASE_REPORTS_DIR}{filename}.md'
+    logger.info(f"Appending YAML header to markdown file -> {_REPORTS_DIRECTORY}{filename}.md")
+    md_filename = f'{_REPORTS_DIRECTORY}{filename}.md'
 
     try:
         with open(md_filename, 'r') as file:
@@ -88,7 +102,7 @@ def _append_yaml_header(filename):
         logger.info("Successfully added YAML header to file")
 
     except Exception:
-        logger.error(f"Could not append YAML header to {_BASE_REPORTS_DIR}{filename}.md")
+        logger.error(f"Could not append YAML header to {_REPORTS_DIRECTORY}{filename}.md")
 
 
 def create_report(request):
@@ -118,29 +132,29 @@ def create_report(request):
     convert_to_pdf_cmd = ""
     convert_to_png_cmd = ""
 
-    if os.path.isfile(f"{_BASE_REPORTS_DIR}{filename_without_ext}.{report_type}"):
+    if os.path.isfile(f"{_REPORTS_DIRECTORY}{filename_without_ext}.{report_type}"):
         logger.warning(f"file {filename_without_ext}.{report_type} already exists. Deleting it to create anew.")
-        os.remove(f"{_BASE_REPORTS_DIR}{filename_without_ext}.{report_type}")
-    elif report_type == "png" and os.path.isfile(f"{_BASE_REPORTS_DIR}{filename_without_ext}.dot"):
+        os.remove(f"{_REPORTS_DIRECTORY}{filename_without_ext}.{report_type}")
+    elif report_type == "png" and os.path.isfile(f"{_REPORTS_DIRECTORY}{filename_without_ext}.dot"):
         logger.warning(f"file {filename_without_ext}.dot already exists. Deleting it to create anew.")
-        os.remove(f"{_BASE_REPORTS_DIR}{filename_without_ext}.dot")
+        os.remove(f"{_REPORTS_DIRECTORY}{filename_without_ext}.dot")
 
     if report_type == "svg":
         report_type = "dot"
 
-    base_cmd = f'{_NMAP_FORMATTER_BASE_DIR} {report_type} {_XML_BASE_DIR}{name} -f {_BASE_REPORTS_DIR}{filename_without_ext}'.replace(
+    base_cmd = f'{_NMAP_FORMATTER_LOCATION} {report_type} {_WIFI_XML_BASE_DIRECTORY}{name} -f {_REPORTS_DIRECTORY}{filename_without_ext}'.replace(
         "pdf", "md")
 
     if report_type == "pdf":
         cmd = f'{base_cmd}.md &'
-        convert_to_pdf_cmd = f'sudo pandoc {_BASE_REPORTS_DIR}{filename_without_ext}.md -o {_BASE_REPORTS_DIR}{filename_without_ext}.pdf --from markdown --template eisvogel &'
+        convert_to_pdf_cmd = f'sudo pandoc {_REPORTS_DIRECTORY}{filename_without_ext}.md -o {_REPORTS_DIRECTORY}{filename_without_ext}.pdf --from markdown --template eisvogel &'
     elif report_type in ["md", "html", "json", "csv", "dot"] and not report_type_orig == "svg":
         cmd = f'{base_cmd}.{report_type} &'
     elif report_type == "sqlite":
-        cmd = f'{_NMAP_FORMATTER_BASE_DIR} {report_type} {_XML_BASE_DIR}{name} --sqlite-dsn {_BASE_REPORTS_DIR}{filename_without_ext}.sqlite &'
+        cmd = f'{_NMAP_FORMATTER_LOCATION} {report_type} {_WIFI_XML_BASE_DIRECTORY}{name} --sqlite-dsn {_REPORTS_DIRECTORY}{filename_without_ext}.sqlite &'
     elif report_type_orig == "svg":
         cmd = f'{base_cmd}.dot &'
-        convert_to_png_cmd = f"sudo dot -Tsvg {_BASE_REPORTS_DIR}{filename_without_ext}.dot -o {_BASE_REPORTS_DIR}{filename_without_ext}.svg &"
+        convert_to_png_cmd = f"sudo dot -Tsvg {_REPORTS_DIRECTORY}{filename_without_ext}.dot -o {_REPORTS_DIRECTORY}{filename_without_ext}.svg &"
 
     if cmd:
         logger.info(f"Using {cmd} to create file")
@@ -148,14 +162,14 @@ def create_report(request):
 
     if convert_to_pdf_cmd:
         logger.info(f"Converting to PDF using pandoc")
-        while not os.path.isfile(f"{_BASE_REPORTS_DIR}{filename_without_ext}.md"):
+        while not os.path.isfile(f"{_REPORTS_DIRECTORY}{filename_without_ext}.md"):
             sleep(1)
         _append_yaml_header(filename_without_ext)
         os.popen(convert_to_pdf_cmd)
 
     if convert_to_png_cmd:
         logger.info(f"Converting to PNG using graphviz")
-        dot_filename = f"{_BASE_REPORTS_DIR}{filename_without_ext}.dot"
+        dot_filename = f"{_REPORTS_DIRECTORY}{filename_without_ext}.dot"
         while not os.path.isfile(dot_filename):
             sleep(1)
 
@@ -226,27 +240,27 @@ def create_zigbee_report(request):
 
     if report_type == "html":
         _create_temp_folder(tmp_path)
-        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T pdml > {tmp_path}/tmp.pdml && xsltproc {_JSON_BASE_DIR}pdml2html.xsl {tmp_path}/tmp.pdml > {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.html"
+        convert_command = f"tshark -r {_ZIGBEE_JSON_BASE_DIRECTORY}{filename_without_ext}.pcap -T pdml > {tmp_path}/tmp.pdml && xsltproc {_ZIGBEE_JSON_BASE_DIRECTORY}pdml2html.xsl {tmp_path}/tmp.pdml > {_ZIGBEE_REPORTS_DIRECTORY}{filename_without_ext}.html"
     elif report_type == "csv":
-        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T fields -E separator=, -E header=y -E quote=d -e frame -e wpan.src16 -e zbee_nwk.src -e wpan.dst16 -e zbee_nwk.dst -e wpan.seq_no -e zbee_nwk.seqno > {tmp_path}/fields.csv"
-        convert_command2 = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap > {tmp_path}/info.csv"
+        convert_command = f"tshark -r {_ZIGBEE_JSON_BASE_DIRECTORY}{filename_without_ext}.pcap -T fields -E separator=, -E header=y -E quote=d -e frame -e wpan.src16 -e zbee_nwk.src -e wpan.dst16 -e zbee_nwk.dst -e wpan.seq_no -e zbee_nwk.seqno > {tmp_path}/fields.csv"
+        convert_command2 = f"tshark -r {_ZIGBEE_JSON_BASE_DIRECTORY}{filename_without_ext}.pcap > {tmp_path}/info.csv"
     elif report_type == "pcapng":
         _create_temp_folder(tmp_path)
-        convert_command = f"tcpdump -Z root -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -w {tmp_path}/{filename_without_ext}.pcapng && mv {tmp_path}/{filename_without_ext}.pcapng {_BASE_ZIGBEE_REPORTS_DIR}"
+        convert_command = f"tcpdump -Z root -r {_ZIGBEE_JSON_BASE_DIRECTORY}{filename_without_ext}.pcap -w {tmp_path}/{filename_without_ext}.pcapng && mv {tmp_path}/{filename_without_ext}.pcapng {_ZIGBEE_REPORTS_DIRECTORY}"
     elif report_type == "pcap":
-        convert_command = f"cp {_JSON_BASE_DIR}{filename_without_ext}.pcap {_BASE_ZIGBEE_REPORTS_DIR}"
+        convert_command = f"cp {_ZIGBEE_JSON_BASE_DIRECTORY}{filename_without_ext}.pcap {_ZIGBEE_REPORTS_DIRECTORY}"
     elif report_type == "psml":
-        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T psml > {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.psml"
+        convert_command = f"tshark -r {_ZIGBEE_JSON_BASE_DIRECTORY}{filename_without_ext}.pcap -T psml > {_ZIGBEE_REPORTS_DIRECTORY}{filename_without_ext}.psml"
     elif report_type == "pdml":
-        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T pdml > {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.pdml"
+        convert_command = f"tshark -r {_ZIGBEE_JSON_BASE_DIRECTORY}{filename_without_ext}.pcap -T pdml > {_ZIGBEE_REPORTS_DIRECTORY}{filename_without_ext}.pdml"
     elif report_type == "plain":
-        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T tabs > {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.txt"
+        convert_command = f"tshark -r {_ZIGBEE_JSON_BASE_DIRECTORY}{filename_without_ext}.pcap -T tabs > {_ZIGBEE_REPORTS_DIRECTORY}{filename_without_ext}.txt"
     elif report_type == "ek":
-        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T ek > {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.ekjson"
+        convert_command = f"tshark -r {_ZIGBEE_JSON_BASE_DIRECTORY}{filename_without_ext}.pcap -T ek > {_ZIGBEE_REPORTS_DIRECTORY}{filename_without_ext}.ekjson"
     elif report_type == "json":
-        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T json > {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.json"
+        convert_command = f"tshark -r {_ZIGBEE_JSON_BASE_DIRECTORY}{filename_without_ext}.pcap -T json > {_ZIGBEE_REPORTS_DIRECTORY}{filename_without_ext}.json"
     elif report_type == "ps":
-        convert_command = f"tshark -r {_JSON_BASE_DIR}{filename_without_ext}.pcap -T ps > {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.ps && ps2pdf {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.ps {_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.pdf"
+        convert_command = f"tshark -r {_ZIGBEE_JSON_BASE_DIRECTORY}{filename_without_ext}.pcap -T ps > {_ZIGBEE_REPORTS_DIRECTORY}{filename_without_ext}.ps && ps2pdf {_ZIGBEE_REPORTS_DIRECTORY}{filename_without_ext}.ps {_ZIGBEE_REPORTS_DIRECTORY}{filename_without_ext}.pdf"
     else:
         return HttpResponse(json.dumps({'error': 'not a valid filetype'}, indent=4), content_type="application/json")
 
@@ -263,6 +277,6 @@ def create_zigbee_report(request):
             time.sleep(1)
         _prepend_column_from_first_to_second(file1_path=f"{tmp_path}/info.csv",
                                              file2_path=f"{tmp_path}/fields.csv",
-                                             output_path=f"{_BASE_ZIGBEE_REPORTS_DIR}{filename_without_ext}.csv")
+                                             output_path=f"{_ZIGBEE_REPORTS_DIRECTORY}{filename_without_ext}.csv")
 
     return HttpResponse(json.dumps(res, indent=4), content_type="application/json")

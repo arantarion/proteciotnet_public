@@ -3,14 +3,27 @@ import json
 import os
 import re
 import time
+import logging
 import subprocess
 
 from django.conf import settings
 from django.http import HttpResponse
+from configparser import ConfigParser, ExtendedInterpolation
 
-PROTECIOTNET_BASE_DIR = '/opt/proteciotnet/proteciotnet_dev/'
-NSE_SCRIPT_DIR = f"{PROTECIOTNET_BASE_DIR}nmap/nse"
+logger = logging.getLogger(__name__)
 
+try:
+    config_functions_nmap = ConfigParser(interpolation=ExtendedInterpolation())
+    config_functions_nmap.read('proteciotnet.config')
+    _BASE_DIRECTORY = config_functions_nmap.get('GENERAL_PATHS', 'base_directory')
+    _NSE_SCRIPTS_DIRECTORY = config_functions_nmap.get('WIFI_PATHS', 'nse_scripts_directory')
+    logger.info("Successfully loaded config file 'proteciotnet.config'")
+except Exception as e:
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    exit(-3)
+
+# PROTECIOTNET_BASE_DIR = '/opt/proteciotnet/proteciotnet_dev/'
+# NSE_SCRIPT_DIR = f"{PROTECIOTNET_BASE_DIR}nmap/nse"
 
 def nmap_newscan(request):
     """
@@ -79,11 +92,11 @@ def nmap_newscan(request):
                 command.append(f"-v{args.get('option-v')}")
 
             if args.get('option-local-script', '') and args.get('option-script', ''):
-                command.append(f"--script {args.get('option-script')},{NSE_SCRIPT_DIR}")
+                command.append(f"--script {args.get('option-script')},{_NSE_SCRIPTS_DIRECTORY}")
             elif args.get('option-script', ''):
                 command.append(f"--script {args.get('option-script')}")
             elif args.get('option-local-script', ''):
-                command.append(f"--script {NSE_SCRIPT_DIR}")
+                command.append(f"--script {_NSE_SCRIPTS_DIRECTORY}")
 
             if args.get("option-free", ""):
                 command.append(f"{args.get('option-free')}")

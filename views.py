@@ -1,7 +1,7 @@
 import base64
 import os.path
 import subprocess
-#import logging
+# import logging
 import colorlog
 import urllib.parse
 from collections import OrderedDict
@@ -22,22 +22,13 @@ from proteciotnet_dev.CVSS_Vectors import Cvss3vector, Cvss2Vector
 from proteciotnet_dev.functions import *
 from proteciotnet_dev.zigbee.analyse_json_zigbee_sniff import find_unique_devices, get_start_time
 
-config_views = ConfigParser(interpolation=ExtendedInterpolation())
-config_views.read('proteciotnet.config')
-
 _MEDUSA_SUPPORTED_SERVICES = ['ssh', 'ftp', 'postgresql', 'telnet', 'mysql', 'ms-sql-s', 'rsh',
                               'vnc', 'imap', 'imaps', 'nntp', 'pcanywheredata', 'pop3', 'pop3s',
                               'exec', 'login', 'microsoft-ds', 'smtp', 'smtps', 'submission',
                               'svn', 'iss-realsecure', 'snmptrap', 'snmp', 'http']
 
-
-
-#BLE_FILE_DIR = "/opt/ble/"
-#BLE_STATIC_REPORT_DIR = "/opt/proteciotnet/proteciotnet_dev/static/ble_reports/"
-
-BLE_FILE_DIR = config_views.get('BLE_PATHS', 'ble_csv_base_directory')
-BLE_STATIC_REPORT_DIR = config_views.get('BLE_PATHS', 'ble_reports_directory')
-ZIGBEE_JSON_BASE_DIRECTORY = config_views.get('ZIGBEE_PATHS', 'zigbee_json_base_directory')
+# BLE_FILE_DIR = "/opt/ble/"
+# BLE_STATIC_REPORT_DIR = "/opt/proteciotnet/proteciotnet_dev/static/ble_reports/"
 
 logging_level = logging.DEBUG
 main_logger = logging.getLogger()
@@ -49,15 +40,35 @@ stream_handler.setFormatter(
         "%(log_color)s%(name)s: %(asctime)s |\t%(levelname)s\t| %(filename)s:%(lineno)s | %(process)d >>> %(message)s"))
 main_logger.addHandler(stream_handler)
 
+try:
+    config_views = ConfigParser(interpolation=ExtendedInterpolation())
+    config_views.read('proteciotnet.config')
 
-# logger.debug("This is a debug message")
-# logger.info("This is an info message")
-# logger.warning("This is a warning message")
-# logger.error("This is an error message")
-# logger.critical("This is a critical message")
+    _NOTES_DIRECTORY = config_views.get('GENERAL_PATHS', 'notes_directory')
+
+    _WIFI_XML_BASE_DIRECTORY = config_views.get('WIFI_PATHS', 'wifi_xml_base_directory')
+
+    _BLE_CSV_BASE_DIRECTORY = config_views.get('BLE_PATHS', 'ble_csv_base_directory')
+    _BLE_REPORTS_DIRECTORY = config_views.get('BLE_PATHS', 'ble_reports_directory')
+
+    _ZIGBEE_JSON_BASE_DIRECTORY = config_views.get('ZIGBEE_PATHS', 'zigbee_json_base_directory')
+
+    logger.info("Successfully loaded config file 'proteciotnet.config'")
+except Exception as e:
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    exit(-3)
 
 
-def user_login(request):
+def user_login(request) -> HttpResponse:
+    """
+    Handle user login. This function is currently unused.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: A response indicating the success or failure of the login attempt.
+    """
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -83,16 +94,41 @@ def user_login(request):
 
 
 def about(request):
+    """
+    Render the 'about' page.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Rendered 'about' page.
+    """
     r = {}
     return render(request, 'proteciotnet_dev/about.html', r)
 
 
-def setscanfile(request, scanfile):
-    xmlfiles = os.listdir('/opt/xml')
-    jsonfiles = os.listdir('/opt/zigbee')
-    csvfiles = os.listdir('/opt/ble')
+def setscanfile(request, scanfile: str):
+    """
+        Set the scan file and redirect to the corresponding overview page based on the file type.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+            scanfile (str): The name of the scan file.
+
+        Returns:
+            HttpResponse: Rendered overview page or redirect script.
+        """
+
+    xmlfiles = os.listdir(_WIFI_XML_BASE_DIRECTORY)
+    jsonfiles = os.listdir(_ZIGBEE_JSON_BASE_DIRECTORY)
+    csvfiles = os.listdir(_BLE_CSV_BASE_DIRECTORY)
+
+    logger.debug(f"successfully read xmlfiles location: {xmlfiles}\n"
+                 f"successfully read jsonfiles location: {jsonfiles}\n"
+                 f"successfully read csvfiles location: {csvfiles}")
 
     if scanfile == 'unset':
+        logger.info("Unsetting the scanfile and returning to start page")
         if 'scanfile' in request.session:
             del (request.session['scanfile'])
 
@@ -100,69 +136,113 @@ def setscanfile(request, scanfile):
                       {'js': '<script> location.href="/"; </script>'})
 
     if ".xml" in scanfile:
+        logger.debug(f"Looking for XML file: {scanfile}")
         for i in xmlfiles:
             if i == scanfile:
                 request.session['scanfile'] = i
+                logger.debug("XML file found")
                 break
-
+        logger.debug(f"File not found. Returning to main menu.")
         return render(request, 'proteciotnet_dev/ip_device_overview.html',
                       {'js': '<script> location.href="/"; </script>'})
 
     elif ".json" in scanfile:
+        logger.debug(f"Looking for JSON file: {scanfile}")
         for i in jsonfiles:
             if i == scanfile:
                 request.session['scanfile'] = i
+                logger.debug("JSON file found")
                 break
 
         if scanfile == 'unset':
             if 'scanfile' in request.session:
+                logger.info("Unsetting the scanfile and returning to start page")
                 del (request.session['scanfile'])
 
         r = zigbee(request)
-        # r['js'] = '<script> location.href="/"; </script>'
+        logger.debug(f"File not found. Returning to main menu.")
         return render(request, 'proteciotnet_dev/zigbee_device_overview.html', r)
 
     elif ".csv" in scanfile:
+        logger.debug(f"Looking for CSV file: {scanfile}")
         for i in csvfiles:
             if i == scanfile:
                 request.session['scanfile'] = i
+                logger.debug("CSV file found")
                 break
 
         if scanfile == 'unset':
             if 'scanfile' in request.session:
+                logger.info("Unsetting the scanfile and returning to start page")
                 del (request.session['scanfile'])
 
         r = bluetooth_low_energy(request)
         # r['js'] = '<script> location.href="/"; </script>'
+        logger.debug(f"File not found. Returning to main menu.")
         return render(request, 'proteciotnet_dev/ble_device_overview.html', r)
 
 
-def port(request, port):
+def port(request, port: str):
+    """
+        Render the 'main' page with empty data. Used for testing.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+            port (str): The port number.
+
+        Returns:
+            HttpResponse: Rendered 'main' page with empty data.
+        """
     return render(request, 'proteciotnet_dev/main.html',
                   {'out': '', 'table': '', 'scaninfo': '', 'scandetails': '', 'trhost': ''})
 
 
-def details(request, address, sorting='standard'):
-    # very bad fix but I don't know
+def details(request, address: str, sorting: str = 'standard'):
+    """
+    View function to handle HTTP requests related to displaying details of a nmap scan results.
+    This function extracts the necessary information from the chosen file and handels sorting and searching of CVE.
+
+
+    Args:
+        request: The HTTP request object.
+        address (str): The IP address of the device or "report".
+        sorting (str, optional): The sorting order for CVEs. Defaults to 'standard'.
+
+    Returns:
+        HttpResponse: The HTTP response object containing the rendered HTML page.
+    """
+
     if address == "report":
+        logger.debug("address equals 'report'. Fixing behavior...")
         address = sorting
 
     r = {'auth': True}
 
     if "about" in request.path:
+        logger.info("Redirecting to 'about' page")
         return render(request, 'proteciotnet_dev/about.html', r)
 
     if "ble_report" in request.path:
+        logger.info("Redirecting to 'BLE' page")
         r = ble_details(request=request)
+        logger.info("Created information to be displayed on page successfully.")
+        logger.debug(f"ble data to be displayed: {r}")
         return render(request, 'proteciotnet_dev/ble_device_details.html', r)
 
     if "login" in request.path:
+        logger.info("Redirecting to 'login' page")
         form = AuthenticationForm()
         return render(request, 'proteciotnet_dev/login.html', {'form': form})
 
-    oo = xmltodict.parse(open('/opt/xml/' + request.session['scanfile'], 'r').read())
+    logger.info("Creating Wi-Fi information from scan file...")
+
+    oo = xmltodict.parse(open(f"{_WIFI_XML_BASE_DIRECTORY}/{request.session['scanfile']}", "r").read())
+    # This is just to make it look better
     r['out2'] = json.dumps(oo['nmaprun'], indent=4)
     o = json.loads(r['out2'])
+
+    logger.info(f"XML file successfully loaded: {request.session['scanfile']}")
+    logger.debug(f"Loaded file content: {o}")
 
     r['trhost'] = ''
     pc, po, pf = 0, 0, 0
@@ -170,31 +250,38 @@ def details(request, address, sorting='standard'):
     scanmd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
     addressmd5 = hashlib.md5(str(address).encode('utf-8')).hexdigest()
 
-    # collect all labels in labelhost dict
+    logger.debug(f"scanmd5: {scanmd5}")
+    logger.debug(f"addressmd5: {addressmd5}")
+
+    logger.debug(f"Collecting labels from {_NOTES_DIRECTORY}")
     labelhost = {}
-    labelfiles = os.listdir('/opt/notes')
+    labelfiles = os.listdir(_NOTES_DIRECTORY)
     for lf in labelfiles:
         m = re.match('^(' + scanmd5 + ')_([a-z0-9]{32,32})\.host\.label$', lf)
         if m is not None:
             if m.group(1) not in labelhost:
                 labelhost[m.group(1)] = {}
-            labelhost[m.group(1)][m.group(2)] = open('/opt/notes/' + lf, 'r').read()
+            labelhost[m.group(1)][m.group(2)] = open(f"{_NOTES_DIRECTORY}/{lf}", 'r').read()
+    logger.debug(f"Collected all labels from {_NOTES_DIRECTORY}")
 
-    # collect all notes in noteshost dict
+    logger.debug(f"Collecting notes from {_NOTES_DIRECTORY}")
     noteshost = {}
-    notesfiles = os.listdir('/opt/notes')
+    notesfiles = os.listdir(_NOTES_DIRECTORY)
     for nf in notesfiles:
         m = re.match('^(' + scanmd5 + ')_([a-z0-9]{32,32})\.notes$', nf)
         if m is not None:
             if m.group(1) not in noteshost:
                 noteshost[m.group(1)] = {}
             noteshost[m.group(1)][m.group(2)] = open('/opt/notes/' + nf, 'r').read()
+    logger.debug(f"Collected all notes from {_NOTES_DIRECTORY}")
 
-    # collect all cve in cvehost dict
+    logger.debug(f"Collecting CVE from {_NOTES_DIRECTORY}")
     cvehost = get_cve(scanmd5)
+    logger.debug(f"Collected all CVE from {_NOTES_DIRECTORY}")
 
     r[
         'trhead'] = '<tr><th>Port</th><th style="width:300px;">Product / Version</th><th>Extra Info</th><th>&nbsp;</th></tr>'
+    logger.debug(f"Populating information of each host in file: {request.session['scanfile']}")
     for ik in o['host']:
         pel = 0
         # this fix single host report
@@ -216,7 +303,6 @@ def details(request, address, sorting='standard'):
         if str(saddress) == address:
             hostname = ''
             if 'hostnames' in i and type(i['hostnames']) is dict:
-                # hostname = json.dumps(i['hostnames'])
                 if 'hostname' in i['hostnames']:
                     hostname += '<br>'
                     if type(i['hostnames']['hostname']) is list:
@@ -481,6 +567,7 @@ def details(request, address, sorting='standard'):
         if type(ik) is not dict:
             break
 
+    logger.debug(f"Preparing notes for {request.session['scanfile']}")
     r['table'] = ''
     if scanmd5 in noteshost:
         if addressmd5 in noteshost[scanmd5]:
@@ -492,9 +579,11 @@ def details(request, address, sorting='standard'):
                           '</div>'
             r['notes'] = base64.b64decode(urllib.parse.unquote(notesb64)).decode('ascii')
 
+    logger.debug(f"Preparing CVE for {request.session['scanfile']}")
     cveout = ''
     if scanmd5 in cvehost:
         if addressmd5 in cvehost[scanmd5]:
+            logger.info(f"Found CVE entries for {scanmd5}: {addressmd5}")
             cvejson = json.loads(cvehost[scanmd5][addressmd5])
             cveids = {}
 
@@ -534,13 +623,9 @@ def details(request, address, sorting='standard'):
 
                     label_color, font_color = get_cvss_color(cvss_score, 2)
 
-                    # cwe_string = f'<span class="label grey">' + html.escape(cveobj['cwe']) + '</span>'
-
                     if "Other" not in cveobj["cwe"] and "noinfo" not in cveobj["cwe"]:
                         cwe_tooltip = f'<div class="tt2" style="color:white"><a href="https://cwe.mitre.org/data/definitions/{cveobj["cwe"][4:]}.html" target="_BLANK" style="color:white">{cveobj["cwe"]}</a><span class="ttt2">{get_cwe_description(cveobj["cwe"])}</span></div>'
-                        # cwe_tooltip = f'<a href="https://cwe.mitre.org/data/definitions/{cveobj["cwe"][4:]}.html" data-toggle="tooltip" data-placement="top" title="{_get_cwe_description(cveobj["cwe"])}" style="color:white">{cwe_string}</a>'
                     else:
-                        # cwe_tooltip = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{_get_cwe_description(cveobj["cwe"])}" style="color:white">{html.escape(cveobj["cwe"])}</a>'
                         cwe_tooltip = f'<div class="tt2" style="color:white">{cveobj["cwe"]}<span class="ttt2">{get_cwe_description(cveobj["cwe"])}</span></div>'
 
                     cwe_string = f'<span class="label grey">' + cwe_tooltip + '</span>'
@@ -548,13 +633,10 @@ def details(request, address, sorting='standard'):
                     cvss_vector = cveobj.get('cvss-vector')
                     if cvss_vector:
                         cvss_vec_obj = Cvss2Vector(cvss_vector)
-
-                        # cvss_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss_vec_obj.__str__()}" style="color:white">{html.escape(cvss_vector)}</a>'
                         cvss_vector_html = f'<div class="tooltip" style="color:white">{html.escape(cvss_vector)}<span class="tooltiptext">{cvss_vec_obj.__str__()}</span></div>'
 
                     if cvss3_vector:
                         cvss3_vec_obj = Cvss3vector(cvss3_vector)
-                        # cvss3_vector_html = f'<a href="#" data-toggle="tooltip" data-placement="top" title="{cvss3_vec_obj.__str__()}" style="color:white">{html.escape(cvss3_vector)}</a>'
                         cvss3_vector_html = f'<div class="tooltip" style="color:white">{html.escape(cvss3_vector)}<span class="tooltiptext">{cvss3_vec_obj.__str__()}</span></div>'
 
                     cveout += f'<div id="' + html.escape(cveobj[
@@ -595,16 +677,15 @@ def details(request, address, sorting='standard'):
                     cveids[cveobj['id']] = cveobj['id']
 
             if sorting != "standard" and not sorting.startswith("search="):
+                logger.debug(f"Items have to be sorted. Order: {sorting}")
                 cveout = sort_cve_html(cveout, sorting)
 
             elif sorting.startswith("search="):
+                logger.debug(f"Searching for: {sorting}")
                 cveout = search_cve_html(cveout, sorting)
 
             r['cveids'] = cveids
             r['cvelist'] = cveout
-
-            # set label here
-            # label(request=request, objtype="host", label="Warning", hashstr=addressmd5)
 
     r['js'] = '<script> ' + \
               '$(document).ready(function() { ' + \
@@ -623,45 +704,66 @@ def details(request, address, sorting='standard'):
               '}); ' + \
               '</script>'
 
+    logger.info(f"Device details for {request.session['scanfile']} prepared successfully. Now showing page.")
+    logger.debug(f"Device details to be rendered: {r}")
+
     return render(request, 'proteciotnet_dev/ip_device_details.html', r)
 
 
-def index(request, filterservice="", filterportid=""):
+def index(request, filterservice: str = "", filterportid: str = ""):
+    """
+    View function to handle HTTP requests related to displaying the start page.
+    This function extracts the necessary information from the chosen files to display it on the start page.
+
+
+    Args:
+        request: The HTTP request object.
+        filterservice (str, optional): Filter for certain services.
+        filterportid (str, optional): Filter for certain ports.
+
+    Returns:
+        HttpResponse: The HTTP response object containing the information to be rendered.
+    """
+
     r = {'auth': True}
     bruteforce_available_in_file = False
 
-    gitcmd = subprocess.check_output('cd /opt/proteciotnet/proteciotnet_dev && git describe --long --abbrev=10 --tag',
-                                     shell=True, text=True).strip()
-    r['webmapver'] = gitcmd
+    proteciotnet_version = subprocess.check_output(
+        'cd /opt/proteciotnet/proteciotnet_dev && git describe --long --abbrev=10 --tag',
+        shell=True, text=True).strip()
+    r['webmapver'] = proteciotnet_version
+    logger.debug(f"generated version information: {proteciotnet_version}")
 
-    if 'scanfile' in request.session and not "json" in request.session['scanfile']:
-        oo = xmltodict.parse(open('/opt/xml/' + request.session['scanfile'], 'r').read())
+    if 'scanfile' in request.session and "json" not in request.session['scanfile']:
+        logger.debug("Redirecting to nmap scan results view. instead of start page...")
+        oo = xmltodict.parse(open(f"{_WIFI_XML_BASE_DIRECTORY}/{request.session['scanfile']}", 'r').read())
         r['out2'] = json.dumps(oo['nmaprun'], indent=4)
         o = json.loads(r['out2'])
     else:
-        # no file selected
-        xmlfiles = os.listdir('/opt/xml')
-        jsonfiles = os.listdir('/opt/zigbee')
-        csvfiles = os.listdir('/opt/ble')
+        logger.debug("No file has been selected. Generating information for start page...")
+        xmlfiles = os.listdir(_WIFI_XML_BASE_DIRECTORY)
+        jsonfiles = os.listdir(_ZIGBEE_JSON_BASE_DIRECTORY)
+        csvfiles = os.listdir(_BLE_CSV_BASE_DIRECTORY)
 
         r['tr'] = {}
-        r['zigbee_files'] = {}
-        r['ble_files'] = {}
+        r['zigbee_files'] = OrderedDict()
+        r['ble_files'] = OrderedDict()
         r['stats'] = {'po': 0, 'pc': 0, 'pf': 0}
 
         ble_files_count = 0
         for csv_file in csvfiles:
+            logger.debug("Generating information for BLE files...")
             if re.search('\.csv$', csv_file) is None:
                 continue
 
-            json_filepath = f'{BLE_STATIC_REPORT_DIR}/{csv_file.replace(".csv", ".json")}'
-            svg_filepath = f'{BLE_STATIC_REPORT_DIR}/{csv_file.replace(".csv", ".svg")}'
+            json_filepath = f'{_BLE_REPORTS_DIRECTORY}/{csv_file.replace(".csv", ".json")}'
+            svg_filepath = f'{_BLE_REPORTS_DIRECTORY}/{csv_file.replace(".csv", ".svg")}'
             ble_scan_results = ""
 
             if not os.path.isfile(json_filepath):
                 logger.debug(f"CSV file {csv_file} has no matching JSON file. It has to be created...")
                 try:
-                    ble_scan_results, rssi_values = csv_to_json(csv_file_path=f"{BLE_FILE_DIR}/{csv_file}",
+                    ble_scan_results, rssi_values = csv_to_json(csv_file_path=f"{_BLE_CSV_BASE_DIRECTORY}/{csv_file}",
                                                                 json_file_path=json_filepath)
                 except Exception as e:
                     logger.error(f"Could not create JSON file for {csv_file} - {e}")
@@ -673,9 +775,11 @@ def index(request, filterservice="", filterportid=""):
 
                 if ble_scan_results:
                     try:
-                        create_rssi_graph(csv_file_path=f"{BLE_FILE_DIR}/{csv_file}",
+                        logger.debug("Trying to create RSSI graph...")
+                        create_rssi_graph(csv_file_path=f"{_BLE_CSV_BASE_DIRECTORY}/{csv_file}",
                                           ble_scan_results=ble_scan_results,
                                           output_path=svg_filepath)
+                        logger.debug("Successfully created RSSI graph.")
                     except Exception as e:
                         logger.error(f"Could not create SVG file for {csv_file} - {e}")
                         continue
@@ -703,6 +807,7 @@ def index(request, filterservice="", filterportid=""):
                     'bl_interface': 'invalid'
                 }
                 logger.debug(f"Could not read json file for {csv_file}")
+                logger.debug(f"Using {r['ble_files']}")
                 continue
 
             ble_files_count += 1
@@ -725,16 +830,21 @@ def index(request, filterservice="", filterportid=""):
                 'bl_href': view_href,
             }
 
+            logger.debug(f"Parsed all BLE files. Created: {r['ble_files']}")
+
         zigbee_files_count = 0
+        logger.debug("Generating information for ZigBee files...")
         for j in jsonfiles:
             if re.search('\.json$', j) is None:
                 continue
 
             try:
-                with open(f'{ZIGBEE_JSON_BASE_DIRECTORY}/{j}', "r", encoding='utf-8') as f:
+                with open(f'{_ZIGBEE_JSON_BASE_DIRECTORY}/{j}', "r", encoding='utf-8') as f:
                     json_input = json.load(f)
+                logger.debug(f"Successfully loaded {j}")
 
             except Exception:
+                logger.warning(f"Could not load {f}. Using empty values instead.")
                 r['zigbee_files'][j] = {'filename': html.escape(j), 'start': 0, 'startstr': 'Incomplete / Invalid',
                                         'hostnum': 0,
                                         'zb_href': '#!', 'channel': 'None'}
@@ -763,8 +873,11 @@ def index(request, filterservice="", filterportid=""):
                 'zb_channel': zigbee_channel
             }
 
+        logger.debug(f"Parsed all ZigBee files. {r['zigbee_files']}")
+
         # XML FILE
         xmlfilescount = 0
+        logger.debug("Generating information for Wi-Fi files...")
         for i in xmlfiles:
             if re.search('\.xml$', i) is None:
                 continue
@@ -773,8 +886,10 @@ def index(request, filterservice="", filterportid=""):
             xmlfilescount = (xmlfilescount + 1)
 
             try:
-                oo = xmltodict.parse(open('/opt/xml/' + i, 'r').read())
-            except:
+                oo = xmltodict.parse(open(f"{_WIFI_XML_BASE_DIRECTORY}/{i}", 'r').read())
+                logger.debug(f"Successfully parsed {i}")
+            except Exception as e:
+                logger.warning(f"Could not parse {i}. Using empty values. Error {e}")
                 r['tr'][i] = {'filename': html.escape(i), 'start': 0, 'startstr': 'Incomplete / Invalid', 'hostnum': 0,
                               'href': '#!', 'portstats': {'po': 0, 'pc': 0, 'pf': 0}}
                 continue
@@ -816,12 +931,16 @@ def index(request, filterservice="", filterportid=""):
                 'portstats': portstats
             }
 
+        logger.debug(f"All files scanned. Sorting results now.")
         r['tr'] = OrderedDict(sorted(r['tr'].items(), reverse=True))
         r['zigbee_files'] = OrderedDict(sorted(r['zigbee_files'].items(), reverse=True))
         r['ble_files'] = OrderedDict(sorted(r['ble_files'].items(), reverse=True))
         r['stats']['xmlcount'] = xmlfilescount
         r['stats']['zigbee_files_count'] = zigbee_files_count
         r['stats']['ble_files_count'] = ble_files_count
+
+        logger.info("All information successfully created to display start page.")
+        logger.debug(f"Return value: {r}")
 
         return render(request, 'proteciotnet_dev/file_overview.html', r)
 

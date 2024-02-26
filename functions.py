@@ -5,24 +5,40 @@ import os
 import re
 import logging
 import xmltodict
+
 from django.http import HttpResponse
+from configparser import ConfigParser, ExtendedInterpolation
 
 try:
     from proteciotnet_dev.static.py.cwe_descriptions_dict import cwe_descriptions
 except ModuleNotFoundError:
     from static.py.cwe_descriptions_dict import cwe_descriptions
 
+logger = logging.getLogger(__name__)
+
 _CVSS_2_PATTERN = r"CVSS 2.0 score: (\d.\d|0|\d\d.\d)"
 _CVSS_3_PATTERN = r"CVSS 3.[\d|x] score: (\d.\d|0)"
 _CVE_PATTERN = r"CVE-\d{4}-\d{4,7}"
 _CWE_PATTERN = r"CWE-\d{1,3}"
-_BASE_DIRECTORY = "/opt/proteciotnet/proteciotnet_dev/"
-_BASE_STATIC_DIRECTORY = f"{_BASE_DIRECTORY}static"
-_BASE_REPORTS_DIR = f"{_BASE_STATIC_DIRECTORY}/reports/"
-_BASE_ZIGBEE_REPORTS_DIR = f"/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports"
-_BASE_ZIGBEE_DIR = "/opt/zigbee"
 
-logger = logging.getLogger(__name__)
+# _BASE_DIRECTORY = "/opt/proteciotnet/proteciotnet_dev/"
+# _BASE_STATIC_DIRECTORY = f"{_BASE_DIRECTORY}static"
+# _BASE_REPORTS_DIR = f"{_BASE_STATIC_DIRECTORY}/reports/"
+# _BASE_ZIGBEE_REPORTS_DIR = f"/opt/proteciotnet/proteciotnet_dev/static/zigbee_reports"
+# _BASE_ZIGBEE_DIR = "/opt/zigbee"
+
+try:
+    config_functions = ConfigParser(interpolation=ExtendedInterpolation())
+    config_functions.read('proteciotnet.config')
+    _BASE_DIRECTORY = config_functions.get('GENERAL_PATHS', 'base_directory')
+    _STATIC_DIRECTORY = config_functions.get('GENERAL_PATHS', 'static_directory')
+    _REPORTS_DIRECTORY = config_functions.get('GENERAL_PATHS', 'report_directory')
+    _ZIGBEE_JSON_BASE_DIRECTORY = config_functions.get('ZIGBEE_PATHS', 'zigbee_json_base_directory')
+    _ZIGBEE_REPORTS_DIRECTORY = config_functions.get('ZIGBEE_PATHS', 'zigbee_reports_directory')
+    logger.info("Successfully loaded config file 'proteciotnet.config'")
+except Exception as e:
+    logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
+    exit(-3)
 
 
 def token_check(token):
@@ -703,7 +719,7 @@ def parse_config_file(filename: str = 'proteciotnet.config') -> dict:
 
 
 def create_file_dropdown_zigbee(filename):
-    contents_directory = os.listdir(_BASE_ZIGBEE_REPORTS_DIR)
+    contents_directory = os.listdir(_ZIGBEE_REPORTS_DIRECTORY)
     filename_without_extension = filename.rsplit(".", 1)[0]
 
     dropdown_html = ''
@@ -747,7 +763,7 @@ def create_file_dropdown_zigbee(filename):
 
 
 def create_file_dropdown(filename):
-    contents_directory = os.listdir(_BASE_REPORTS_DIR)
+    contents_directory = os.listdir(_REPORTS_DIRECTORY)
     filename_without_extension = filename.rsplit(".", 1)[0]
 
     dropdown_html = ''
@@ -790,10 +806,10 @@ def set_state(request):
         toggle_status = request.POST['online_status']
 
         if toggle_status == "true":
-            if "offline_mode.lock" not in os.listdir(_BASE_STATIC_DIRECTORY):
+            if "offline_mode.lock" not in os.listdir(_STATIC_DIRECTORY):
 
                 try:
-                    with open(f"{_BASE_STATIC_DIRECTORY}/offline_mode.lock", "w") as f:
+                    with open(f"{_STATIC_DIRECTORY}/offline_mode.lock", "w") as f:
                         pass
                 except:
                     logger.error("Could not create 'offline_mode.lock' file")
@@ -804,8 +820,8 @@ def set_state(request):
 
         else:
             try:
-                if "offline_mode.lock" in os.listdir(_BASE_STATIC_DIRECTORY):
-                    os.remove(f"{_BASE_STATIC_DIRECTORY}/offline_mode.lock")
+                if "offline_mode.lock" in os.listdir(_STATIC_DIRECTORY):
+                    os.remove(f"{_STATIC_DIRECTORY}/offline_mode.lock")
             except:
                 logger.error("Could not delete offline_mode.lock' file")
                 return HttpResponse(json.dumps({'error': 'file deletion problem'}, indent=4),

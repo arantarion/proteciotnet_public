@@ -21,13 +21,24 @@ try:
     config_view_ble.read('proteciotnet.config')
     _BLE_CSV_BASE_DIRECTORY = config_view_ble.get('BLE_PATHS', 'ble_csv_base_directory')
     _BLE_REPORTS_DIRECTORY = config_view_ble.get('BLE_PATHS', 'ble_reports_directory')
+    _NOTES_DIRECTORY = config_view_ble.get('GENERAL_PATHS', 'notes_directory')
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
     logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
     exit(-3)
 
 
-def _item_generator(json_object, lookup_key):
+def _item_generator(json_object, lookup_key: str) -> any:
+    """
+    Recursively iterate over a JSON object to yield values corresponding to a given key.
+
+    Args:
+        json_object (dict or list): The JSON object to iterate over.
+        lookup_key (str): The key to look up in the JSON object.
+
+    Yields:
+        Any: The values corresponding to the given key in the JSON object.
+    """
     if isinstance(json_object, dict):
         for key, value in json_object.items():
             if key == lookup_key:
@@ -40,16 +51,47 @@ def _item_generator(json_object, lookup_key):
 
 
 def _mean(lst: list) -> int:
+    """
+    Calculate the mean of a list of numbers.
+
+    Args:
+        lst (list): A list of numbers.
+
+    Returns:
+        int: The mean of the numbers in the list.
+    """
     return sum(lst) // len(lst)
 
 
-def _rssi_to_distance(rssi):
+def _rssi_to_distance(rssi: int) -> float:
+    """
+    Convert RSSI (Received Signal Strength Indication) to distance using the log-distance path loss model.
+
+    Args:
+        rssi (int): The Received Signal Strength Indication value.
+
+    Returns:
+        float: The estimated distance corresponding to the RSSI value.
+    """
+    # Path loss exponent
     n = 2
+    # Measured power (RSSI) at reference distance
     mp = -69
+    logger.debug("Calculating distance in meters based on rssi value")
     return round(10 ** ((mp - (int(rssi))) / (10 * n)), 2)
 
 
 def _replace_bools_with_strings(obj):
+    """
+    Replace boolean values with their string representations in a nested dictionary or list.
+
+    Args:
+        obj (dict, list, bool, or other): The input object which may contain boolean values.
+
+    Returns:
+        dict, list, or other: A new object with boolean values replaced by their string representations.
+    """
+    logger.debug("Replacing boolean values with their string")
     if isinstance(obj, dict):
         return {k: _replace_bools_with_strings(v) for k, v in obj.items()}
     elif isinstance(obj, list):
@@ -60,7 +102,17 @@ def _replace_bools_with_strings(obj):
         return obj
 
 
-def _resolve_random_addr_type(address):
+def _resolve_random_addr_type(address: str) -> str:
+    """
+    Resolve the type of a random address based on its most significant bits.
+
+    Args:
+        address (str): The random address in hexadecimal format (e.g., "AA:BB:CC:DD:EE:FF").
+
+    Returns:
+        str: A string representing the type of the random address.
+            This string includes HTML formatting for display purposes.
+    """
     binary_mac = bin(int(address.replace(":", ""), 16))[2:].zfill(48)
     msb = binary_mac[-2:]
     private_addr_type = "unknown"
@@ -74,13 +126,29 @@ def _resolve_random_addr_type(address):
     return f"""<div class="tt2">Random<sup style="font-size: 70%; position: relative; top: 0.1em; left: -0.2em;"><span class="material-icons" style="font-size: inherit;">question_mark</span></sup><span class="ttt2">{private_addr_type}</span></div>"""
 
 
-def _construct_device_info(data, md5_sum_of_scanfile):
+def _construct_device_info(data: list, md5_sum_of_scanfile: str):
+    """
+    Helper function:
+    Construct device information based on the provided data and MD5 sum of the scan file.
+
+    Args:
+        data (list): A list containing information about devices.
+        md5_sum_of_scanfile (str): The MD5 sum of the scan file.
+
+    Returns:
+        tuple: A tuple containing device information and the total count of readable characteristics.
+            - device_info (dict): A dictionary containing device information.
+            - readable_characteristics_count_all (int): The total count of readable characteristics.
+    """
+
+    logger.debug("Constructing BLE device information")
     device_info = {}
     host_index = 1
     readable_characteristics_count_all = 0
 
     labels_of_host = {}
-    label_files = os.listdir('/opt/notes')
+    label_files = os.listdir(_NOTES_DIRECTORY)
+    logger.debug(f"Collecting labels in {_NOTES_DIRECTORY}")
     for lf in label_files:
         m = re.match('^(' + md5_sum_of_scanfile + ')_([a-z0-9]{32,32})\.host\.label$', lf)
         if m is not None:
@@ -89,7 +157,8 @@ def _construct_device_info(data, md5_sum_of_scanfile):
             labels_of_host[m.group(1)][m.group(2)] = open('/opt/notes/' + lf, 'r').read()
 
     notes_of_host = {}
-    notes_files = os.listdir('/opt/notes')
+    notes_files = os.listdir(_NOTES_DIRECTORY)
+    logger.debug(f"Collecting notes in {_NOTES_DIRECTORY}")
     for nf in notes_files:
         m = re.match('^(' + md5_sum_of_scanfile + ')_([a-z0-9]{32,32})\.notes$', nf)
         if m is not None:
@@ -97,7 +166,9 @@ def _construct_device_info(data, md5_sum_of_scanfile):
                 notes_of_host[m.group(1)] = {}
             notes_of_host[m.group(1)][m.group(2)] = open('/opt/notes/' + nf, 'r').read()
 
+    logger.debug(f"Generating per device information")
     for device in data:
+        logger.debug(f"Current device: {device}")
         address = device.get('address')
         addressmd5 = hashlib.md5(str(address).encode('utf-8')).hexdigest()
 
@@ -188,10 +259,24 @@ def _construct_device_info(data, md5_sum_of_scanfile):
         host_index += 1
         readable_characteristics_count_all += total_characteristics_count
 
+    logger.info("Constructed device information successfully")
+    logger.debug(f"device info: {device_info}")
+    logger.debug(f"readable characteristics count: {readable_characteristics_count_all}")
     return device_info, readable_characteristics_count_all
 
 
-def bluetooth_low_energy(request):
+def bluetooth_low_energy(request) -> dict:
+    """
+    Main function to handle BLE data and generate objects for the view.
+
+    Args:
+        request: The request object.
+
+    Returns:
+        dict: A dictionary containing information for generating the response.
+    """
+
+    logger.info(f"Generating ble device information return object.")
     r = {'auth': True, 'js': ""}
 
     ble_file_filename = request.session['scanfile'].replace(".csv", ".json")
@@ -203,6 +288,7 @@ def bluetooth_low_energy(request):
 
     md5_sum_of_scanfile = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
     r['md5_sum_of_scanfile'] = md5_sum_of_scanfile
+    logger.debug(f"file hash is: {md5_sum_of_scanfile}")
 
     file_info_header = json_input[0]
 
@@ -229,49 +315,67 @@ def bluetooth_low_energy(request):
     r['sniff_html_output'] = ""
     html_file_filename = f"{ble_file_filename_without_extension}.html"
     if os.path.isfile(f"{_BLE_REPORTS_DIRECTORY}{html_file_filename}"):
+        logger.debug(f"Fixing color in html file {html_file_filename}")
         html_file_handle = (open(f"{_BLE_REPORTS_DIRECTORY}{html_file_filename}")
                             .read()
                             .replace("#e5e5e5", "transparent"))
         html_file_handle = html_file_handle.replace(html_file_handle[html_file_handle.find("<body>")+6:html_file_handle.find("<tt>")], "")
         r['sniff_html_output'] += html_file_handle
 
-    logger.debug(f"Successfully created dict r with display information for the HTML page")
+    logger.info(f"Successfully created dict r with display information.")
+    logger.debug(f"return value: {r}")
     return r
 
 
-def ble_details(request):
+def ble_details(request) -> dict:
+    """
+    Function to handle device details overview in BLE files.
+
+    Args:
+        request: The request object.
+
+    Returns:
+        dict: A dictionary containing information for generating the response.
+    """
+
+    logger.info("Generating device details overview for BLE device.")
+
     r = {'auth': True, 'js': ""}
 
     addr = request.get_full_path().split("/")[-1]
     scanmd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
     r['md5_sum_of_scanfile'] = scanmd5
+    logger.debug(f"md5 sum of scanfile {str(request.session['scanfile'])}: {scanmd5}")
 
     addressmd5 = hashlib.md5(str(addr).encode('utf-8')).hexdigest()
 
-    # collect all labels in labelhost dict
+    logger.debug(f"Collecting all labels in {_NOTES_DIRECTORY}")
     labelhost = {}
-    labelfiles = os.listdir('/opt/notes')
+    labelfiles = os.listdir(_NOTES_DIRECTORY)
     for lf in labelfiles:
         m = re.match('^(' + scanmd5 + ')_([a-z0-9]{32,32})\.host\.label$', lf)
         if m is not None:
             if m.group(1) not in labelhost:
                 labelhost[m.group(1)] = {}
-            labelhost[m.group(1)][m.group(2)] = open('/opt/notes/' + lf, 'r').read()
+            labelhost[m.group(1)][m.group(2)] = open(f'{_NOTES_DIRECTORY}/{lf}', 'r').read()
 
-    # collect all notes in noteshost dict
+    logger.debug(f"Collecting all notes in {_NOTES_DIRECTORY}")
     noteshost = {}
-    notesfiles = os.listdir('/opt/notes')
+    notesfiles = os.listdir(_NOTES_DIRECTORY)
     for nf in notesfiles:
         m = re.match('^(' + scanmd5 + ')_([a-z0-9]{32,32})\.notes$', nf)
         if m is not None:
             if m.group(1) not in noteshost:
                 noteshost[m.group(1)] = {}
-            noteshost[m.group(1)][m.group(2)] = open('/opt/notes/' + nf, 'r').read()
+            noteshost[m.group(1)][m.group(2)] = open(f'{_NOTES_DIRECTORY}/{nf}', 'r').read()
 
     ble_file_filename = request.session['scanfile'].replace(".csv", ".json")
     ble_file_filename_without_extension = ble_file_filename.replace('.json', "")
+
     with open(f"{_BLE_REPORTS_DIRECTORY}{ble_file_filename}", "r", encoding='utf-8') as f:
         json_input = json.load(f)
+
+    logger.debug(f"Successfully loaded json file {ble_file_filename}")
 
     for elem in json_input:
         if elem.get("address", "") == addr:
@@ -295,6 +399,8 @@ def ble_details(request):
                         </script>
                     """
 
+    logger.debug("Put extra data in file")
+
     if r['attribute_data']:
         r['json_output_attribute_data'] = f"""
                             <script>
@@ -306,14 +412,11 @@ def ble_details(request):
                             </script>
                         """
 
-    # labelout = '<span id="hostlabel"></span>'
+    logger.debug("Put attribute data in file")
+
     if scanmd5 in labelhost:
         if addressmd5 in labelhost[scanmd5]:
             labelcolor = label_to_color(labelhost[scanmd5][addressmd5])
-            # labelmargin = label_to_margin(labelhost[scanmd5][addressmd5])
-            # labelout = '<span id="hostlabel" style="margin-left:60px;margin-top:-24px;" class="rightlabel ' \
-            #     + labelcolor + '">' + html.escape(labelhost[scanmd5][addressmd5]) + '</span>'
-
             r['label'] = html.escape(labelhost[scanmd5][addressmd5])
             r['labelcolor'] = labelcolor
 
@@ -327,5 +430,8 @@ def ble_details(request):
                           '	</div>' + \
                           '</div>'
             r['notes'] = base64.b64decode(urllib.parse.unquote(notesb64)).decode('ascii')
+
+    logger.info("Successfully created detail view object. Displaying now.")
+    logger.debug(f"return value: {r}")
 
     return r

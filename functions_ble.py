@@ -30,32 +30,63 @@ except Exception as e:
 
 
 def start_scan():
+    """
+    Starts a scan process by creating a lock file.
+
+    If the lock file already exists, it implies that a scan is already in progress.
+    """
+
     if not os.path.isfile(STATIC_PATH + BLE_LOCK_FILENAME):
-        with open(STATIC_PATH + BLE_LOCK_FILENAME, "w") as f:
+        logger.info("Starting ble scan.")
+        with open(f"{STATIC_PATH}/{BLE_LOCK_FILENAME}", "w") as f:
             f.write("")
+        logger.info(f"Created lock file: {BLE_LOCK_FILENAME} in {STATIC_PATH}")
     else:
         logger.info("Scan seems to be running already")
 
 
 def stop_scan():
-    if not os.path.isfile(STATIC_PATH + BLE_LOCK_FILENAME):
-        logger.info("No scan is running, so can not stop it")
+    """
+    Stops a running scan process by removing the lock file.
+
+    If the lock file does not exist, it indicates that no scan is currently running.
+    """
+    if not os.path.isfile(f"{STATIC_PATH}/{BLE_LOCK_FILENAME}"):
+        logger.warning("No scan is running, so can not stop it")
     else:
         try:
-            os.remove(STATIC_PATH + BLE_LOCK_FILENAME)
+            os.remove(f"{STATIC_PATH}/{BLE_LOCK_FILENAME}")
             logger.info("Scan lock removed. Scan should stop soon.")
         except Exception as e:
             logger.error(f"Could not delete file - {e}")
 
 
-def _convert_to_int(param):
+def _convert_to_int(param: str):
+    """
+    Converts a parameter to an integer.
+
+    Args:
+        param (str): The parameter to be converted to an integer.
+
+    Returns:
+        int: The integer representation of the parameter if successful, otherwise an empty string.
+    """
     try:
         return int(param)
     except ValueError:
         return ""
 
 
-def _convert_to_bool(param):
+def _convert_to_bool(param: str):
+    """
+    Converts a parameter to a boolean value.
+
+    Args:
+        param (str): The parameter to be converted to a boolean.
+
+    Returns:
+        bool: The boolean representation of the parameter.
+    """
     val = param.lower()
     if val in ('y', 'yes', 't', 'true', 'on', '1'):
         return True
@@ -120,7 +151,7 @@ def new_ble_scan(request):
             "ble_subscribe_to_characteristic": ble_subscribe_to_characteristic
         }
 
-        print(ble_data)
+        logger.debug(f"ble_data: {ble_data}")
 
         if ble_filename:
             if ble_continuous_scan:
@@ -147,8 +178,11 @@ def new_ble_scan(request):
             try:
                 def target():
                     _COMMAND = f"{SNIFFLE_PATH}sniff_receiver.py -q -e -o {ble_sniff_filename}.pcap".split()
+                    logger.debug(f"Sniffing command: {_COMMAND}")
                     process = subprocess.Popen(_COMMAND, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     stdout, stderr = process.communicate()
+                    logger.debug(f"stdout: {stdout}")
+                    logger.debug(f"stderr: {stderr}")
 
                 thread = threading.Thread(target=target)
                 thread.start()
@@ -169,10 +203,12 @@ def new_ble_scan(request):
 
                 process_crackle = subprocess.Popen(_COMMAND_CRACKLE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 stdout, stderr = process_crackle.communicate()
+                logger.debug(f"stdout: {stdout}")
+                logger.debug(f"stderr: {stderr}")
 
                 return HttpResponse(json.dumps({'p': request.POST}, indent=4), content_type="application/json")
-            except Exception as e:
-                logger.error(f"Could not sniff BLE traffic - {e}")
+            except Exception as e_sniff:
+                logger.error(f"Could not sniff BLE traffic - {e_sniff}")
                 return HttpResponse(json.dumps({'error': 'invalid syntax'}, indent=4), content_type="application/json")
 
         elif ble_device_send_addr:
@@ -187,4 +223,5 @@ def new_ble_scan(request):
         return HttpResponse(json.dumps({'p': request.POST}, indent=4), content_type="application/json")
 
     else:
+        logger.error("Invalid syntax. You have to send a POST request")
         return HttpResponse(json.dumps({'error': 'invalid syntax'}, indent=4), content_type="application/json")

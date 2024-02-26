@@ -36,9 +36,9 @@ except Exception as e:
     exit(-3)
 
 
-def _create_yaml_header(filename):
+def _create_yaml_header(filename: str) -> str:
     """
-    Create a YAML header for an NMAP report.
+    Create a YAML header for an NMAP report. This YAML header is used by nmap formatter to add meta-information.
 
     Args:
     - filename (str): The name of the file for which the header is being generated.
@@ -52,7 +52,7 @@ def _create_yaml_header(filename):
     _DATE = datetime.datetime.now().strftime('%A, %d. %B %Y - %H:%M')
 
     logger.info("Retrieving nmap-formatter version")
-    _NMAP_FORMATTER_VERSION = (subprocess.check_output('/opt/nmap_formatter/nmap-formatter --version',
+    _NMAP_FORMATTER_VERSION = (subprocess.check_output(f'{_NMAP_FORMATTER_LOCATION} --version',
                                                        shell=True,
                                                        text=True)
                                .strip().replace("version: ", "v."))
@@ -75,20 +75,20 @@ def _create_yaml_header(filename):
                    f'\n')
 
     logger.info("Created YAML header for markdown file")
+    logger.debug(f"YAML header: {yaml_header}")
     return yaml_header
 
 
-def _append_yaml_header(filename):
+def _append_yaml_header(filename: str) -> None:
     """
-    Prepend a string to the beginning of a file.
+    Append a YAML header to the beginning of a markdown file.
 
-    Parameters:
-    - filename: The path to the file.
-    - text_to_prepend: The string to prepend to the file.
+    Args:
+        filename (str): The name of the markdown file to which the YAML header will be appended.
     """
 
-    logger.info(f"Appending YAML header to markdown file -> {_REPORTS_DIRECTORY}{filename}.md")
-    md_filename = f'{_REPORTS_DIRECTORY}{filename}.md'
+    md_filename = f'{_REPORTS_DIRECTORY}/{filename}.md'
+    logger.info(f"Appending YAML header to markdown file -> {md_filename}")
 
     try:
         with open(md_filename, 'r') as file:
@@ -102,10 +102,10 @@ def _append_yaml_header(filename):
         logger.info("Successfully added YAML header to file")
 
     except Exception:
-        logger.error(f"Could not append YAML header to {_REPORTS_DIRECTORY}{filename}.md")
+        logger.error(f"Could not append YAML header to {md_filename}")
 
 
-def create_report(request):
+def create_report(request) -> HttpResponse:
     """
     Create a report based on the request type.
     Possibilities are pdf, markdown (md), html, json, csv and png (dot)
@@ -115,18 +115,25 @@ def create_report(request):
 
     Returns:
     - HttpResponse: A response object containing the result or error message.
+
+    Note:
+        This function depends on graphviz and pandoc being installed.
+        Make sure they are available in your system path.
     """
 
     if request.method != "POST":
         return HttpResponse(json.dumps({'error': 'invalid syntax'}, indent=4), content_type="application/json")
 
-    logger.info(f"Creating {request.POST['report_type']} report")
     res = {'p': request.POST}
 
     report_type = request.POST['report_type']
     report_type_orig = report_type
     name = request.POST['filename']
     filename_without_ext = name.rsplit('.', 1)[0]
+
+    logger.info(f"Creating {request.POST['report_type']} report")
+    logger.debug(f"name: {name}")
+    logger.debug(f"filename_without_ext: {filename_without_ext}")
 
     cmd = ""
     convert_to_pdf_cmd = ""
@@ -142,17 +149,22 @@ def create_report(request):
     if report_type == "svg":
         report_type = "dot"
 
-    base_cmd = f'{_NMAP_FORMATTER_LOCATION} {report_type} {_WIFI_XML_BASE_DIRECTORY}{name} -f {_REPORTS_DIRECTORY}{filename_without_ext}'.replace(
-        "pdf", "md")
+    base_cmd = (
+        f'{_NMAP_FORMATTER_LOCATION} {report_type} {_WIFI_XML_BASE_DIRECTORY}/{name} -f {_REPORTS_DIRECTORY}/{filename_without_ext}'
+        .replace("pdf", "md"))
 
     if report_type == "pdf":
+        logger.debug("Report type pdf")
         cmd = f'{base_cmd}.md &'
         convert_to_pdf_cmd = f'sudo pandoc {_REPORTS_DIRECTORY}{filename_without_ext}.md -o {_REPORTS_DIRECTORY}{filename_without_ext}.pdf --from markdown --template eisvogel &'
     elif report_type in ["md", "html", "json", "csv", "dot"] and not report_type_orig == "svg":
+        logger.debug("Report type md, html, json, csv, dot")
         cmd = f'{base_cmd}.{report_type} &'
     elif report_type == "sqlite":
+        logger.debug("Report type sqlite")
         cmd = f'{_NMAP_FORMATTER_LOCATION} {report_type} {_WIFI_XML_BASE_DIRECTORY}{name} --sqlite-dsn {_REPORTS_DIRECTORY}{filename_without_ext}.sqlite &'
     elif report_type_orig == "svg":
+        logger.debug("Report type svg. Converting to svg needed.")
         cmd = f'{base_cmd}.dot &'
         convert_to_png_cmd = f"sudo dot -Tsvg {_REPORTS_DIRECTORY}{filename_without_ext}.dot -o {_REPORTS_DIRECTORY}{filename_without_ext}.svg &"
 
@@ -166,6 +178,7 @@ def create_report(request):
             sleep(1)
         _append_yaml_header(filename_without_ext)
         os.popen(convert_to_pdf_cmd)
+        logger.info(f"Successfully converted to pdf using pandoc")
 
     if convert_to_png_cmd:
         logger.info(f"Converting to PNG using graphviz")
@@ -189,25 +202,34 @@ def create_report(request):
     return HttpResponse(json.dumps(res, indent=4), content_type="application/json")
 
 
-def _prepend_column_from_first_to_second(file1_path, file2_path, output_path):
+def _prepend_column_from_first_to_second(file1_path: str, file2_path: str, output_path: str) -> None:
     """
-    Prepend the first column from the first CSV file to the rows of the second CSV file.
+    Prepends the first column from the first CSV file to the second CSV file and saves the result to a new file.
 
-    Parameters:
-    - file1_path: Path to the first CSV file.
-    - file2_path: Path to the second CSV file.
-    - output_path: Path to the output CSV file.
+    Args:
+        file1_path (str): The path to the first CSV file.
+        file2_path (str): The path to the second CSV file.
+        output_path (str): The path to save the output CSV file.
+
+    Returns:
+        None
     """
+
+    logger.debug("Appending to CSV...")
 
     # Read the first column from the first CSV file
     with open(file1_path, 'r') as f1:
         reader1 = csv.reader(f1)
         first_column = ["info"] + [row[0] for row in reader1]
 
+    logger.debug(f"Successfully read first file {file1_path}")
+
     # Read the second CSV file and prepend the values from the first column
     with open(file2_path, 'r') as f2, open(output_path, 'w', newline='') as out_file:
         reader2 = csv.reader(f2)
         writer = csv.writer(out_file)
+
+        logger.debug(f"Successfully read second file {file2_path}")
 
         for i, row in enumerate(reader2):
             if i < len(first_column):  # Ensure we don't go out of bounds
@@ -215,17 +237,43 @@ def _prepend_column_from_first_to_second(file1_path, file2_path, output_path):
             else:
                 writer.writerow(row)
 
+    logger.debug(f"Successfully wrote to file {output_path}")
 
-def _create_temp_folder(path):
+
+def _create_temp_folder(path: str):
+    """
+    Creates a temporary folder at the specified path.
+
+    Args:
+        path (str): The path where the temporary folder should be created.
+
+    Returns:
+        None if successful, otherwise returns an HTTP response indicating the error.
+    """
+
     try:
         os.mkdir(path)
-    except:
-        logger.error(f"Could not create directory at {path}")
+        logger.debug(f"Successfully created path {path}")
+    except Exception as e:
+        logger.error(f"Could not create directory at {path}. Error {e}")
         return HttpResponse(json.dumps({'error': 'Cannot create temporary folder'}, indent=4),
                             content_type="application/json")
 
 
-def create_zigbee_report(request):
+def create_zigbee_report(request) -> HttpResponse:
+    """
+    Creates a Zigbee report.
+    The output format can be specified to be html, csv, pcapng, pcap, psml, pdml, plain text, ek, json, or ps.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The HTTP response containing JSON data.
+
+    Notes:
+        Depends on the presence of tshark and xsltproc for HTML conversion and tcpdump for pcapng conversion.
+    """
     if request.method != "POST":
         return HttpResponse(json.dumps({'error': 'invalid syntax'}, indent=4), content_type="application/json")
 
@@ -235,8 +283,14 @@ def create_zigbee_report(request):
     name = request.POST['filename']
     filename_without_ext = name.rsplit('.', 1)[0]
 
+    logger.debug(f"report_type: {report_type}")
+    logger.debug(f"name {name}")
+    logger.debug(f"filename_without_ext: {filename_without_ext}")
+
     convert_command2 = ""
     tmp_path = f"/tmp/proteciotnet_temp_csv{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+    logger.debug(f"tmp_path: {tmp_path}")
 
     if report_type == "html":
         _create_temp_folder(tmp_path)
@@ -262,6 +316,7 @@ def create_zigbee_report(request):
     elif report_type == "ps":
         convert_command = f"tshark -r {_ZIGBEE_JSON_BASE_DIRECTORY}{filename_without_ext}.pcap -T ps > {_ZIGBEE_REPORTS_DIRECTORY}{filename_without_ext}.ps && ps2pdf {_ZIGBEE_REPORTS_DIRECTORY}{filename_without_ext}.ps {_ZIGBEE_REPORTS_DIRECTORY}{filename_without_ext}.pdf"
     else:
+        logger.error(f"Unknown report type {report_type}")
         return HttpResponse(json.dumps({'error': 'not a valid filetype'}, indent=4), content_type="application/json")
 
     if report_type in ["html", "pcapng", "psml", "pdml", "plain", "ek", "ps", "json", "pcap"] and convert_command:
@@ -278,5 +333,9 @@ def create_zigbee_report(request):
         _prepend_column_from_first_to_second(file1_path=f"{tmp_path}/info.csv",
                                              file2_path=f"{tmp_path}/fields.csv",
                                              output_path=f"{_ZIGBEE_REPORTS_DIRECTORY}{filename_without_ext}.csv")
+
+        logger.debug(f"Successfully created and appended the data.")
+
+    logger.info(f"Finished creating report for ZigBee file with filetype {report_type} and file name {filename_without_ext}")
 
     return HttpResponse(json.dumps(res, indent=4), content_type="application/json")

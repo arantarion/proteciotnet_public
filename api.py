@@ -25,42 +25,86 @@ logger = logging.getLogger(__name__)
 try:
     config_api = ConfigParser(interpolation=ExtendedInterpolation())
     config_api.read('proteciotnet.config')
+
+    _BASE_DIRECTORY = config_api.get('GENERAL_PATHS', 'BASE_DIRECTORY')
     _STATIC_DIRECTORY = config_api.get('GENERAL_PATHS', 'static_directory')
+    _NOTES_DIRECTORY = config_api.get('GENERAL_PATHS', 'notes_directory')
     _WIFI_XML_BASE_DIRECTORY = config_api.get('WIFI_PATHS', 'wifi_xml_base_directory')
+    _PROTECIOTNET_NMAP_DIRECTORY = config_api.get('NMAP_PATHS', 'proteciotnet_nmap_directory')
     logger.info("Successfully loaded config file 'proteciotnet.config'")
 except Exception as e:
     logger.error(f"Could not load configuration values from 'proteciotnet.config'. Error: {e}")
     exit(-3)
 
 
-def rmNotes(request, hashstr):
+def rmNotes(request, hashstr: str) -> HttpResponse:
+    """
+    Removes notes associated with a specific hash string.
+
+    Args:
+        request (HttpRequest): The HTTP request object containing session information.
+        hashstr (str): The hash string used to identify the notes file to be removed.
+
+    Returns:
+        HttpResponse: JSON response indicating the success or failure of removing the notes file.
+
+    """
+
     scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
     if re.match('^[a-f0-9]{32,32}$', hashstr) is not None:
         if os.path.exists('/opt/notes/' + scanfilemd5 + '_' + hashstr + '.notes'):
             os.remove('/opt/notes/' + scanfilemd5 + '_' + hashstr + '.notes')
             res = {'ok': 'notes removed'}
+            logger.debug("Successfully removed notes")
     else:
         res = {'error': 'invalid format'}
+        logger.debug("Could not remove notes")
 
     return HttpResponse(json.dumps(res), content_type="application/json")
 
 
-def saveNotes(request):
+def saveNotes(request) -> HttpResponse:
+    """
+    Saves notes associated with a specific hash string.
+
+    Args:
+        request (HttpRequest): The HTTP request object containing session information and POST data.
+
+    Returns:
+        HttpResponse: JSON response indicating the success or failure of saving the notes.
+
+    """
+
     if request.method == "POST":
         scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
 
         if re.match('^[a-f0-9]{32,32}$', request.POST['hashstr']) is not None:
-            f = open('/opt/notes/' + scanfilemd5 + '_' + request.POST['hashstr'] + '.notes', 'w')
+            f = open(f"{_NOTES_DIRECTORY}/{scanfilemd5}_{request.POST['hashstr']}.notes", 'w')
             f.write(request.POST['notes'])
             f.close()
             res = {'ok': 'notes saved'}
+            logger.debug(f"Successfully saved notes for {scanfilemd5}")
     else:
+        logger.warning(f"Could not save note {request.POST['hashstr']}")
         res = {'error': request.method}
 
     return HttpResponse(json.dumps(res), content_type="application/json")
 
 
-def rmlabel(request, objtype, hashstr):
+def rmlabel(request, objtype: str, hashstr: str) -> HttpResponse:
+    """
+    Remove a label file associated with a specific object type and hash string.
+
+    Args:
+        request: The HTTP request object.
+        objtype (str): The type of object (e.g., 'host', 'port') associated with the label file.
+        hashstr (str): The hash string used to identify the label file.
+
+    Returns:
+        HttpResponse: A JSON response indicating the result of the label removal operation.
+
+    """
+
     types = {
         'host': True,
         'port': True
@@ -70,8 +114,8 @@ def rmlabel(request, objtype, hashstr):
 
     res = {'error': request.method}
     if re.match('^[a-f0-9]{32,32}$', hashstr) is not None:
-        if os.path.exists('/opt/notes/' + scanfilemd5 + '_' + hashstr + '.' + objtype + '.label'):
-            os.remove('/opt/notes/' + scanfilemd5 + '_' + hashstr + '.' + objtype + '.label')
+        if os.path.exists(f"{_NOTES_DIRECTORY}/{scanfilemd5}_{hashstr}.{objtype}.label"):
+            os.remove(f"{_NOTES_DIRECTORY}/{scanfilemd5}_{hashstr}.{objtype}.label")
             logger.info(f"Label {scanfilemd5}_{hashstr}.{objtype}.label successfully removed")
             res = {'ok': 'label removed'}
             return HttpResponse(json.dumps(res), content_type="application/json")
@@ -80,7 +124,21 @@ def rmlabel(request, objtype, hashstr):
     return HttpResponse(json.dumps(res), content_type="application/json")
 
 
-def label(request, objtype, label, hashstr):
+def label(request, objtype: str, label: str, hashstr: str) -> HttpResponse:
+    """
+    Set a label for a specific object type identified by a hash string.
+
+    Args:
+        request: The HTTP request object.
+        objtype (str): The type of object (e.g., 'host', 'port') associated with the label.
+        label (str): The label to be set for the object.
+        hashstr (str): The hash string used to identify the object.
+
+    Returns:
+        HttpResponse: A JSON response indicating the result of the label setting operation.
+
+    """
+
     labels = {
         'Vulnerable': True,
         'Critical': True,
@@ -94,26 +152,41 @@ def label(request, objtype, label, hashstr):
     }
 
     scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
+    logger.debug(f"scanfilemd5: {scanfilemd5}")
 
     if label in labels and objtype in types:
         if re.match('^[a-f0-9]{32,32}$', hashstr) is not None:
-            f = open('/opt/notes/' + scanfilemd5 + '_' + hashstr + '.' + objtype + '.label', 'w')
+            f = open(f"{_NOTES_DIRECTORY}/{scanfilemd5}_{hashstr}.{objtype}.label", 'w')
             f.write(label)
             f.close()
+            logger.debug(f"Wrote label to file.")
             res = {'ok': 'label set', 'label': str(label)}
             return HttpResponse(json.dumps(res), content_type="application/json")
 
 
-def port_details(request, address, portid):
+def port_details(request, address: str, portid: str) -> HttpResponse:
+    """
+    Get details of a specific port associated with an address.
+
+    Args:
+        request: The HTTP request object.
+        address (str): The IP address associated with the port.
+        portid (str): The port ID to retrieve details for.
+
+    Returns:
+        HttpResponse: A JSON response containing the details of the specified port.
+
+    """
     r = {}
 
-    oo = xmltodict.parse(open('/opt/xml/' + request.session['scanfile'], 'r').read())
+    oo = xmltodict.parse(open(f"{_WIFI_XML_BASE_DIRECTORY}/{request.session['scanfile']}", 'r').read())
     r['out'] = json.dumps(oo['nmaprun'], indent=4)
     o = json.loads(r['out'])
 
-    for ik in o['host']:
+    logger.debug(f"Read file {request.session['scanfile']} at {_WIFI_XML_BASE_DIRECTORY}")
 
-        # this fix single host report
+    for ik in o['host']:
+        logger.debug(f"Looking up {ik}")
         if type(ik) is dict:
             i = ik
         else:
@@ -134,30 +207,50 @@ def port_details(request, address, portid):
                     p = i['ports']['port']
 
                 if p['@portid'] == portid:
+                    logger.debug("Found port details")
                     return HttpResponse(json.dumps(p, indent=4), content_type="application/json")
 
+    logger.warning(f"Did not find port details for address {address}")
 
-def getCVE(request):
+
+def getCVE(request) -> HttpResponse:
+    """
+    Retrieve CVE entries based on the scanfile associated with the request.
+
+    Args:
+        request: The HTTP request object.
+
+    Returns:
+        HttpResponse: A JSON response containing the CVE entries.
+
+
+    """
     res = {}
 
     if request.method == "POST":
         scanfilemd5 = hashlib.md5(str(request.session['scanfile']).encode('utf-8')).hexdigest()
         logger.info("Trying to retrieve CVE entries")
+        logger.debug(f"scanfilemd5 is: {scanfilemd5}")
 
         if "offline_mode.lock" in os.listdir(_STATIC_DIRECTORY):
             logger.info("Using offline mode to scan CVE entries")
-            # cveproc = os.popen(
-            #     'sudo python3 /opt/proteciotnet/proteciotnet_dev/nmap/cve_cdn.py ' + request.session['scanfile'])
-            # res['cveout'] = cveproc.read()
-            # cveproc.close()
 
-            command = ['sudo', 'python3', '/opt/proteciotnet/proteciotnet_dev/nmap/cve_cdn.py',
+            command = ['sudo', 'python3', f'{_PROTECIOTNET_NMAP_DIRECTORY}/cve_cdn.py',
                        request.session['scanfile']]
+
+            logger.debug(f"Using command: {command}")
+
             cveproc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = cveproc.communicate()
+
+            logger.debug(f"stdout: {stdout}")
+            logger.debug(f"stderr: {stderr}")
+
             exit_code = cveproc.returncode
+            logger.debug(f"exit_code: {exit_code}")
 
             if exit_code == 0:
+                logger.debug(f"Exited normally. Proceed.")
                 res['cveout'] = stdout
             else:
                 logger.error("Could not reach host")
@@ -168,55 +261,38 @@ def getCVE(request):
         else:
             logger.info("Using online mode to scan CVE entries")
             cveproc = os.popen(
-                'sudo python3 /opt/proteciotnet/proteciotnet_dev/nmap/cve.py ' + request.session['scanfile'])
+                f'sudo python3 {_PROTECIOTNET_NMAP_DIRECTORY}/nmap/cve.py ' + request.session['scanfile'])
             res['cveout'] = cveproc.read()
             cveproc.close()
 
         return HttpResponse(json.dumps(res), content_type="application/json")
 
-        # cpe = json.loads(base64.b64decode(urllib.parse.unquote(request.POST['cpe'])).decode('ascii'))
-        #
-        # for cpestr in cpe:
-        #     r = requests.get('http://cve.circl.lu/api/cvefor/' + cpestr)
-        #     cvejson = r.json()
-        #
-        #     for host in cpe[cpestr]:
-        #         hostmd5 = hashlib.md5(str(host).encode('utf-8')).hexdigest()
-        #         if type(cvejson) is list and len(cvejson) > 0:
-        #             res[host] = cvejson[0]
-        #             f = open('/opt/notes/' + scanfilemd5 + '_' + hostmd5 + '.cve', 'w')
-        #             f.write(json.dumps(cvejson))
-        #             f.close()
-        #
-        # return HttpResponse(json.dumps(res), content_type="application/json")
-        #
-        # r = requests.get('http://cve.circl.lu/api/cvefor/' + request.POST['cpe'])
-        #
-        # if request.POST['host'] not in res:
-        #     res[request.POST['host']] = {}
-        #
-        # cvejson = r.json()
-        #
-        # if type(cvejson) is list and len(cvejson) > 0:
-        #     res[request.POST['host']][request.POST['port']] = cvejson[0]
-        #     f = open('/opt/notes/' + scanfilemd5 + '_' + hostmd5 + '.cve', 'w')
-        #     f.write(json.dumps(cvejson))
-        #     f.close()
-        #
-        # return HttpResponse(json.dumps(res), content_type="application/json")
 
+def apiv1_hostdetails(request, scanfile: str, faddress: str = "") -> HttpResponse:
+    """
+    Retrieve host details from an Nmap XML report.
 
-def apiv1_hostdetails(request, scanfile, faddress=""):
-    oo = xmltodict.parse(open('/opt/xml/' + scanfile, 'r').read())
+    Args:
+        request: The HTTP request object.
+        scanfile (str): The filename of the Nmap XML report.
+        faddress (str, optional): The IP address of the host to retrieve details for. Defaults to "".
+
+    Returns:
+        HttpResponse: A JSON response containing the host details.
+
+    """
+    oo = xmltodict.parse(open(f'{_WIFI_XML_BASE_DIRECTORY}/{scanfile}', 'r').read())
     out2 = json.dumps(oo['nmaprun'], indent=4)
     o = json.loads(out2)
+
+    logger.debug(f"Loaded file {scanfile}")
 
     r = {'file': scanfile, 'hosts': {}}
     scanmd5 = hashlib.md5(str(scanfile).encode('utf-8')).hexdigest()
 
-    # collect all labels in labelhost dict
+    logger.debug(f"Collect all labels from {_NOTES_DIRECTORY}")
     labelhost = {}
-    labelfiles = os.listdir('/opt/notes')
+    labelfiles = os.listdir(_NOTES_DIRECTORY)
     for lf in labelfiles:
         m = re.match('^(' + scanmd5 + ')_([a-z0-9]{32,32})\.host\.label$', lf)
         if m is not None:
@@ -224,9 +300,9 @@ def apiv1_hostdetails(request, scanfile, faddress=""):
                 labelhost[m.group(1)] = {}
             labelhost[m.group(1)][m.group(2)] = open('/opt/notes/' + lf, 'r').read()
 
-    # collect all notes in noteshost dict
+    logger.debug(f"Collect all notes from {_NOTES_DIRECTORY}")
     noteshost = {}
-    notesfiles = os.listdir('/opt/notes')
+    notesfiles = os.listdir(_NOTES_DIRECTORY)
     for nf in notesfiles:
         m = re.match('^(' + scanmd5 + ')_([a-z0-9]{32,32})\.notes$', nf)
         if m is not None:
@@ -234,7 +310,7 @@ def apiv1_hostdetails(request, scanfile, faddress=""):
                 noteshost[m.group(1)] = {}
             noteshost[m.group(1)][m.group(2)] = open('/opt/notes/' + nf, 'r').read()
 
-    # collect all cve in cvehost dict
+    logger.debug(f"Collect all CVE from {_NOTES_DIRECTORY}")
     cvehost = get_cve(scanmd5)
 
     for ik in o['host']:
@@ -283,16 +359,12 @@ def apiv1_hostdetails(request, scanfile, faddress=""):
             if scanmd5 in noteshost:
                 if addressmd5 in noteshost[scanmd5]:
                     notesb64 = noteshost[scanmd5][addressmd5]
-            #		notesout = '<br><a id="noteshost'+str(hostindex)+'" href="#!" onclick="javascript:openNotes(\''+hashlib.md5(str(address).encode('utf-8')).hexdigest()+'\', \''+notesb64+'\');" class="small"><i class="fas fa-comment"></i> contains notes</a>'
-            #		removenotes = '<li><a href="#!" onclick="javascript:removeNotes(\''+addressmd5+'\', \''+str(hostindex)+'\');">Remove notes</a></li>'
 
             cveout = ''
-            # cvecount = 0
+
             if scanmd5 in cvehost:
                 if addressmd5 in cvehost[scanmd5]:
                     cveout = json.loads(cvehost[scanmd5][addressmd5])
-            #		for cveobj in cvejson:
-            #			cvecount = (cvecount + 1)
 
             if faddress == "":
                 r['hosts'][address] = {'hostname': hostname, 'label': labelout, 'notes': notesb64}
@@ -342,18 +414,34 @@ def apiv1_hostdetails(request, scanfile, faddress=""):
                             'extrainfo': e
                         })
 
+    logger.info("Collected all host details")
+    logger.debug(f"return value: {r}")
+
     return HttpResponse(json.dumps(r, indent=4), content_type="application/json")
 
 
-def apiv1_scan(request):
+def apiv1_scan(request) -> HttpResponse:
+    """
+    Retrieve scan information for APIv1.
+
+    Args:
+        request: The HTTP request object.
+
+    Returns:
+        HttpResponse: A JSON response containing scan information.
+
+    """
+
+    logger.info(f"Using API to retrieve scan information")
+
     r = {}
-    # if token_check(request.GET['token']) is not True:
-    #     return HttpResponse(json.dumps({'error': 'invalid token'}, indent=4), content_type="application/json")
 
-    gitcmd = os.popen('cd /opt/proteciotnet/proteciotnet_dev && git rev-parse --abbrev-ref HEAD')
-    r['webmap_version'] = gitcmd.read().strip()
+    gitcmd = os.popen(f'cd {_BASE_DIRECTORY} && git rev-parse --abbrev-ref HEAD')
+    r['proteciotnet_version'] = gitcmd.read().strip()
 
-    xmlfiles = os.listdir('/opt/xml')
+    logger.debug(f"Found Version: {r['proteciotnet_version']} ")
+
+    xmlfiles = os.listdir(_WIFI_XML_BASE_DIRECTORY)
 
     r['scans'] = {}
 
@@ -365,7 +453,7 @@ def apiv1_scan(request):
         xmlfilescount = (xmlfilescount + 1)
 
         try:
-            oo = xmltodict.parse(open('/opt/xml/' + i, 'r').read())
+            oo = xmltodict.parse(open(f'{_WIFI_XML_BASE_DIRECTORY}/{i}', 'r').read())
         except:
             r['scans'][i] = {'filename': html.escape(i), 'startstr': '', 'nhost': 0,
                              'port_stats': {'open': 0, 'closed': 0, 'filtered': 0}}
@@ -388,12 +476,26 @@ def apiv1_scan(request):
                          'port_stats': {'open': portstats['po'], 'closed': portstats['pc'],
                                         'filtered': portstats['pf']}}
 
+    logger.info("Successfully used API to get scan results")
+    logger.debug(f"result: {r}")
+
     return HttpResponse(json.dumps(r, indent=4), content_type="application/json")
 
 
 def delete_file(request):
+    """
+    Delete a file from the ProtecIoTnet system via the API.
+
+    Args:
+        request: The HTTP request object.
+
+    Returns:
+        HttpResponse: A JSON response indicating the result of the deletion.
+
+    """
 
     if request.method != "POST":
+        logger.error("Please use a POST request for this function.")
         return HttpResponse(json.dumps({'error': 'invalid syntax'}, indent=4), content_type="application/json")
 
     filename = request.POST['file_to_delete']
@@ -413,8 +515,19 @@ def delete_file(request):
 
 
 def bruteforce(request):
+    """
+    Run a brute force attack via the API.
+
+    Args:
+        request: The HTTP request object.
+
+    Returns:
+        HttpResponse: A JSON response indicating the result of the brute force attack.
+
+    """
 
     if request.method != "POST":
+        logger.error("Please use a POST request for this function.")
         return HttpResponse(json.dumps({'error': 'invalid syntax'}, indent=4), content_type="application/json")
 
     filename = request.POST['filename']
@@ -427,11 +540,8 @@ def bruteforce(request):
         logger.info("Successfully ran auto-bruteforcer script")
         res = {'ok': f'file {filename} deleted'}
         return HttpResponse(json.dumps(res), content_type="application/json")
-    except Exception as e:
-        print(e)
-        logger.error("Could not run function to auto bruteforce")
+    except Exception as e_bruteforce_api:
+        logger.error(f"Could not run function to auto bruteforce. Exception: {str(e_bruteforce_api)}")
 
     res = {'error': request.method}
     return HttpResponse(json.dumps(res), content_type="application/json")
-
-

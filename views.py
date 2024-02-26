@@ -27,9 +27,7 @@ _MEDUSA_SUPPORTED_SERVICES = ['ssh', 'ftp', 'postgresql', 'telnet', 'mysql', 'ms
                               'exec', 'login', 'microsoft-ds', 'smtp', 'smtps', 'submission',
                               'svn', 'iss-realsecure', 'snmptrap', 'snmp', 'http']
 
-# BLE_FILE_DIR = "/opt/ble/"
-# BLE_STATIC_REPORT_DIR = "/opt/proteciotnet/proteciotnet_dev/static/ble_reports/"
-
+# Global logging level
 logging_level = logging.DEBUG
 main_logger = logging.getLogger()
 main_logger.setLevel(logging_level)

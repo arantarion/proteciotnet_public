@@ -30,9 +30,12 @@ _CWE_PATTERN = r"CWE-\d{1,3}"
 try:
     config_functions = ConfigParser(interpolation=ExtendedInterpolation())
     config_functions.read('proteciotnet.config')
+
     _BASE_DIRECTORY = config_functions.get('GENERAL_PATHS', 'base_directory')
     _STATIC_DIRECTORY = config_functions.get('GENERAL_PATHS', 'static_directory')
+    _NOTES_DIRECTORY = config_functions.get('GENERAL_PATHS', 'notes_directory')
     _REPORTS_DIRECTORY = config_functions.get('GENERAL_PATHS', 'report_directory')
+    _WIFI_XML_BASE_DIRECTORY = config_functions.get('WIFI_PATHS', 'wifi_xml_base_directory')
     _ZIGBEE_JSON_BASE_DIRECTORY = config_functions.get('ZIGBEE_PATHS', 'zigbee_json_base_directory')
     _ZIGBEE_REPORTS_DIRECTORY = config_functions.get('ZIGBEE_PATHS', 'zigbee_reports_directory')
     logger.info("Successfully loaded config file 'proteciotnet.config'")
@@ -45,7 +48,7 @@ def token_check(token):
     return True
 
 
-def get_cvss_color(cvss_score, version=2):
+def get_cvss_color(cvss_score, version: int = 2):
     """
     Get color codes for CVSS score based on severity levels.
 
@@ -78,23 +81,28 @@ def get_cvss_color(cvss_score, version=2):
 
     try:
         cvss_score = float(cvss_score)
+        logger.debug(f"CVSS score: {cvss_score}")
     except ValueError:
+        logger.warning(f"Could not calculate color based on score. Using black/white instead.")
         return 'black', 'white'
 
     if version == 2:
+        logger.debug(f"Fixing color for CVSS 2 output")
         for score_range, color in score_range_version_2.items():
             if score_range[0] <= cvss_score <= score_range[1]:
                 return color, "white" if color != "yellow" else "black"
 
     elif version == 3:
+        logger.debug(f"Fixing color for CVSS 3 output")
         for score_range_v3, color in score_range_version_3.items():
             if score_range_v3[0] <= cvss_score <= score_range_v3[1]:
                 return color, "white" if color != "yellow" else "black"
 
+    logger.debug("Everything failed so going with black/white.")
     return 'black', 'white'
 
 
-def get_cwe_description(cwe_nr):
+def get_cwe_description(cwe_nr: str):
     """
     Get the CWE description for a given CWE number.
 
@@ -106,12 +114,13 @@ def get_cwe_description(cwe_nr):
     """
 
     if cwe_nr in cwe_descriptions:
+        logger.debug(f"{cwe_nr}: {cwe_descriptions[cwe_nr]}")
         return f"{cwe_nr}: {cwe_descriptions[cwe_nr]}"
 
     return "no description available"
 
 
-def label_to_margin(label):
+def label_to_margin(label: str):
     """
     Convert a label to the corresponding margin value.
 
@@ -132,7 +141,7 @@ def label_to_margin(label):
     return labels.get(label)
 
 
-def label_to_color(label):
+def label_to_color(label: str):
     """
     Convert a label to the corresponding color.
 
@@ -153,7 +162,7 @@ def label_to_color(label):
     return labels.get(label)
 
 
-def from_os_type_to_font_awesome(os_type):
+def from_os_type_to_font_awesome(os_type: str) -> str:
     """
     Convert an operating system type to the corresponding Font Awesome icon class.
 
@@ -197,8 +206,10 @@ def nmap_ports_stats(scanfile: str) -> dict:
     """
 
     try:
-        parsed_xml_nmap_file = xmltodict.parse(open('/opt/xml/' + scanfile, 'r').read())
+        parsed_xml_nmap_file = xmltodict.parse(open(f'{_WIFI_XML_BASE_DIRECTORY}/{scanfile}', 'r').read())
+        logger.debug(f'Parsed {len(parsed_xml_nmap_file)}')
     except:
+        logger.error(f'Could not parse file {scanfile}. Setting values to 0.')
         return {'po': 0, 'pc': 0, 'pf': 0}
 
     nmap_run_dict = parsed_xml_nmap_file['nmaprun']
@@ -207,15 +218,17 @@ def nmap_ports_stats(scanfile: str) -> dict:
     ports_open, ports_closed, ports_filtered = 0, 0, 0
 
     if 'host' not in nmap_run_dict:
+        logger.error(f'No host found in file. Setting values to 0.')
         return {'po': 0, 'pc': 0, 'pf': 0}
 
     port_id_counter = 0
     for items in nmap_run_dict['host']:
-
         if type(items) is dict:
             item = items
         else:
             item = nmap_run_dict['host']
+
+        logger.debug(f'Processing {item}')
 
         id_of_last_port = 0
         address = None
@@ -261,6 +274,12 @@ def nmap_ports_stats(scanfile: str) -> dict:
     ports_closed_string = html.escape(f"{ports_closed}{(4 - len(str(ports_closed))) * ' '}")
     ports_filtered_string = html.escape(f"{ports_filtered}{(4 - len(str(ports_filtered))) * ' '}")
 
+    logger.debug(f"{ports_open_string}")
+    logger.debug(f"{ports_closed_string}")
+    logger.debug(f"{ports_filtered_string}")
+
+    logger.info(f"Found all ports to display.")
+
     return {'po': ports_open, 'pc': ports_closed, 'pf': ports_filtered, 'debug': json.dumps(debug),
             "pos": ports_open_string, "pcs:": ports_closed_string, "pfc": ports_filtered_string}
 
@@ -288,7 +307,8 @@ def get_cve(md5_hash_of_scan: str) -> dict:
         # }
     """
     host_cves = {}
-    files = os.listdir('/opt/notes')
+    files = os.listdir(_NOTES_DIRECTORY)
+    logger.info(f"Getting cves from {_NOTES_DIRECTORY}")
     for file in files:
         match = re.match(f'^({md5_hash_of_scan})_([a-z0-9]{{32,32}})\.cve$', file)
         if match is not None:
@@ -296,7 +316,9 @@ def get_cve(md5_hash_of_scan: str) -> dict:
                 host_cves[match.group(1)] = {}
 
             if match.group(2) not in host_cves[match.group(1)]:
-                host_cves[match.group(1)][match.group(2)] = open('/opt/notes/' + file, 'r').read()
+                host_cves[match.group(1)][match.group(2)] = open(f'{_NOTES_DIRECTORY}/{file}', 'r').read()
+
+    logger.debug(f"Found {len(host_cves)} cves for host {md5_hash_of_scan}")
 
     return host_cves
 
@@ -329,8 +351,10 @@ def get_ports_details(scanfile: str) -> dict:
     """
 
     try:
-        parsed_xml_nmap_file = xmltodict.parse(open('/opt/xml/' + scanfile, 'r').read())
-    except:
+        parsed_xml_nmap_file = xmltodict.parse(open(f'{_WIFI_XML_BASE_DIRECTORY}/{scanfile}', 'r').read())
+        logger.debug(f"Successfully parsed XML scan file: {scanfile}")
+    except Exception as e_get_ports:
+        logger.error(f"Error parsing {scanfile}: {e_get_ports}")
         return {}
 
     nmap_run_dict = parsed_xml_nmap_file['nmaprun']
@@ -340,7 +364,8 @@ def get_ports_details(scanfile: str) -> dict:
 
     host_labels = {}
     host_notes = {}
-    files = os.listdir('/opt/notes')
+    files = os.listdir(_NOTES_DIRECTORY)
+    logger.debug(f"Searchin labels and notes in {_NOTES_DIRECTORY}")
     for file in files:
         match_labels = re.match(f'^({md5_hash_of_scanfile})_([a-z0-9]{32, 32})\.host\.label$', file)
         if match_labels is not None:
@@ -371,7 +396,7 @@ def get_ports_details(scanfile: str) -> dict:
                 else:
                     hostname[item['hostnames']['hostname']['@type']] = item['hostnames']['hostname']['@name']
 
-        print(hostname)
+        logger.debug(f"hostname: {hostname}")
 
         if item['status']['@state'] == 'up':
             services, ports = {}, {}
@@ -437,12 +462,16 @@ def get_ports_details(scanfile: str) -> dict:
                             'version': version,
                             'extrainfo': extra_info
                         })
+
+    logger.info(f"All port details gathered")
+    logger.debug(f"return value: {return_value_dict}")
+
     return return_value_dict
 
 
 def insert_linebreaks(input_string: str, max_line_length: int = 40) -> str:
     """
-    Insert line breaks into a long string to ensure each line'input_string length does not exceed a given limit.
+    Insert line breaks into a long string to ensure each line's length does not exceed a given limit.
 
     Args:
         input_string (str): The input string to insert line breaks into.
@@ -488,6 +517,8 @@ def insert_linebreaks(input_string: str, max_line_length: int = 40) -> str:
     if current_line:
         lines.append(current_line)
 
+    logger.info("Broke down line into multiple lines.")
+
     return f"<p>{'<br>'.join(lines)}</p>"
 
 
@@ -502,6 +533,7 @@ def _split_cve_html(CVEs):
         list: List of individual CVE blocks.
     """
 
+    logger.info(f"Spliting CVE entries into individual blocks.")
     pattern = r'<div id="CVE-'
     split_strings = re.split(pattern, CVEs)
     return ['<div id="CVE-' + part for part in split_strings[1:]]
@@ -517,6 +549,7 @@ def _extract_cwe_number_from_block(cve):
     Returns:
         int: Extracted numeric portion of the CWE.
     """
+    logger.info(f"Extracting CWE: {cve}")
     cwe_match = re.findall(_CWE_PATTERN, cve)
     if cwe_match:
         try:
@@ -536,12 +569,16 @@ def _extract_cvss2_score(cve):
     Returns:
         float: Extracted CVSS 3.x score.
     """
+
+    logger.info(f"Extracting CVSS 2 score")
     match = re.findall(_CVSS_2_PATTERN, cve)
     if match:
         try:
             return float(match[0])
         except ValueError:
+            logger.warning("Could not extract CVSS 2 score")
             return 0.0
+    logger.warning("Could not extract CVSS 2 score. No match found")
     return 0.0
 
 
@@ -555,25 +592,29 @@ def _extract_cvss3_score(cve):
     Returns:
         float: Extracted CVSS 3.x score.
     """
+
+    logger.info(f"Extracting CVSS 3 score")
     match = re.findall(_CVSS_3_PATTERN, cve)
     if match:
         try:
             return float(match[0])
         except ValueError:
+            logger.warning("Could not extract CVSS 3 score")
             return 0.0
+    logger.warning("Could not extract CVSS 3 score. No match.")
     return 0.0
 
 
-def search_cve_html(cves_html, search_string):
+def search_cve_html(cves_html: str, search_string: str) -> str:
     """
     Search for a specific string within a list of HTML CVE (Common Vulnerabilities and Exposures) entries.
 
-    Parameters:
-    - cves_html (str): A string containing HTML for multiple CVEs.
-    - search_string (str): The string to search for within the CVE entries. Assumes the search_string is prefixed with "search=" and removes it before performing the search.
+    Artgs:
+        cves_html (str): A string containing HTML for multiple CVEs.
+        search_string (str): The string to search for within the CVE entries. Assumes the search_string is prefixed with "search=" and removes it before performing the search.
 
     Returns:
-    - str: A HTML string containing all CVE entries that include the search string.
+        str: A HTML string containing all CVE entries that include the search string.
     """
 
     search_string = search_string.replace("search=", "").strip().lower()
@@ -583,8 +624,11 @@ def search_cve_html(cves_html, search_string):
     result = ''.join([cve for cve in split_cves if search_string in cve.lower()])
 
     if result:
+        logger.info("Found result")
+        logger.debug(f"result: {result}")
         return result
     else:
+        logger.warning(f"No search result found with search string {search_string}")
         return """
         <div id="no_results" style="line-height:28px;padding:10px;border-bottom:solid #666 1px;margin-top:10px;" class="center">
             Your search returned no results. You can use your browser to get back or click the "x" icon in the search bar.
@@ -593,7 +637,7 @@ def search_cve_html(cves_html, search_string):
         """
 
 
-def _sort_cve_list(cve_list, key_function, reverse_order):
+def _sort_cve_list(cve_list: list, key_function, reverse_order: bool) -> str:
     """
     Sort a list of CVE blocks based on a given key function and sorting order.
 
@@ -608,7 +652,7 @@ def _sort_cve_list(cve_list, key_function, reverse_order):
     return ''.join(sorted(cve_list, key=key_function, reverse=reverse_order))
 
 
-def sort_cve_html(cves_html, sorting_order):
+def sort_cve_html(cves_html: str, sorting_order: str) -> str:
     """
     Sort the HTML content containing CVE entries based on the specified sorting order.
 
@@ -620,12 +664,12 @@ def sort_cve_html(cves_html, sorting_order):
         str: Sorted HTML content of CVE entries.
     """
 
-    logger.info("Trying to sort CVE entries")
+    logger.info(f"Trying to sort CVE entries in order {sorting_order}")
     split_cves = _split_cve_html(cves_html)
 
     if sorting_order == "cvss2asc":
-        for elem in split_cves:
-            print(re.findall(_CVSS_2_PATTERN, elem))
+        # for elem in split_cves:
+        #     print(re.findall(_CVSS_2_PATTERN, elem))
         return _sort_cve_list(split_cves, _extract_cvss2_score, False)
     elif sorting_order == "cvss2desc":
         return _sort_cve_list(split_cves, _extract_cvss2_score, True)
@@ -646,81 +690,25 @@ def sort_cve_html(cves_html, sorting_order):
         return _sort_cve_list(split_cves, _extract_cwe_number_from_block, True)
 
     else:
+        logger.warning(f"Could not find sorting order {sorting_order}")
         return cves_html
 
 
-def parse_config_file(filename: str = 'proteciotnet.config') -> dict:
+def create_file_dropdown_zigbee(filename: str) -> str:
     """
-    Parse a configuration file in INI-like format and return the parsed data.
-
-    This function reads the contents of the specified configuration file and
-    parses it to create a hierarchical dictionary containing the configuration
-    data.
+    Creates a dropdown menu containing downloadable files related to a Zigbee report.
 
     Args:
-        filename (str, optional): The path to the configuration file to be parsed.
-            Default is 'proteciotnet.config'.
+        filename (str): The name of the Zigbee report file.
 
     Returns:
-        dict: A hierarchical dictionary containing the parsed configuration data.
-            The dictionary structure is organized by sections, where each section
-            is represented as a dictionary containing its associated options and
-            values.
+        str: HTML content for the dropdown menu containing links to downloadable files.
 
-    Example:
-        Given a configuration file 'example.config' with the following content:
-        ```
-        [Section1]
-        Option1 = Value1
-        Option2 = Value2
-
-        [Section2]
-        Option3 = Value3
-        ```
-        Calling `parse_config_file('my_config.ini')` would return:
-        ```
-        {
-            'Section1': {
-                'Option1': 'Value1',
-                'Option2': 'Value2'
-            },
-            'Section2': {
-                'Option3': 'Value3'
-            }
-        }
-        ```
-
-    Note:
-        - Lines starting with '#' are treated as comments and are ignored.
-        - The function assumes that each section header is enclosed in square brackets,
-          e.g., '[Section]'.
-        - Each option and value within a section should be separated by '=' and will
-          be stored as strings in the parsed dictionary.
     """
-
-    parsed_data = {}
-    current_section = None
-
-    with open(filename, 'r') as file:
-        for line in file:
-            line = line.strip()
-
-            if not line or line.startswith('#'):
-                continue
-
-            if line.startswith('[') and line.endswith(']'):
-                current_section = line[1:-1]
-                parsed_data[current_section] = {}
-            else:
-                key, value = line.split('=', 1)
-                parsed_data[current_section][key.strip()] = value.strip()
-
-    return parsed_data
-
-
-def create_file_dropdown_zigbee(filename):
     contents_directory = os.listdir(_ZIGBEE_REPORTS_DIRECTORY)
     filename_without_extension = filename.rsplit(".", 1)[0]
+
+    logger.info(f"Creating file dropdown for download options for filename: {filename}")
 
     dropdown_html = ''
     if any(filename_without_extension in local_file for local_file in contents_directory if not local_file.endswith(('.svg', '.dot'))):
@@ -759,12 +747,26 @@ def create_file_dropdown_zigbee(filename):
 
         dropdown_html += f'</ul><a class="dropdown-trigger" href="#!" data-target="dropdown_{filename}_files" style="color: #ff9800;"><i class="material-icons">file_open</i> Files</a><br><br>'
 
+    logger.info(f"Dropdown (ZigBee) successfully created.")
+    logger.debug(f"Dropdown (ZigBee) html: {dropdown_html}")
     return dropdown_html
 
 
-def create_file_dropdown(filename):
+def create_file_dropdown(filename: str) -> str:
+    """
+    Creates a dropdown menu containing downloadable files related to a report.
+
+    Args:
+        filename (str): The name of the report file.
+
+    Returns:
+        str: HTML content for the dropdown menu containing links to downloadable files.
+
+    """
     contents_directory = os.listdir(_REPORTS_DIRECTORY)
     filename_without_extension = filename.rsplit(".", 1)[0]
+
+    logger.info(f"Creating file dropdown for {filename}")
 
     dropdown_html = ''
     if any(filename_without_extension in local_file for local_file in contents_directory):
@@ -796,10 +798,23 @@ def create_file_dropdown(filename):
 
         dropdown_html += f'</ul><a class="dropdown-trigger" href="#!" data-target="dropdown_{filename}_files" style="color: #ff9800;"><i class="material-icons">file_open</i> Files</a><br><br>'
 
+    logger.info(f"Dropdown successfully created.")
+    logger.debug(f"Dropdown html: {dropdown_html}")
     return dropdown_html
 
 
-def set_state(request):
+def set_state(request) -> HttpResponse:
+    """
+    Sets the state of the system to online or offline mode based on the toggle status received in the request.
+
+    Args:
+        request (HttpRequest): The HTTP request object containing toggle status information in the POST data.
+
+    Returns:
+        HttpResponse: JSON response indicating the success or failure of setting the system state.
+
+    """
+
     res = {'p': request.POST}
 
     if request.method == "POST":
@@ -807,12 +822,12 @@ def set_state(request):
 
         if toggle_status == "true":
             if "offline_mode.lock" not in os.listdir(_STATIC_DIRECTORY):
-
                 try:
                     with open(f"{_STATIC_DIRECTORY}/offline_mode.lock", "w") as f:
                         pass
-                except:
-                    logger.error("Could not create 'offline_mode.lock' file")
+                    logger.debug("Created offline mode lock file")
+                except Exception as e_set_state:
+                    logger.error(f"Could not create 'offline_mode.lock' file: {e_set_state}")
                     return HttpResponse(json.dumps({'error': 'file creation problem'}, indent=4),
                                         content_type="application/json")
 
@@ -822,14 +837,16 @@ def set_state(request):
             try:
                 if "offline_mode.lock" in os.listdir(_STATIC_DIRECTORY):
                     os.remove(f"{_STATIC_DIRECTORY}/offline_mode.lock")
-            except:
-                logger.error("Could not delete offline_mode.lock' file")
+                logger.debug("Removed offline mode lock file")
+            except Exception as e_set_state_rem:
+                logger.error(f"Could not delete offline_mode.lock' file: {e_set_state_rem}")
                 return HttpResponse(json.dumps({'error': 'file deletion problem'}, indent=4),
                                     content_type="application/json")
+
             logger.info("Successfully changed to online mode")
 
         return HttpResponse(json.dumps(res, indent=4), content_type="application/json")
     else:
-        logger.error("Something went wrong while trying to set offline/online mode toggle")
+        logger.error("You must send a POST request to use this function.")
         res = {'error': 'invalid syntax'}
         return HttpResponse(json.dumps(res, indent=4), content_type="application/json")
